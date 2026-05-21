@@ -5,8 +5,6 @@ CREATE TABLE users
     username      NVARCHAR(100),
     email         VARCHAR(150) UNIQUE,
     password_hash VARCHAR(255),
-    token_version INT                          DEFAULT 0,
-    last_login    DATETIME NULL,
     is_active     BIT                          DEFAULT 0,
     created_at    DATETIME                     DEFAULT GETDATE()
 );
@@ -77,31 +75,40 @@ CREATE TABLE emergency_logs
     CONSTRAINT FK_logs_users FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
--- ================= REFRESH TOKENS =================
-CREATE TABLE refresh_tokens
-(
-    id          BIGINT IDENTITY(1,1) PRIMARY KEY,
-    token       VARCHAR(500) UNIQUE NOT NULL,
-    user_id     UNIQUEIDENTIFIER    NOT NULL,
-    expiry_time DATETIME            NOT NULL,
-    revoked     BIT DEFAULT 0,
-
-    CONSTRAINT fk_refresh_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-);
 
 -- ================= INVALIDATED TOKENS =================
 CREATE TABLE invalidated_tokens
 (
     id          VARCHAR(36) PRIMARY KEY,
-    expiry_time DATETIME DEFAULT GETDATE()
+    expiry_time DATETIME DEFAULT GETDATE(),
 );
 
 
 CREATE TABLE email_verification_tokens
 (
     id          UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
-    user_id     UNIQUEIDENTIFIER NOT NULL,
+    user_id     UNIQUEIDENTIFIER    NOT NULL,
     token       VARCHAR(255) UNIQUE NOT NULL,
-    expiry_time DATETIME         NOT NULL,
+    expiry_time DATETIME            NOT NULL,
     CONSTRAINT fk_email_verification_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
+
+CREATE TABLE products
+(
+    id               UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
+    name             NVARCHAR(150) NOT NULL,
+    description      NVARCHAR(1000),
+    price            DECIMAL(18, 2),
+    status           VARCHAR(20)                  DEFAULT 'ACTIVE',
+    created_at       DATETIME                     DEFAULT GETDATE(),
+    updated_at       DATETIME                     DEFAULT GETDATE()
+);
+
+
+ALTER TABLE devices
+    ADD product_id UNIQUEIDENTIFIER;
+
+ALTER TABLE devices
+    ADD CONSTRAINT FK_devices_products
+        FOREIGN KEY (product_id)
+            REFERENCES products (id);

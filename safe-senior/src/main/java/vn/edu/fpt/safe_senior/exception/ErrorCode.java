@@ -16,6 +16,7 @@ public enum ErrorCode {
     ROLE_NOT_EXISTED(1007,"ROLE NOT EXISTED",HttpStatus.FORBIDDEN),
     EMAIL_EXISTED(1009, "Email existed", HttpStatus.BAD_REQUEST),
     USER_NOT_ACTIVE(1010, "Account not verify", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH(1011, "Password not match", HttpStatus.BAD_REQUEST),
     INVALID_DOB(1008,"Your age must be at least {min}",HttpStatus.FORBIDDEN),
     UNAUTHORIZED(1007,"You do not have permission",HttpStatus.FORBIDDEN);
 

@@ -1,6 +1,6 @@
 package vn.edu.fpt.safe_senior.dto.request;
 
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,7 +9,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor // constructor k tham so
 @AllArgsConstructor // constructor co tham so
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class LogoutRequest {
-    String token;
+@JsonInclude(JsonInclude.Include.NON_NULL) // khi null du lieu se k dc tra ve
+public class AuthenticationRequest {
+    String username;
+    String password;
 }
-

@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:sqlserver://localhost:1433;database=SafeSenior;encrypt=false;trustServerCertificate=true;
+    url: jdbc:sqlserver://localhost:1433;database=A;encrypt=false;trustServerCertificate=true;
     username: sa
     password: 123456
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
@@ -24,9 +24,18 @@ spring:
           auth: true
           starttls:
             enable: true
+  
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+    mode: HTML
+
+app:
+  base-url: http://localhost:8080
 jwt:
   signerKey: "1TjXchw5FLoESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij"
-  valid-duration: 3600 #in second
-  refreshable-duration: 360000 # in seconds
+  valid-duration: 60 #in second
+  refreshable-duration: 604800 # in seconds
 
 

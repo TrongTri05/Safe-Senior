@@ -6,6 +6,7 @@ import org.mapstruct.MappingTarget;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
 import vn.edu.fpt.safe_senior.dto.response.UserCreateResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserInfoResponse;
+import vn.edu.fpt.safe_senior.dto.response.UserResponse;
 import vn.edu.fpt.safe_senior.entity.Role;
 import vn.edu.fpt.safe_senior.entity.User;
 
@@ -17,11 +18,7 @@ public interface UserMapper {
     @Mapping(target = "roles", ignore = true)
     User toUser(UseCreateRequest request);
 
-    @Mapping(target = "roles", source = "roles") // lấy request.roles → set vào User.roles
-    UserCreateResponse toUserResponse(User user);
-
-    @Mapping(target = "roles", source = "roles")
-    UserInfoResponse toUserInfoResponse(User user);
+    UserResponse toUserResponse(User user);
 
 //    @Mapping(target = "roles", ignore = true) // bỏ qua field roles, không map, ignore = true: Field không có trong request, nhưng entity có Set<Role> roles;
 //    void updateUser(@MappingTarget User user, UserUpdateRequest request);

@@ -19,14 +19,11 @@ public class EmailVerificationToken {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "UNIQUEIDENTIFIER")
     String id;
-
-    @Column(nullable = false, unique = true, length = 255)
-    String token;
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, columnDefinition = "UNIQUEIDENTIFIER")
     User user;
-
+    @Column(nullable = false, unique = true, length = 255)
+    String token;
     @Column(name = "expiry_time", nullable = false)
     LocalDateTime expiryTime;
 }

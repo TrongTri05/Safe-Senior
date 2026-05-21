@@ -15,8 +15,8 @@ import lombok.experimental.FieldDefaults;
 public class UseCreateRequest {
     @Size(min = 3, max = 15, message = "USERNAME_INVALID")
     String username;
-    @Email(message = "EMAIL_INVALID")
+    @Email
     String email;
-    @Size(min = 8, max = 15, message = "PASSWORD_INVALID")
     String password;
+    String confirmPassword;
 }

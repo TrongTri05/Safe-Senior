@@ -6,8 +6,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -22,24 +22,14 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "UNIQUEIDENTIFIER")
     String id;
-
+    @Column(unique = true)
     String username;
-
     @Column(unique = true, length = 150)
     String email;
-
     @Column(name = "password_hash", length = 255)
-    String passwordHash;
-
-    @Column(name = "token_version")
-    Integer tokenVersion = 0;
-
-    @Column(name = "last_login")
-    LocalDateTime lastLogin;
-
+    String password;
     @Column(name = "is_active")
-    Boolean isActive = true;
-
+    Boolean isActive = false;
     @Column(name = "created_at", updatable = false)
     LocalDateTime createdAt;
 
@@ -50,6 +40,10 @@ public class User {
         }
     }
 
+    @OneToMany(mappedBy = "user")
+    List<UserContact> contacts;
+    @OneToMany(mappedBy = "user")
+    List<EmergencyLog> emergencyLogs;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
