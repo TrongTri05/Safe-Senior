@@ -1,4 +1,4 @@
-package vn.edu.fpt.safe_senior.dto.response;
+package vn.edu.fpt.safe_senior.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class IntrospectResponse {
-    boolean valid;
+public class DeviceRegisterRequest {
+     String deviceId;
+
 }

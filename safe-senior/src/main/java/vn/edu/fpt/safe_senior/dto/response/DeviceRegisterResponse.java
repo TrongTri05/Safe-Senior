@@ -1,6 +1,5 @@
 package vn.edu.fpt.safe_senior.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,9 +8,6 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApiResponse <T> {
-    @Builder.Default
-    int code = 1000;
+public class DeviceRegisterResponse {
     String message;
-    T result;
 }

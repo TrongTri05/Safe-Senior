@@ -2,10 +2,7 @@ package vn.edu.fpt.safe_senior.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
-import vn.edu.fpt.safe_senior.dto.response.UserCreateResponse;
-import vn.edu.fpt.safe_senior.dto.response.UserInfoResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
 import vn.edu.fpt.safe_senior.entity.Role;
 import vn.edu.fpt.safe_senior.entity.User;

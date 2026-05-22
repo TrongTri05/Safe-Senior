@@ -1,3 +1,5 @@
+CREATE DATABASE A;
+
 -- ================= USERS =================
 CREATE TABLE users
 (
@@ -36,8 +38,10 @@ CREATE TABLE devices
     user_id    UNIQUEIDENTIFIER NULL,
     name       NVARCHAR(100),
     status     VARCHAR(20)                  DEFAULT 'ACTIVE',
+    product_id UNIQUEIDENTIFIER,
     created_at DATETIME                     DEFAULT GETDATE(),
-    CONSTRAINT FK_devices_users FOREIGN KEY (user_id) REFERENCES users (id)
+    CONSTRAINT FK_devices_users FOREIGN KEY (user_id) REFERENCES users (id),
+    CONSTRAINT FK_devices_products FOREIGN KEY (product_id) REFERENCES products (id);
 );
 
 -- ================= USER_CONTACTS =================
@@ -103,12 +107,3 @@ CREATE TABLE products
     created_at       DATETIME                     DEFAULT GETDATE(),
     updated_at       DATETIME                     DEFAULT GETDATE()
 );
-
-
-ALTER TABLE devices
-    ADD product_id UNIQUEIDENTIFIER;
-
-ALTER TABLE devices
-    ADD CONSTRAINT FK_devices_products
-        FOREIGN KEY (product_id)
-            REFERENCES products (id);

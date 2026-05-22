@@ -10,6 +10,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "devices")
@@ -25,11 +26,16 @@ public class Device {
     User user;
     String name;
     String status;
+    String serverUrl;
     @ManyToOne
     @JoinColumn(name = "product_id")
     Product product;
     @Column(name = "created_at", updatable = false)
     LocalDateTime created;
+    @Column(name = "configuredAt")
+    LocalDateTime configuredAt;
+    @Column(name = "lastConnectedAt")
+    LocalDateTime lastConnectedAt;
     @OneToMany(mappedBy = "device")
     List<DeviceConfigHistory> configHistories;
     @OneToMany(mappedBy = "device")

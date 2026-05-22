@@ -1,17 +1,19 @@
 package vn.edu.fpt.safe_senior.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Data
+import java.math.BigDecimal;
+
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApiResponse <T> {
-    @Builder.Default
-    int code = 1000;
-    String message;
-    T result;
+public class BuyProductResponse {
+    String name;
+    String description;
+    BigDecimal price;
+    String deviceId;
 }

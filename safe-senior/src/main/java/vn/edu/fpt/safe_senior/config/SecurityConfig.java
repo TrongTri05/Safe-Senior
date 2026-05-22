@@ -19,11 +19,9 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     private final String[] publicEndpoint = {
             "/users/**",
-            "/auth/token",
-            "/auth/introspect",
-            "/auth/logout",
-            "/auth/refresh",
-            "/home/**"
+            "/auth/**",
+            "/home/**",
+            "/products/**",
     };
     private final String[] publicStaticEndpoint = {
             "/css/**",

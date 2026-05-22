@@ -75,12 +75,14 @@ public class UserService {
             }
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
+
         String token = UUID.randomUUID().toString();
         EmailVerificationToken verificationToken = new EmailVerificationToken();
         verificationToken.setToken(token);
         verificationToken.setUser(user);
         verificationToken.setExpiryTime(LocalDateTime.now().plusMinutes(15));
         emailVerificationTokenRepository.save(verificationToken);
+
         String verifyUrl = baseUrl + "/users/verify?token=" + token;
         String subject = "Xác thực tài khoản Safe Website";
         String content = "Vui lòng nhấn vào link sau để xác thực tài khoản: " + verifyUrl;

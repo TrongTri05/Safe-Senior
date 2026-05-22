@@ -10,7 +10,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE) //Sét các thuộc tính đều là private
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class UserResponse {
     String id;
