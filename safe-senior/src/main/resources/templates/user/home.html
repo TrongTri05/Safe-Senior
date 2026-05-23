@@ -50,24 +50,10 @@
     </div>
 </header>
 <main class="max-w-7xl mx-auto px-4 py-12">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-        <div class="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-            <div>
-                <div class="rounded-xl overflow-hidden aspect-[4/3] bg-gray-50 relative mb-4 flex items-center justify-center">
-                    <img src="/img/sos.png"
-                         alt="Thiết bị ESP32 và Vòng tay SOS"
-                         class="w-full h-full object-cover">
-                </div>
-                <div class="px-1">
-                    <p class="font-bold text-sm mt-1">$999.99</p>
-                </div>
-            </div>
-            <button class="w-full mt-4 bg-brand text-white text-xs font-semibold py-2 rounded-xl hover:bg-brand-dark transition flex items-center justify-center gap-1.5">
-                <i></i> Buy Now
-            </button>
-        </div>
+    <!-- PRODUCT LIST -->
+    <div id="product-list"
+         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
     </div>
-
     <div id="loginModal"
          class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl p-8 max-w-[440px] w-full shadow-2xl relative border border-gray-100">
@@ -453,5 +439,6 @@
 </script>
 <script type="module" th:src="@{/js/login.js}"></script>
 <script type="module" th:src="@{/js/register.js}"></script>
+<script type="module" th:src="@{/js/product.js}"></script>
 </body>
 </html>

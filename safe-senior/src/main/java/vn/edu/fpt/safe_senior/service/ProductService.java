@@ -42,9 +42,7 @@ public class ProductService {
 
     @Transactional
     public BuyProductResponse buyProduct(String productId) {
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));

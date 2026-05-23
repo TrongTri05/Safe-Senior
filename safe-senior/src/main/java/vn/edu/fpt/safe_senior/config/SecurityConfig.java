@@ -22,11 +22,12 @@ public class SecurityConfig {
             "/auth/**",
             "/home/**",
             "/products/**",
+            "/api/**"
     };
     private final String[] publicStaticEndpoint = {
             "/css/**",
             "/js/**",
-            "/images/**"
+            "/img/**"
     };
 
     private final CustomJwtDecoder customJwtDecoder;
