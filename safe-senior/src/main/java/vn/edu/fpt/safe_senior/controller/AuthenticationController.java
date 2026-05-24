@@ -28,6 +28,20 @@ public class AuthenticationController {
     EmailVerificationTokenRepository emailVerificationTokenRepository;
     UserRepository userRepository;
 
+    @GetMapping("/verify")
+    public String verifyEmail(@RequestParam("token") String token) {
+        EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByToken(token)
+                .orElse(null);
+        if (verificationToken == null || verificationToken.getExpiryTime().isBefore(LocalDateTime.now())) {
+            return "Token không hợp lệ hoặc đã hết hạn.";
+        }
+        User user = verificationToken.getUser();
+        user.setIsActive(true);
+        userRepository.save(user);
+        emailVerificationTokenRepository.delete(verificationToken);
+        return "Xác thực email thành công. Bạn có thể đăng nhập.";
+    }
+
     @PostMapping("/token")
     ApiResponse<AuthenticationResponse> authentication(@RequestBody AuthenticationRequest request) {
         var result = authenticationService.authenticated(request);
@@ -59,20 +73,6 @@ public class AuthenticationController {
         return ApiResponse.<AuthenticationResponse>builder()
                 .result(result)
                 .build();
-    }
-
-    @GetMapping("/verify")
-    public String verifyEmail(@RequestParam("token") String token) {
-        EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByToken(token)
-                .orElse(null);
-        if (verificationToken == null || verificationToken.getExpiryTime().isBefore(LocalDateTime.now())) {
-            return "Token không hợp lệ hoặc đã hết hạn.";
-        }
-        User user = verificationToken.getUser();
-        user.setIsActive(true);
-        userRepository.save(user);
-        emailVerificationTokenRepository.delete(verificationToken);
-        return "Xác thực email thành công. Bạn có thể đăng nhập.";
     }
 }
 

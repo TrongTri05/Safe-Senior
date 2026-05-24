@@ -58,7 +58,8 @@ public class UserService {
         }
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoderConfig.passwordEncoder().encode(user.getPassword()));
-        Role userRole = roleRepository.findByName(RoleEnum.USER.name()).orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+        Role userRole = roleRepository.findByName(RoleEnum.USER.name())
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
         HashSet<Role> roles = new HashSet<>();
         roles.add(userRole);
         user.setRoles(roles);
@@ -83,7 +84,7 @@ public class UserService {
         verificationToken.setExpiryTime(LocalDateTime.now().plusMinutes(15));
         emailVerificationTokenRepository.save(verificationToken);
 
-        String verifyUrl = baseUrl + "/users/verify?token=" + token;
+        String verifyUrl = baseUrl + "/auth/verify?token=" + token;
         String subject = "Xác thực tài khoản Safe Website";
         String content = "Vui lòng nhấn vào link sau để xác thực tài khoản: " + verifyUrl;
         emailService.sendVerificationEmail(user.getEmail(), subject, content);
