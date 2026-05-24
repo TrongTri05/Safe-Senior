@@ -161,7 +161,8 @@
     </div>
     <div id="registerModal"
          class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl p-8 max-w-[460px] w-full shadow-2xl relative border border-gray-100">
+        <!--        <div class="bg-white rounded-2xl p-8 max-w-[460px] w-full shadow-2xl relative border border-gray-100">-->
+        <div class="bg-white rounded-2xl p-8 max-w-[460px] w-full shadow-2xl relative border border-gray-100 overflow-hidden">
             <!-- Close -->
             <button id="closeRegister"
                     class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
@@ -277,6 +278,7 @@
                     Đăng ký
                 </button>
             </form>
+
             <p id="RegisterError"
                class="hidden text-center text-xs text-red-500 mt-3 font-medium">
             </p>
@@ -289,6 +291,168 @@
                    class="text-gray-900 font-bold underline hover:text-black">
                     Đăng nhập
                 </a>
+            </div>
+
+        </div>
+        <!-- CAPTCHA OVERLAY -->
+        <div id="captchaOverlay"
+             class="absolute inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 rounded-2xl">
+
+            <!-- Card -->
+            <div class="w-full max-w-[720px]
+                bg-[#050816]
+                border border-blue-500/60
+                rounded-[28px]
+                shadow-[0_0_40px_rgba(37,99,235,0.35)]
+                overflow-hidden relative">
+
+                <!-- Glow -->
+                <div class="absolute -top-20 -left-20 w-60 h-60 bg-blue-600/20 blur-3xl rounded-full"></div>
+                <div class="absolute -bottom-20 -right-20 w-60 h-60 bg-pink-500/20 blur-3xl rounded-full"></div>
+
+                <!-- Content -->
+                <div class="relative z-10 px-8 py-10 md:px-12">
+
+                    <!-- Header -->
+                    <div class="flex items-center justify-center mb-8">
+
+                        <div class="bg-gradient-to-r from-blue-600 to-cyan-500
+                            px-6 py-3 rounded-full
+                            shadow-lg shadow-blue-500/30">
+
+                            <p class="text-yellow-300 font-extrabold text-sm tracking-[2px] uppercase">
+                                Vui lòng xác nhận bạn là con người
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Question -->
+                    <div class="text-center mb-10">
+
+                        <p class="text-gray-400 uppercase tracking-[4px] text-sm mb-3">
+                            Câu hỏi bảo mật
+                        </p>
+
+                        <h2 class="text-5xl md:text-6xl font-black
+                           bg-gradient-to-r from-pink-400 to-fuchsia-500
+                           bg-clip-text text-transparent">
+                            1 + 1 = ?
+                        </h2>
+                    </div>
+                    <div class="max-w-[760px] mx-auto mb-4">
+                        <h2 class="text-left
+               text-lg md:text-xl
+               font-bold
+               text-cyan-300
+               tracking-[3px]
+               uppercase">
+                            Đáp án
+                        </h2>
+                    </div>
+                    <!-- Answers -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+
+                        <button type="button"
+                                class="captcha-answer group
+                               rounded-2xl border border-blue-500/50
+                               bg-[#0B1120]
+                               py-5 px-6
+                               hover:scale-[1.03]
+                               hover:border-cyan-400
+                               hover:bg-blue-900/30
+                               transition duration-300"
+                                data-correct="false">
+
+                    <span class="text-2xl font-black text-yellow-300 group-hover:text-white">
+                        1: = 3
+                    </span>
+                        </button>
+
+                        <button type="button"
+                                class="captcha-answer group
+               rounded-2xl border border-blue-500/50
+               bg-[#0B1120]
+               py-5 px-6
+               hover:scale-[1.03]
+               hover:border-cyan-400
+               hover:bg-blue-900/30
+               transition duration-300"
+                                data-correct="false">
+
+    <span class="text-2xl font-black text-yellow-300 group-hover:text-white">
+        2: = 1
+    </span>
+                        </button>
+
+                        <button type="button"
+                                class="captcha-answer group
+                               rounded-2xl border border-blue-500/50
+                               bg-[#0B1120]
+                               py-5 px-6
+                               hover:scale-[1.03]
+                               hover:border-cyan-400
+                               hover:bg-blue-900/30
+                               transition duration-300"
+                                data-correct="false">
+
+                    <span class="text-2xl font-black text-yellow-300 group-hover:text-white">
+                        3: = -2
+                    </span>
+                        </button>
+
+                        <button type="button"
+                                class="captcha-answer group
+                               rounded-2xl border border-blue-500/50
+                               bg-[#0B1120]
+                               py-5 px-6
+                               hover:scale-[1.03]
+                               hover:border-cyan-400
+                               hover:bg-blue-900/30
+                               transition duration-300"
+                                data-correct="true">
+
+                    <span class="text-2xl font-black text-yellow-300 group-hover:text-white">
+                        4: = 4
+                    </span>
+                        </button>
+                    </div>
+
+                    <!-- Skip -->
+                    <button id="captchaSkip"
+                            type="button"
+                            class="w-fit mx-auto
+               rounded-2xl
+               bg-gradient-to-r from-blue-700 to-cyan-600
+               px-6 py-3
+               text-xs md:text-sm
+               font-semibold uppercase tracking-[2px]
+               text-yellow-200
+               hover:opacity-90
+               hover:scale-[1.01]
+               transition duration-300
+               shadow-lg shadow-cyan-500/20
+               block">
+
+                        Bạn không phải là con người → Skip
+                    </button>
+
+                    <!-- Error -->
+                    <div id="captchaError"
+                         class="hidden mt-6 text-center">
+
+                        <div class="inline-flex items-center gap-2
+                            bg-red-500/10 border border-red-500/30
+                            text-red-400 px-5 py-3 rounded-2xl
+                            font-bold">
+
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+
+                            <span>
+                        Lựa chọn không hợp lệ. Bạn không phải là con người!
+                    </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
