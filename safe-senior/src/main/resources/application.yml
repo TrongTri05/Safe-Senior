@@ -1,0 +1,42 @@
+spring:
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=A;encrypt=true;trustServerCertificate=true;
+    username: sa
+    password: 123456
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        naming:
+          physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        dialect: org.hibernate.dialect.SQLServerDialect
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: tritrongdo111@gmail.com
+    password: iruc snul gphf djzn
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+    mode: HTML
+
+app:
+  base-url: http://localhost:8080
+jwt:
+  signerKey: "1TjXchw5FLoESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij"
+  valid-duration: 900  #in second
+  refreshable-duration: 604800 # in seconds
+
+
