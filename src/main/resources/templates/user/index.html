@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOS SENIOR — Stay Protected. Stay Bold.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+    <div class="toast-icon">✓</div>
+    <div class="toast-text">
+        <div id="toast-msg">Sản phẩm đã được thêm</div>
+    </div>
+</div>
+
+<!-- NAV -->
+<nav id="navbar">
+    <a href="#" class="nav-logo" onclick="showPage('home')">SOS<span>SENIOR</span></a>
+    <ul class="nav-links">
+        <li><a href="#" onclick="showPage('home')">Trang chủ</a></li>
+        <li><a href="#" onclick="showPage('products')">Sản phẩm</a></li>
+        <li><a href="#" onclick="showPage('home')">Công nghệ</a></li>
+        <li><a href="#" onclick="showPage('home')">Về chúng tôi</a></li>
+    </ul>
+    <div class="nav-actions">
+        <div class="user-menu-wrapper" id="authArea">
+            <button class="nav-icon-btn" id="authBtn" title="Tài khoản">
+                <svg width="18" height="18" fill="none" stroke="currentColor"
+                     stroke-width="1.5" viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+            </button>
+
+            <div class="user-dropdown" id="userDropdown">
+                <a href="#" onclick="showPage('profile')">Profile</a>
+                <a href="#" id="logoutBtn">Logout</a>
+            </div>
+        </div>
+
+        <button class="nav-icon-btn" onclick="showPage('cart')" title="Giỏ hàng">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            <span class="cart-badge" id="cart-badge">0</span>
+        </button>
+        <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+    <a class="mobile-nav-link" href="#" onclick="showPage('home');toggleMenu()">Trang chủ</a>
+    <a class="mobile-nav-link" href="#" onclick="showPage('products');toggleMenu()">Sản phẩm</a>
+    <a class="mobile-nav-link" href="#" onclick="showPage('cart');toggleMenu()">Giỏ hàng</a>
+    <a class="mobile-nav-link"
+       href="#"
+       id="mobileAuthBtn">
+        Đăng nhập
+    </a>
+</div>
+
+<!-- ════════════════════════════
+     HOME PAGE
+════════════════════════════ -->
+<div class="page active" id="page-home">
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-grid"></div>
+        <div class="hero-content">
+            <div class="hero-eyebrow">Vòng tay an toàn thế hệ mới</div>
+            <h1 class="hero-title">
+                LUÔN<br>
+                AN<span>TOÀN</span>
+            </h1>
+            <p class="hero-desc">Vòng tay SOS thông minh — tín hiệu cứu trợ tức thì, thiết kế thể thao cao cấp. Bảo vệ
+                bạn mọi lúc, mọi nơi.</p>
+            <div class="hero-cta">
+                <button class="btn-primary" onclick="showPage('products')"><span>Mua ngay</span></button>
+                <button class="btn-outline" onclick="showPage('products')">Xem bộ sưu tập</button>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="hero-bracelet-ring">
+                <svg class="ring-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="200" cy="200" r="190" stroke="rgba(232,28,28,0.12)" stroke-width="1"/>
+                    <circle cx="200" cy="200" r="165" stroke="rgba(255,255,255,0.04)" stroke-width="1"
+                            stroke-dasharray="8 8"/>
+                    <circle cx="200" cy="200" r="185" stroke="rgba(232,28,28,0.2)" stroke-width="0.5"
+                            stroke-dasharray="4 20"/>
+                    <!-- dots on orbit -->
+                    <circle cx="200" cy="15" r="4" fill="var(--red)"/>
+                    <circle cx="385" cy="200" r="3" fill="rgba(232,28,28,0.5)"/>
+                    <circle cx="200" cy="385" r="4" fill="var(--red)"/>
+                    <circle cx="15" cy="200" r="3" fill="rgba(232,28,28,0.5)"/>
+                    <!-- diagonal marks -->
+                    <line x1="75" y1="75" x2="88" y2="88" stroke="rgba(232,28,28,0.3)" stroke-width="1.5"/>
+                    <line x1="325" y1="75" x2="312" y2="88" stroke="rgba(232,28,28,0.3)" stroke-width="1.5"/>
+                    <line x1="75" y1="325" x2="88" y2="312" stroke="rgba(232,28,28,0.3)" stroke-width="1.5"/>
+                    <line x1="325" y1="325" x2="312" y2="312" stroke="rgba(232,28,28,0.3)" stroke-width="1.5"/>
+                </svg>
+                <div class="center-bracelet"></div>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <div class="stat-num">50K+</div>
+                <div class="stat-label">Người dùng</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">99.8%</div>
+                <div class="stat-label">Độ chính xác</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">24/7</div>
+                <div class="stat-label">Hỗ trợ</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MARQUEE -->
+    <div class="marquee-section">
+        <div class="marquee-track" id="marqueeTrack">
+            <span class="marquee-item">GPS Tracking</span>
+            <span class="marquee-item">Tín hiệu SOS</span>
+            <span class="marquee-item">Chống nước IP68</span>
+            <span class="marquee-item">Pin 7 ngày</span>
+            <span class="marquee-item">Kết nối gia đình</span>
+            <span class="marquee-item">Thiết kế thể thao</span>
+            <span class="marquee-item">GPS Tracking</span>
+            <span class="marquee-item">Tín hiệu SOS</span>
+            <span class="marquee-item">Chống nước IP68</span>
+            <span class="marquee-item">Pin 7 ngày</span>
+            <span class="marquee-item">Kết nối gia đình</span>
+            <span class="marquee-item">Thiết kế thể thao</span>
+        </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section class="features-section">
+        <div class="section-header reveal">
+            <div>
+                <div class="section-tag">Tại sao chọn SOS SENIOR</div>
+                <h2 class="section-title">CÔNG NGHỆ<br>TIÊN PHONG</h2>
+            </div>
+            <a href="#" class="section-link">
+                Tìm hiểu thêm
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card reveal reveal-delay-1">
+                <div class="feature-icon">📡</div>
+                <div class="feature-num">01</div>
+                <div class="feature-title">GPS REAL-TIME</div>
+                <p class="feature-desc">Định vị chính xác đến 2m, cập nhật vị trí theo thời gian thực. Gia đình luôn
+                    biết bạn đang ở đâu.</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-2">
+                <div class="feature-icon">🆘</div>
+                <div class="feature-num">02</div>
+                <div class="feature-title">SOS TỨC THỜI</div>
+                <p class="feature-desc">Một lần nhấn — tín hiệu cứu trợ gửi ngay đến các số liên hệ khẩn cấp và trung tâm
+                    hỗ trợ 24/7.</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-3">
+                <div class="feature-icon">💧</div>
+                <div class="feature-num">03</div>
+                <div class="feature-title">CHỐNG NƯỚC IP68</div>
+                <p class="feature-desc">Chịu được độ sâu 50m, thiết kế bền vững cho mọi hoạt động — bơi lội, leo núi,
+                    thể thao cực hạn.</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-1">
+                <div class="feature-icon">🔋</div>
+                <div class="feature-num">04</div>
+                <div class="feature-title">PIN 7 NGÀY</div>
+                <p class="feature-desc">Viên pin dung lượng 500mAh cho thời gian sử dụng đến 7 ngày. Sạc nhanh 1 giờ đầy
+                    pin hoàn toàn.</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-2">
+                <div class="feature-icon">❤️</div>
+                <div class="feature-num">05</div>
+                <div class="feature-title">THEO DÕI SỨC KHỎE</div>
+                <p class="feature-desc">Theo dõi nhịp tim, oxy máu SpO2, phát hiện té ngã tự động và gửi cảnh báo khẩn
+                    cấp.</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-3">
+                <div class="feature-icon">📱</div>
+                <div class="feature-num">06</div>
+                <div class="feature-title">ỨNG DỤNG KẾT NỐI</div>
+                <p class="feature-desc">App SOS SENIOR trên iOS & Android — quản lý gia đình, lịch sử vị trí, cài đặt cảnh
+                    báo dễ dàng.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- DB PRODUCTS -->
+    <section class="products-section">
+        <div class="section-header reveal">
+            <div>
+                <div class="section-tag">Từ cửa hàng</div>
+                <h2 class="section-title">SẢN PHẨM<br>CỦA CHÚNG TÔI</h2>
+            </div>
+            <a href="#" class="section-link" onclick="showPage('products')">
+                Xem tất cả
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+        <div class="products-grid" id="db-products">
+            <!-- Loading skeleton -->
+            <div class="product-card skeleton" style="opacity:0.4;">
+                <div class="product-img" style="background:var(--grey-mid);"></div>
+                <div class="product-info">
+                    <div style="height:20px;background:var(--grey-mid);margin-bottom:8px;width:70%;"></div>
+                    <div style="height:14px;background:var(--grey-mid);width:50%;"></div>
+                </div>
+            </div>
+            <div class="product-card skeleton" style="opacity:0.4;">
+                <div class="product-img" style="background:var(--grey-mid);"></div>
+                <div class="product-info">
+                    <div style="height:20px;background:var(--grey-mid);margin-bottom:8px;width:70%;"></div>
+                    <div style="height:14px;background:var(--grey-mid);width:50%;"></div>
+                </div>
+            </div>
+            <div class="product-card skeleton" style="opacity:0.4;">
+                <div class="product-img" style="background:var(--grey-mid);"></div>
+                <div class="product-info">
+                    <div style="height:20px;background:var(--grey-mid);margin-bottom:8px;width:70%;"></div>
+                    <div style="height:14px;background:var(--grey-mid);width:50%;"></div>
+                </div>
+            </div>
+            <div class="product-card skeleton" style="opacity:0.4;">
+                <div class="product-img" style="background:var(--grey-mid);"></div>
+                <div class="product-info">
+                    <div style="height:20px;background:var(--grey-mid);margin-bottom:8px;width:70%;"></div>
+                    <div style="height:14px;background:var(--grey-mid);width:50%;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURED PRODUCTS -->
+    <section class="products-section">
+        <div class="section-header reveal">
+            <div>
+                <div class="section-tag">Bán chạy nhất</div>
+                <h2 class="section-title">SẢN PHẨM<br>NỔI BẬT</h2>
+            </div>
+            <a href="#" class="section-link" onclick="showPage('products')">
+                Xem tất cả
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+        <div class="products-grid" id="featured-products"></div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="testimonials-section">
+        <div class="section-header reveal">
+            <div>
+                <div class="section-tag">Đánh giá</div>
+                <h2 class="section-title">KHÁCH HÀNG<br>NÓI GÌ</h2>
+            </div>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card reveal reveal-delay-1">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">Vòng tay SOS đã cứu con tôi khi bé bị lạc ở siêu thị. Chỉ một cú nhấn, chúng
+                    tôi biết vị trí ngay lập tức. Sản phẩm tuyệt vời!</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">T</div>
+                    <div>
+                        <div class="author-name">Đỗ Trọng Trí</div>
+                        <div class="author-role">CEO — TP.HCM</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card reveal reveal-delay-2">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">Thiết kế đẹp, dây đeo thoải mái khi tập gym và chạy bộ. Chức năng GPS cực kỳ
+                    chính xác. Đáng đồng tiền bát gạo.</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">T</div>
+                    <div>
+                        <div class="author-name">Trương Thiều Trọng</div>
+                        <div class="author-role">CEO — Hà Nội</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card reveal reveal-delay-3">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">Ba tôi 70 tuổi đeo hàng ngày, cả gia đình yên tâm. Nút SOS cực dễ nhấn, pin
+                    dùng cả tuần mới sạc. Rất hài lòng!</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">L</div>
+                    <div>
+                        <div class="author-name">Lê Phương Anh</div>
+                        <div class="author-role">Chủ Tịch — Đà Nẵng</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-top">
+            <div>
+                <div class="footer-brand">SOS<span>SENIOR</span></div>
+                <p class="footer-desc">Bảo vệ những người bạn yêu thương với công nghệ GPS và SOS tiên tiến nhất Việt
+                    Nam.</p>
+            </div>
+            <div>
+                <div class="footer-col-title">Sản phẩm</div>
+                <ul class="footer-links">
+                    <li><a href="#">SOS SENIOR Pro</a></li>
+                    <li><a href="#">SOS SENIOR Sport</a></li>
+                    <li><a href="#">SOS SENIOR Kids</a></li>
+                    <li><a href="#">SOS SENIOR Senior</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="footer-col-title">Hỗ trợ</div>
+                <ul class="footer-links">
+                    <li><a href="#">Hướng dẫn sử dụng</a></li>
+                    <li><a href="#">Bảo hành</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="footer-col-title">Công ty</div>
+                <ul class="footer-links">
+                    <li><a href="#">Về chúng tôi</a></li>
+                    <li><a href="#">Tuyển dụng</a></li>
+                    <li><a href="#">Báo chí</a></li>
+                    <li><a href="#">Chính sách</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+
+            <div class="footer-copy">
+                © 2026 SOS-SENIOR. All Rights Reserved.
+            </div>
+            <div class="footer-copy">
+                Designed & Developed by DO TRONG TRI
+            </div>
+            <div class="footer-copy">
+                Distributed by SAFE-SENIOR Technology
+            </div>
+            <div class="footer-socials">
+                <a href="#" class="social-btn">f</a>
+                <a href="#" class="social-btn">in</a>
+                <a href="#" class="social-btn">ig</a>
+                <a href="#" class="social-btn">yt</a>
+            </div>
+
+        </div>
+    </footer>
+</div>
+
+<!-- ════════════════════════════
+     PRODUCTS PAGE
+════════════════════════════ -->
+<div class="page" id="page-products">
+    <div class="page-hero">
+        <div class="page-hero-bg"></div>
+        <div class="section-tag">Bộ sưu tập 2024</div>
+        <h1 class="page-title">TẤT CẢ<br>SẢN PHẨM</h1>
+        <p class="page-subtitle">Khám phá toàn bộ dòng vòng tay SOS thông minh — từ phiên bản thể thao đến cao cấp.</p>
+    </div>
+    <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterProducts('all', this)">Tất cả</button>
+        <button class="filter-btn" onclick="filterProducts('pro', this)">Pro Series</button>
+        <button class="filter-btn" onclick="filterProducts('sport', this)">Sport</button>
+        <button class="filter-btn" onclick="filterProducts('kids', this)">Trẻ em</button>
+        <button class="filter-btn" onclick="filterProducts('senior', this)">Người cao tuổi</button>
+    </div>
+    <div class="products-grid-full" id="all-products"></div>
+    <footer>
+        <div class="footer-bottom" style="border-top:none; padding-top:0;">
+            <div class="footer-copy">© 2024 SOS-SENIOR. ALL RIGHTS RESERVED.</div>
+        </div>
+    </footer>
+</div>
+
+<!-- ════════════════════════════
+     PRODUCT DETAIL PAGE
+════════════════════════════ -->
+<div class="page" id="page-detail">
+    <div class="detail-wrap" id="detail-content"></div>
+    <footer>
+        <div class="footer-bottom" style="border-top:none; padding-top:0;">
+            <div class="footer-copy">© 2024 SOS-SENIOR. ALL RIGHTS RESERVED.</div>
+        </div>
+    </footer>
+</div>
+
+<!-- ════════════════════════════
+     CART PAGE
+════════════════════════════ -->
+<div class="page" id="page-cart">
+    <div class="cart-wrap">
+        <div class="cart-header">
+            GIỎ HÀNG <span class="cart-count" id="cart-count-text"></span>
+        </div>
+        <div id="cart-content"></div>
+    </div>
+    <footer>
+        <div class="footer-bottom" style="border-top:none; padding-top:0;">
+            <div class="footer-copy">© 2024 SOS-SENIOR. ALL RIGHTS RESERVED.</div>
+        </div>
+    </footer>
+</div>
+
+<!-- ════════════════════════════
+     LOGIN PAGE
+════════════════════════════ -->
+<div class="page" id="page-login">
+    <div class="login-wrap">
+        <div class="login-visual">
+            <div class="login-visual-bg"></div>
+            <div class="login-visual-text">
+                <div class="login-brand">SOS<span>SENIOR</span></div>
+                <div class="login-tagline">Stay Protected. Stay Bold.</div>
+            </div>
+        </div>
+        <div class="login-form-wrap">
+            <div class="login-title">ĐĂNG NHẬP</div>
+            <p class="login-sub">Chào mừng trở lại. Nhập tài khoản của bạn.</p>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="username" class="form-input" placeholder="ten@email.com" id="login-email">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" placeholder="••••••••" id="login-pass">
+            </div>
+            <button class="login-btn" type="button">
+                <span>ĐĂNG NHẬP</span>
+            </button>
+            <div class="login-divider">hoặc</div>
+            <button
+                    class="btn-outline"
+                    onclick="showToast('Tính năng đang bảo trì, vui lòng Đăng ký hoặc Đăng nhập')"
+                    style="
+        width:100%;
+        max-width:360px;
+        padding:16px;
+        font-family:var(--font-mono);
+        font-size:11px;
+        letter-spacing:3px;
+        text-transform:uppercase;
+        cursor:none;
+    "
+            >
+                TIẾP TỤC VỚI GOOGLE
+            </button>
+            <p class="login-footer" style="margin-top:28px;">
+                Chưa có tài khoản?
+                <a href="#" onclick="showPage('register')">
+                    Đăng ký ngay
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+<div class="page" id="page-register">
+    <div class="login-wrap">
+        <div class="login-visual">
+            <div class="login-visual-bg"></div>
+
+            <div class="login-visual-text">
+                <div class="login-brand">
+                    SOS<span>SENIOR</span>
+                </div>
+                <div class="login-tagline">
+                    Create Your Account.
+                </div>
+            </div>
+        </div>
+        <div class="login-form-wrap">
+            <div class="login-title">
+                ĐĂNG KÝ
+            </div>
+            <p class="login-sub">
+                Tạo tài khoản mới để bắt đầu.
+            </p>
+            <!-- USERNAME -->
+            <div class="form-group">
+                <label class="form-label">
+                    Username
+                </label>
+
+                <input
+                        type="text"
+                        class="form-input"
+                        placeholder="Nhập username"
+                        id="register-username"
+                >
+            </div>
+            <!-- EMAIL -->
+            <div class="form-group">
+                <label class="form-label">
+                    Email
+                </label>
+
+                <input
+                        type="email"
+                        class="form-input"
+                        placeholder="example@email.com"
+                        id="register-email"
+                >
+            </div>
+            <!-- PASSWORD -->
+            <div class="form-group">
+                <label class="form-label">
+                    Password
+                </label>
+                <input
+                        type="password"
+                        class="form-input"
+                        placeholder="••••••••"
+                        id="register-password"
+                >
+            </div>
+
+            <!-- CONFIRM PASSWORD -->
+            <div class="form-group">
+                <label class="form-label">
+                    Confirm Password
+                </label>
+                <input
+                        type="password"
+                        class="form-input"
+                        placeholder="••••••••"
+                        id="register-confirm-password"
+                >
+            </div>
+            <!-- BUTTON -->
+            <button class="login-btn" type="button" id="register-btn">
+                <span>ĐĂNG KÝ</span>
+            </button>
+
+            <div class="login-divider">
+                hoặc
+            </div>
+
+            <button
+                    class="btn-outline"
+                    onclick="showToast('Tính năng đang bảo trì, vui lòng Đăng ký hoặc Đăng nhập')"
+                    style="
+        width:100%;
+        max-width:360px;
+        padding:16px;
+        font-family:var(--font-mono);
+        font-size:11px;
+        letter-spacing:3px;
+        text-transform:uppercase;
+        cursor:none;
+    "
+            >
+                TIẾP TỤC VỚI GOOGLE
+            </button>
+            <p class="login-footer" style="margin-top:28px;">
+                Đã có tài khoản?
+                <a href="#" onclick="showPage('login')">
+                    Đăng nhập
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script type="module" th:src="@{/js/login.js}"></script>
+<script type="module" th:src="@{/js/register1.js}"></script>
+<script type="module" th:src="@{/js/product.js}"></script>
+<script type="module" th:src="@{/js/model.js}"></script>
+</body>
+</html>
