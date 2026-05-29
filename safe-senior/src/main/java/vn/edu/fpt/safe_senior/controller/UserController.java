@@ -18,6 +18,7 @@ import vn.edu.fpt.safe_senior.service.UserService;
 @RequestMapping("/users")
 public class UserController {
     UserService userService;
+
     @PostMapping
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UseCreateRequest request) {
         return ApiResponse.<UserResponse>builder()
@@ -25,4 +26,17 @@ public class UserController {
                 .message("Please check your email to activate your account.")
                 .build();
     }
+
+    @GetMapping("/{id}")
+    ApiResponse<UserResponse> getUserById(@PathVariable String id) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getUserInfo(id))
+                .build();
+    }
+
+
+
+
+
+
 }

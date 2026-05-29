@@ -22,6 +22,7 @@ public class BuyController {
             @PathVariable String id) {
         return ApiResponse.<BuyProductResponse>builder()
                 .result(productService.buyProduct(id))
+                .message("Product successfully buy")
                 .build();
     }
 }

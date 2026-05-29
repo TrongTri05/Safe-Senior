@@ -21,6 +21,7 @@ public enum ErrorCode {
     DEVICE_NOT_AVAILABLE(2002, "Device not available", HttpStatus.BAD_REQUEST),
     DEVICE_NOT_ACTIVE(2004, "Device not active", HttpStatus.BAD_REQUEST),
     USER_ERROR(2003, "User error", HttpStatus.INTERNAL_SERVER_ERROR),
+    LOGIN_ERROR(2005, "Username or Password error", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_DOB(1008, "Your age must be at least {min}", HttpStatus.FORBIDDEN),
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN);
 

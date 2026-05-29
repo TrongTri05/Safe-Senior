@@ -8,6 +8,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.safe_senior.config.PasswordEncoderConfig;
@@ -99,19 +100,11 @@ public class UserService {
     }
 
 
-//    @PostAuthorize("returnObject.username == authentication.name")
-//    public UserResponse getUsername(String id) {
-//        log.info("In method get user by id");
-//        return userMapper.toUserResponse(userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
-//    }
+    public UserResponse getUserInfo(String id) {
+        return userMapper.toUserResponse(userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+    }
 
 
-//    public UserResponse getMyInfo() {
-//        var context = SecurityContextHolder.getContext();
-//        String name = context.getAuthentication().getName();
-//        User user = userRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-//        return userMapper.toUserResponse(user);
-//    }
 
 //    @PostAuthorize("returnObject.username == authentication.name")
 //    public UserResponse updateUser(String id, UserUpdateRequest request) {

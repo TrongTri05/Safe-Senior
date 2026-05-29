@@ -75,7 +75,7 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.USER_NOT_ACTIVE);
         }
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+            throw new AppException(ErrorCode.LOGIN_ERROR);
         }
         String token = generateToken(user);
 
