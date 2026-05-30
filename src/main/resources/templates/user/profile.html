@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — SOS SENIOR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/profile.css}">
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<div class="toast" id="toast">
+    <div class="toast-icon">✓</div>
+    <div class="toast-text" id="toast-msg">Đã lưu thay đổi</div>
+</div>
+
+<!-- MODAL THÊM ĐỊA CHỈ -->
+ <div class="modal-overlay" id="modal-address">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('modal-address')">✕</button>
+        <div class="modal-title">THÊM ĐỊA CHỈ</div>
+        <p class="modal-sub">Thêm địa chỉ giao hàng mới</p>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="field-group">
+                <label class="field-label">Họ và tên</label>
+                <input class="field-input" type="text" placeholder="Nguyễn Văn A">
+            </div>
+            <div class="field-group">
+                <label class="field-label">Số điện thoại</label>
+                <input class="field-input" type="text" placeholder="0901 234 567">
+            </div>
+            <div class="field-group">
+                <label class="field-label">Địa chỉ</label>
+                <input class="field-input" type="text" placeholder="Số nhà, tên đường">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="field-group">
+                    <label class="field-label">Quận / Huyện</label>
+                    <input class="field-input" type="text" placeholder="Quận 1">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Tỉnh / Thành phố</label>
+                    <input class="field-input" type="text" placeholder="TP. Hồ Chí Minh">
+                </div>
+            </div>
+            <button class="btn-save" style="width:100%;padding:16px;" onclick="closeModal('modal-address');showToast('Đã thêm địa chỉ mới!')"><span>LƯU ĐỊA CHỈ</span></button>
+        </div>
+    </div>
+</div>
+
+<!-- NAV -->
+<nav>
+    <a href="index.html" class="nav-logo">SOS<span>SENIOR</span></a>
+    <a href="javascript:history.back()" class="nav-back">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Quay lại
+    </a>
+</nav>
+
+
+<!-- MAIN -->
+<div class="profile-wrap">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="profile-card">
+            <div class="avatar-wrap">
+                <div class="avatar">T</div>
+                <div class="avatar-edit">✎</div>
+            </div>
+            <div class="profile-name">ĐỖ TRỌNG TRÍ</div>
+            <div class="profile-email">dotrongtri@email.com</div>
+            <div class="profile-badge">⭐ THÀNH VIÊN VIP</div>
+            <div class="profile-stats">
+                <div class="stat-box">
+                    <div class="stat-box-num">8</div>
+                    <div class="stat-box-label">Đơn hàng</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-num">2</div>
+                    <div class="stat-box-label">Thiết bị</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-num">3</div>
+                    <div class="stat-box-label">Địa chỉ</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-num">12M</div>
+                    <div class="stat-box-label">Thành viên</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <button class="sidebar-nav-item active" onclick="switchTab('info', this)">
+                <span class="nav-dot"></span> Thông tin cá nhân
+            </button>
+            <button class="sidebar-nav-item" onclick="switchTab('address', this)">
+                <span class="nav-dot"></span> Địa chỉ giao hàng
+            </button>
+            <button class="sidebar-nav-item" onclick="switchTab('orders', this)">
+                <span class="nav-dot"></span> Lịch sử đơn hàng
+            </button>
+            <button class="sidebar-nav-item" onclick="switchTab('devices', this)">
+                <span class="nav-dot"></span> Thiết bị SOS
+            </button>
+            <button class="sidebar-nav-item" onclick="switchTab('security', this)">
+                <span class="nav-dot"></span> Bảo mật
+            </button>
+            <button class="sidebar-nav-item" onclick="switchTab('notif', this)">
+                <span class="nav-dot"></span> Thông báo
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- TAB: THÔNG TIN CÁ NHÂN -->
+        <div class="section-block active" id="tab-info">
+            <div class="section-block-header">
+                <div>
+                    <div class="section-block-tag">Tài khoản</div>
+                    <div class="section-block-title">THÔNG TIN CÁ NHÂN</div>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn-edit" id="btn-edit-info" onclick="toggleEdit()">CHỈNH SỬA</button>
+                    <button class="btn-save" id="btn-save-info" style="display:none;" onclick="saveInfo()"><span>LƯU</span></button>
+                </div>
+            </div>
+            <div class="fields-grid" id="fields-view">
+                <div class="field-group">
+                    <div class="field-label">Họ và tên</div>
+                    <div class="field-value">Đỗ Trọng Trí</div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Tên đăng nhập</div>
+                    <div class="field-value">dotrongtri</div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Email</div>
+                    <div class="field-value">dotrongtri@email.com</div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Số điện thoại</div>
+                    <div class="field-value">0901 234 567</div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Ngày sinh</div>
+                    <div class="field-value">15/03/1990</div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Giới tính</div>
+                    <div class="field-value">Nam</div>
+                </div>
+                <div class="field-group field-full">
+                    <div class="field-label">Ngày tham gia</div>
+                    <div class="field-value">01/01/2024 — 12 tháng thành viên</div>
+                </div>
+            </div>
+            <div class="fields-grid" id="fields-edit" style="display:none;">
+                <div class="field-group">
+                    <label class="field-label">Họ và tên</label>
+                    <input class="field-input" type="text" value="Đỗ Trọng Trí">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Tên đăng nhập</label>
+                    <input class="field-input" type="text" value="dotrongtri" readonly>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Email</label>
+                    <input class="field-input" type="email" value="dotrongtri@email.com">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Số điện thoại</label>
+                    <input class="field-input" type="text" value="0901 234 567">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Ngày sinh</label>
+                    <input class="field-input" type="date" value="1990-03-15">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Giới tính</label>
+                    <select class="field-input" style="appearance:none;">
+                        <option>Nam</option><option>Nữ</option><option>Khác</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ĐỊA CHỈ -->
+        <div class="section-block" id="tab-address">
+            <div class="section-block-header">
+                <div>
+                    <div class="section-block-tag">Vận chuyển</div>
+                    <div class="section-block-title">ĐỊA CHỈ GIAO HÀNG</div>
+                </div>
+            </div>
+            <div class="addresses-grid">
+                <div class="address-card default">
+                    <div class="address-name">Đỗ Trọng Trí</div>
+                    <div class="address-phone">0901 234 567</div>
+                    <div class="address-text">123 Nguyễn Huệ, Phường Bến Nghé,<br>Quận 1, TP. Hồ Chí Minh</div>
+                    <div class="address-actions">
+                        <button class="address-btn">Chỉnh sửa</button>
+                        <span style="color:var(--grey-border);">|</span>
+                        <button class="address-btn">Xóa</button>
+                    </div>
+                </div>
+                <div class="address-card">
+                    <div class="address-name">Đỗ Trọng Trí</div>
+                    <div class="address-phone">0901 234 567</div>
+                    <div class="address-text">45 Lê Lợi, Phường Lê Lợi,<br>Quận Hải Châu, TP. Đà Nẵng</div>
+                    <div class="address-actions">
+                        <button class="address-btn">Chỉnh sửa</button>
+                        <span style="color:var(--grey-border);">|</span>
+                        <button class="address-btn">Xóa</button>
+                        <span style="color:var(--grey-border);">|</span>
+                        <button class="address-btn">Đặt mặc định</button>
+                    </div>
+                </div>
+                <div class="address-card">
+                    <div class="address-name">Mẹ — Nguyễn Thị Lan</div>
+                    <div class="address-phone">0912 345 678</div>
+                    <div class="address-text">88 Trần Phú, Phường Vĩnh Ninh,<br>TP. Huế, Thừa Thiên Huế</div>
+                    <div class="address-actions">
+                        <button class="address-btn">Chỉnh sửa</button>
+                        <span style="color:var(--grey-border);">|</span>
+                        <button class="address-btn">Xóa</button>
+                        <span style="color:var(--grey-border);">|</span>
+                        <button class="address-btn">Đặt mặc định</button>
+                    </div>
+                </div>
+                <div class="address-add" onclick="openModal('modal-address')">
+                    <div class="address-add-icon">＋</div>
+                    <div class="address-add-text">Thêm địa chỉ mới</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ĐƠN HÀNG -->
+        <div class="section-block" id="tab-orders">
+            <div class="section-block-header">
+                <div>
+                    <div class="section-block-tag">Lịch sử mua sắm</div>
+                    <div class="section-block-title">ĐƠN HÀNG CỦA TÔI</div>
+                </div>
+                <div style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light);">8 đơn hàng</div>
+            </div>
+            <div class="orders-list">
+
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-id">#ORD-2024-001</div>
+                            <div class="order-date">15 tháng 11, 2024</div>
+                        </div>
+                        <div class="order-status status-delivered">Đã giao hàng</div>
+                    </div>
+                    <div class="order-items">
+                        <div class="order-item">
+                            <div class="order-item-emoji">⌚</div>
+                            <div class="order-item-info">
+                                <div class="order-item-name">SOS PRO X</div>
+                                <div class="order-item-sub">Màu đen — SL: 1</div>
+                            </div>
+                            <div class="order-item-price">1.990.000₫</div>
+                        </div>
+                    </div>
+                    <div class="order-footer">
+                        <div class="order-total-label">Tổng cộng</div>
+                        <div class="order-total-val">2.020.000₫</div>
+                    </div>
+                </div>
+
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-id">#ORD-2024-002</div>
+                            <div class="order-date">02 tháng 12, 2024</div>
+                        </div>
+                        <div class="order-status status-shipping">Đang giao hàng</div>
+                    </div>
+                    <div class="order-items">
+                        <div class="order-item">
+                            <div class="order-item-emoji">👴</div>
+                            <div class="order-item-info">
+                                <div class="order-item-name">SOS SENIOR</div>
+                                <div class="order-item-sub">Màu xám — SL: 1</div>
+                            </div>
+                            <div class="order-item-price">1.290.000₫</div>
+                        </div>
+                        <div class="order-item">
+                            <div class="order-item-emoji">🧒</div>
+                            <div class="order-item-info">
+                                <div class="order-item-name">SOS KIDS</div>
+                                <div class="order-item-sub">Màu cam — SL: 2</div>
+                            </div>
+                            <div class="order-item-price">1.980.000₫</div>
+                        </div>
+                    </div>
+                    <div class="order-footer">
+                        <div class="order-total-label">Tổng cộng</div>
+                        <div class="order-total-val">3.300.000₫</div>
+                    </div>
+                </div>
+
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-id">#ORD-2024-003</div>
+                            <div class="order-date">28 tháng 11, 2024</div>
+                        </div>
+                        <div class="order-status status-processing">Đang xử lý</div>
+                    </div>
+                    <div class="order-items">
+                        <div class="order-item">
+                            <div class="order-item-emoji">💎</div>
+                            <div class="order-item-info">
+                                <div class="order-item-name">SOS PRO ELITE</div>
+                                <div class="order-item-sub">Màu trắng — SL: 1</div>
+                            </div>
+                            <div class="order-item-price">2.990.000₫</div>
+                        </div>
+                    </div>
+                    <div class="order-footer">
+                        <div class="order-total-label">Tổng cộng</div>
+                        <div class="order-total-val">3.020.000₫</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB: THIẾT BỊ SOS -->
+        <div class="section-block" id="tab-devices">
+            <div class="section-block-header">
+                <div>
+                    <div class="section-block-tag">Quản lý</div>
+                    <div class="section-block-title">THIẾT BỊ SOS</div>
+                </div>
+                <div style="font-family:var(--font-mono);font-size:11px;color:#00c864;">2 thiết bị online</div>
+            </div>
+            <div class="devices-grid">
+                <div class="device-card online">
+                    <div class="device-emoji">⌚</div>
+                    <div class="device-name">SOS PRO X</div>
+                    <div class="device-model">SN: SPX-2024-001892</div>
+                    <div class="device-stat">
+                        <span class="device-stat-icon">🔋</span>
+                        <div class="battery-bar"><div class="battery-fill" style="width:78%"></div></div>
+                        <strong>78%</strong>
+                    </div>
+                    <div class="device-stat"><span class="device-stat-icon">📡</span> GPS: <strong style="color:#00c864;margin-left:4px;">Đang kết nối</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">📍</span> Vị trí: <strong style="margin-left:4px;">Quận 1, TP.HCM</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">❤️</span> Nhịp tim: <strong style="margin-left:4px;">72 bpm</strong></div>
+                </div>
+                <div class="device-card online">
+                    <div class="device-emoji">👴</div>
+                    <div class="device-name">SOS SENIOR</div>
+                    <div class="device-model">SN: SSR-2024-003741</div>
+                    <div class="device-stat">
+                        <span class="device-stat-icon">🔋</span>
+                        <div class="battery-bar"><div class="battery-fill low" style="width:18%"></div></div>
+                        <strong style="color:var(--red);">18%</strong>
+                    </div>
+                    <div class="device-stat"><span class="device-stat-icon">📡</span> GPS: <strong style="color:#00c864;margin-left:4px;">Đang kết nối</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">📍</span> Vị trí: <strong style="margin-left:4px;">Quận Hải Châu, Đà Nẵng</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">❤️</span> Nhịp tim: <strong style="margin-left:4px;">68 bpm</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: BẢO MẬT -->
+        <div class="section-block" id="tab-security">
+            <div class="section-block-header">
+                <div>
+                    <div class="section-block-tag">Tài khoản</div>
+                    <div class="section-block-title">BẢO MẬT</div>
+                </div>
+            </div>
+            <div class="security-list">
+                <div class="security-item">
+                    <div class="security-left">
+                        <div class="security-icon">🔒</div>
+                        <div>
+                            <div class="security-title">MẬT KHẨU</div>
+                            <div class="security-desc">Lần đổi cuối: 3 tháng trước</div>
+                        </div>
+                    </div>
+                    <button class="btn-edit" onclick="showToast('Chức năng đang phát triển!')">ĐỔI MẬT KHẨU</button>
+                </div>
+                <div class="security-item">
+                    <div class="security-left">
+                        <div class="security-icon">📱</div>
+                        <div>
+                            <div class="security-title">XÁC THỰC 2 YẾU TỐ (2FA)</div>
+                            <div class="security-desc">Bảo vệ tài khoản bằng OTP qua SMS</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;">
+                        <span class="security-status status-on">BẬT</span>
+                        <button class="toggle-btn" onclick="showToast('Đã cập nhật cài đặt 2FA!')">TẮT</button>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <div class="security-left">
+                        <div class="security-icon">🛡️</div>
+                        <div>
+                            <div class="security-title">ĐĂNG NHẬP GOOGLE</div>
+                            <div class="security-desc">Liên kết với tài khoản Google</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;">
+                        <span class="security-status status-off">CHƯA LIÊN KẾT</span>
+                        <button class="toggle-btn" onclick="showToast('Chức năng đang phát triển!')">LIÊN KẾT</button>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <div class="security-left">
+                        <div class="security-icon">📋</div>
+                        <div>
+                            <div class="security-title">PHIÊN ĐĂNG NHẬP</div>
+                            <div class="security-desc">2 thiết bị đang đăng nhập</div>
+                        </div>
+                    </div>
+                    <button class="btn-edit" style="color:var(--red);border-color:rgba(232,28,28,0.3);" onclick="showToast('Đã đăng xuất tất cả thiết bị khác!')">ĐĂNG XUẤT TẤT CẢ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: THÔNG BÁO -->
+        <div class="section-block" id="tab-notif">
+            <div class="section-block-header">
+                <div>
+                    <div class="section-block-tag">Cài đặt</div>
+                    <div class="section-block-title">THÔNG BÁO</div>
+                </div>
+                <button class="btn-save" onclick="showToast('Đã lưu cài đặt thông báo!')"><span>LƯU CÀI ĐẶT</span></button>
+            </div>
+            <div class="notif-list">
+                <div class="notif-item">
+                    <div>
+                        <div class="notif-title">TÍN HIỆU SOS KHẨN CẤP</div>
+                        <div class="notif-desc">Nhận thông báo ngay khi thiết bị gửi tín hiệu SOS</div>
+                    </div>
+                    <div class="switch on" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="notif-item">
+                    <div>
+                        <div class="notif-title">PIN YẾU</div>
+                        <div class="notif-desc">Cảnh báo khi pin thiết bị dưới 20%</div>
+                    </div>
+                    <div class="switch on" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="notif-item">
+                    <div>
+                        <div class="notif-title">VỊ TRÍ NGOÀI VÙNG AN TOÀN</div>
+                        <div class="notif-desc">Thông báo khi thiết bị ra khỏi khu vực an toàn</div>
+                    </div>
+                    <div class="switch on" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="notif-item">
+                    <div>
+                        <div class="notif-title">CẬP NHẬT ĐƠN HÀNG</div>
+                        <div class="notif-desc">Theo dõi trạng thái giao hàng qua email và SMS</div>
+                    </div>
+                    <div class="switch on" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="notif-item">
+                    <div>
+                        <div class="notif-title">KHUYẾN MÃI & SỰ KIỆN</div>
+                        <div class="notif-desc">Nhận thông tin ưu đãi độc quyền dành cho thành viên</div>
+                    </div>
+                    <div class="switch" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="notif-item">
+                    <div>
+                        <div class="notif-title">BÁO CÁO SỨC KHỎE HÀNG TUẦN</div>
+                        <div class="notif-desc">Tổng hợp nhịp tim, SpO2 và hoạt động của thiết bị</div>
+                    </div>
+                    <div class="switch on" onclick="toggleSwitch(this)"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="module" th:src="@{/js/profile.js}"></script>
+</body>
+</html>

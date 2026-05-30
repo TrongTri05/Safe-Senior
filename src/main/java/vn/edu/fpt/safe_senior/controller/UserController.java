@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
+import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
 import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
 import vn.edu.fpt.safe_senior.service.UserService;
@@ -27,16 +28,17 @@ public class UserController {
                 .build();
     }
 
-    @GetMapping("/{id}")
-    ApiResponse<UserResponse> getUserById(@PathVariable String id) {
+    @GetMapping("/username/{username}")
+    ApiResponse<UserResponse> getUserByUsername(@PathVariable String username) {
         return ApiResponse.<UserResponse>builder()
-                .result(userService.getUserInfo(id))
+                .result(userService.getUserInfo(username))
                 .build();
     }
 
-
-
-
-
-
+    @PutMapping("/username/{username}")
+    ApiResponse<UserResponse> updateUser(@PathVariable String username,@RequestBody UserUpdateRequest request) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.update(username,request))
+                .build();
+    }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +27,10 @@ public class User {
     String username;
     @Column(unique = true, length = 150)
     String email;
+    String gender;
+    String name;
+    String phone;
+    LocalDate dob;
     @Column(name = "password_hash", length = 255)
     String password;
     @Column(name = "is_active")

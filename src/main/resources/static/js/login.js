@@ -23,11 +23,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 const token = response.data.result.token;
                 localStorage.setItem("access_token", token);
+                // Decode JWT — đổi tên biến thành payload_username
+                const payload          = JSON.parse(atob(token.split('.')[1]));
+                const payload_username = payload.sub;
+                if (payload_username) {
+                    localStorage.setItem('username', payload_username);
+                }
                 updateAuthUI();
                 showSuccess("Đăng nhập thành công!");
-                setTimeout(() => {
-                    showPage("home");
-                }, 500);
+                setTimeout(() => showPage("home"), 500);
 
             } catch (error) {
                 const message =
@@ -112,29 +116,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 showPage("home");
             });
         if (mobileAuthBtn) {
-
             mobileAuthBtn.textContent = "Logout";
-
             mobileAuthBtn.onclick = async () => {
-
                 await logout();
-
                 localStorage.removeItem("access_token");
-
                 updateAuthUI();
-
                 toggleMenu();
                 showPage("home");
             };
         }
         document.addEventListener("click", (e) => {
-
             if (!e.target.closest(".user-menu-wrapper")) {
                 dropdown.classList.remove("active");
             }
-
         });
     }
-
     updateAuthUI();
 });

@@ -13,6 +13,6 @@ export async function logout() {
         console.log("Logout error:", e);
     } finally {
         localStorage.removeItem("access_token");
-        window.location.href = "/home";
+        window.location.href = "/";
     }
 }

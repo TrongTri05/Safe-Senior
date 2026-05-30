@@ -27,6 +27,7 @@ public class SecurityConfig {
             "/products/**",
             "/api/**",
             "/",
+            "/profile",
             "/favicon.ico"
     };
     private final String[] publicStaticEndpoint = {

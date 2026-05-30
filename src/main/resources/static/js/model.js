@@ -1,4 +1,5 @@
 import api from "./api.js";
+
 // ══════════════════════════
 // DATA
 // ══════════════════════════
@@ -93,7 +94,7 @@ const products = [
         badgeType: '',
         category: 'pro',
         emoji: '💎',
-        colors: ['#f5f5f0', '#gold', '#e81c1c'],
+        colors: ['#f5f5f0', '#e8c000', '#e81c1c'],
         specs: {
             'GPS': 'Chính xác ±1m',
             'Pin': '10 ngày',
@@ -167,6 +168,8 @@ const products = [
 
 let cart = JSON.parse(localStorage.getItem('sosCart') || '[]');
 let currentFilter = 'all';
+let lastScrollY = 0;
+let lastPage = 'home';
 
 // ══════════════════════════
 // FORMATTING
@@ -187,8 +190,9 @@ function showPage(id) {
     if (id === 'home') initReveal();
     setTimeout(initReveal, 50);
 }
+
 // ══════════════════════════
-// PRODUCT CARD HTML
+// PRODUCT CARD HTML (demo)
 // ══════════════════════════
 function productCardHTML(p, full = false) {
     const colors = p.colors.map(c => `<div class="color-dot" style="background:${c}" title="${c}"></div>`).join('');
@@ -214,33 +218,143 @@ function productCardHTML(p, full = false) {
 }
 
 // ══════════════════════════
+// RENDER FEATURED (demo)
+// ══════════════════════════
+function renderFeatured() {
+    const el = document.getElementById('featured-products');
+    if (!el) return;
+    el.innerHTML = products.slice(0, 4).map(p => productCardHTML(p)).join('');
+}
+
+// ══════════════════════════
+// RENDER ALL PRODUCTS (demo)
+// ══════════════════════════
+function renderAllProducts() {
+    const el = document.getElementById('all-products');
+    if (!el) return;
+    const filtered = currentFilter === 'all'
+        ? products
+        : products.filter(p => p.category === currentFilter);
+    el.innerHTML = filtered.map(p => productCardHTML(p, true)).join('');
+}
+
+function filterProducts(cat, btn) {
+    currentFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderAllProducts();
+}
+
+// ══════════════════════════
+// PRODUCT DETAIL (demo)
+// ══════════════════════════
+function showDetail(id) {
+    lastScrollY = window.scrollY;
+    lastPage = document.querySelector('.page.active')?.id?.replace('page-', '') || 'home';
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    const colors = p.colors.map((c, i) => `
+        <div class="color-swatch ${i === 0 ? 'active' : ''}" style="background:${c}" onclick="selectColor(this)"></div>
+    `).join('');
+    const specs = Object.entries(p.specs).map(([k, v]) => `
+        <div class="spec-row"><span class="spec-key">${k}</span><span>${v}</span></div>
+    `).join('');
+    const oldP = p.oldPrice
+        ? `<span class="detail-price-old">${fmt(p.oldPrice)}</span><span class="detail-price-badge">SALE</span>`
+        : '';
+
+    document.getElementById('detail-content').innerHTML = `
+    <div style="grid-column:1/-1; margin-bottom:24px; padding-top:24px;">
+      <button id="btn-back-detail" data-page="products" style="
+        font-family:var(--font-mono);font-size:11px;letter-spacing:2px;
+        text-transform:uppercase;background:none;border:none;
+        color:var(--grey-light);cursor:pointer;
+        display:flex;align-items:center;gap:8px;padding:0;
+      ">← QUAY LẠI</button>
+    </div>
+
+    <div class="detail-gallery">
+      <div class="detail-main-img" style="font-size:120px;">${p.emoji}</div>
+      <div class="detail-thumbs">
+        <div class="detail-thumb active">${p.emoji}</div>
+        <div class="detail-thumb" style="font-size:20px;">📦</div>
+        <div class="detail-thumb" style="font-size:20px;">📱</div>
+        <div class="detail-thumb" style="font-size:20px;">⚡</div>
+      </div>
+    </div>
+
+    <div class="detail-info">
+      <div class="detail-breadcrumb">
+        <a href="#" data-page="home">Trang chủ</a> /
+        <a href="#" data-page="products">Sản phẩm</a> /
+        <span style="color:var(--white)">${p.name}</span>
+      </div>
+      <h1 class="detail-name">${p.name}</h1>
+      <p class="detail-tagline">${p.sub}</p>
+      <div class="detail-price">${fmt(p.price)} ${oldP}</div>
+      <div class="label-sm">Màu sắc</div>
+      <div class="colors-row">${colors}</div>
+      <div class="label-sm">Số lượng</div>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <input class="qty-val" type="text" value="1" id="qty-input" readonly>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+      <button class="add-to-cart-btn" onclick="addToCartDetail(${p.id})"><span>THÊM VÀO GIỎ</span></button>
+      <button class="wishlist-btn">♡ THÊM VÀO WISHLIST</button>
+      <div class="detail-specs">
+        <div class="label-sm" style="margin-bottom:20px;">Thông số kỹ thuật</div>
+        ${specs}
+      </div>
+    </div>`;
+
+    showPage('detail');
+    document.getElementById('btn-back-detail')?.addEventListener('click', () => {
+        showPage(lastPage);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: lastScrollY, behavior: 'instant' });
+            });
+        });
+    });
+}
+
+function selectColor(el) {
+    el.parentElement.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+}
+
+function changeQty(delta) {
+    const inp = document.getElementById('qty-input');
+    if (!inp) return;
+    let v = parseInt(inp.value) + delta;
+    if (v < 1) v = 1;
+    if (v > 99) v = 99;
+    inp.value = v;
+}
+
+// ══════════════════════════
 // DB PRODUCTS
 // ══════════════════════════
-document.addEventListener('click', (e) => {
-    const target = e.target.closest('[data-page]');
-    if (target) {
-        e.preventDefault();
-        showPage(target.dataset.page);
-    }
-});
-// Map emoji theo category hoặc tên sản phẩm (fallback)
 function getProductEmoji(product) {
     const name = (product.name || '').toLowerCase();
-    if (name.includes('pro'))    return '⌚';
-    if (name.includes('sport'))  return '🏃';
-    if (name.includes('kids'))   return '🧒';
+    if (name.includes('pro')) return '⌚';
+    if (name.includes('sport')) return '🏃';
+    if (name.includes('kids')) return '🧒';
     if (name.includes('senior')) return '👴';
     if (name.includes('family')) return '👨‍👩‍👧';
-    if (name.includes('elite'))  return '💎';
+    if (name.includes('elite')) return '💎';
     return '📟';
 }
+
+// Cache sản phẩm DB để dùng cho detail
+let dbProductsCache = [];
 
 function dbProductCardHTML(p) {
     const emoji = getProductEmoji(p);
     const price = `<span class="product-price">${fmt(Number(p.price))}</span>`;
-
     return `
-    <div class="product-card">
+    <div class="product-card" onclick="showDbDetail('${p.name}')">
       <div class="product-img">
         <div class="product-img-inner" style="font-size:80px;display:flex;align-items:center;justify-content:center;">${emoji}</div>
         <button class="product-quick-add" onclick="event.stopPropagation();addToCartDb('${p.name}',${Number(p.price)})">
@@ -263,10 +377,10 @@ function dbProductCardHTML(p) {
 }
 
 function addToCartDb(name, price) {
-    const id = 'db_' + name; // dùng name làm key vì không có id
+    const id = 'db_' + name;
     const existing = cart.find(x => x.id === id);
     if (existing) existing.qty++;
-    else cart.push({ id, qty: 1, name, price, fromDb: true });
+    else cart.push({id, qty: 1, name, price, fromDb: true});
     saveCart();
     updateBadge();
     showToast(name + ' — đã thêm vào giỏ!');
@@ -275,126 +389,99 @@ function addToCartDb(name, price) {
 async function renderDbProducts() {
     const el = document.getElementById('db-products');
     if (!el) return;
-
     try {
-        const res  = await api.get('/products');        // dùng axios instance của bạn
+        const res = await api.get('/products');
         const data = res.data?.result ?? res.data ?? [];
-
+        dbProductsCache = data;
         if (!data.length) {
             el.innerHTML = `
-              <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--grey-light);font-family:var(--font-mono);font-size:12px;letter-spacing:2px;">
+              <div style="grid-column:1/-1;text-align:center;padding:40px;
+                color:var(--grey-light);font-family:var(--font-mono);
+                font-size:12px;letter-spacing:2px;">
                 CHƯA CÓ SẢN PHẨM
               </div>`;
             return;
         }
-
         el.innerHTML = data.slice(0, 4).map(p => dbProductCardHTML(p)).join('');
-
-        // Re-attach hover cursor cho card mới
         el.querySelectorAll('button, [onclick]').forEach(btn => {
             btn.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
             btn.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
         });
-
     } catch (err) {
         console.error('Lỗi load sản phẩm DB:', err);
         el.innerHTML = `
-          <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);font-family:var(--font-mono);font-size:12px;letter-spacing:2px;">
+          <div style="grid-column:1/-1;text-align:center;padding:40px;
+            color:var(--red);font-family:var(--font-mono);
+            font-size:12px;letter-spacing:2px;">
             ⚠ KHÔNG THỂ TẢI SẢN PHẨM
           </div>`;
     }
 }
 
-// Xem detail sản phẩm DB (tuỳ bạn mở rộng sau)
-function showDbDetail(id) {
-    showToast('Đang tải chi tiết sản phẩm...');
-    // TODO: fetch /products/{id} rồi gọi showPage('detail')
-}
-// Expose ra window
-
-function renderFeatured() {
-    const el = document.getElementById('featured-products');
-    if (!el) return;
-    el.innerHTML = products.slice(0, 4).map(p => productCardHTML(p)).join('');
-}
-
-// ══════════════════════════
-// RENDER ALL PRODUCTS
-// ══════════════════════════
-function renderAllProducts() {
-    const el = document.getElementById('all-products');
-    if (!el) return;
-    const filtered = currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter);
-    el.innerHTML = filtered.map(p => productCardHTML(p, true)).join('');
-}
-
-function filterProducts(cat, btn) {
-    currentFilter = cat;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderAllProducts();
-}
-
-// ══════════════════════════
-// PRODUCT DETAIL
-// ══════════════════════════
-function showDetail(id) {
-    const p = products.find(x => x.id === id);
+function showDbDetail(name) {
+    lastScrollY = window.scrollY;
+    lastPage = document.querySelector('.page.active')?.id?.replace('page-', '') || 'home';
+    const p = dbProductsCache.find(x => x.name === name);
     if (!p) return;
-    const colors = p.colors.map((c, i) => `<div class="color-swatch ${i === 0 ? 'active' : ''}" style="background:${c}" onclick="selectColor(this)"></div>`).join('');
-    const specs = Object.entries(p.specs).map(([k, v]) => `<div class="spec-row"><span class="spec-key">${k}</span><span>${v}</span></div>`).join('');
-    const oldP = p.oldPrice ? `<span class="detail-price-old">${fmt(p.oldPrice)}</span><span class="detail-price-badge">SALE</span>` : '';
+
+    const emoji = getProductEmoji(p);
+    const price = Number(p.price);
 
     document.getElementById('detail-content').innerHTML = `
+    <div style="grid-column:1/-1; margin-bottom:24px; padding-top:24px;">
+      <button id="btn-back-detail" style="
+        font-family:var(--font-mono);font-size:11px;letter-spacing:2px;
+        text-transform:uppercase;background:none;border:none;
+        color:var(--grey-light);cursor:pointer;
+        display:flex;align-items:center;gap:8px;padding:0;
+      ">← QUAY LẠI</button>
+    </div>
+
     <div class="detail-gallery">
-      <div class="detail-main-img" style="font-size:120px;">${p.emoji}</div>
+      <div class="detail-main-img" style="font-size:120px;">${emoji}</div>
       <div class="detail-thumbs">
-        <div class="detail-thumb active">${p.emoji}</div>
+        <div class="detail-thumb active">${emoji}</div>
         <div class="detail-thumb" style="font-size:20px;">📦</div>
         <div class="detail-thumb" style="font-size:20px;">📱</div>
         <div class="detail-thumb" style="font-size:20px;">⚡</div>
       </div>
     </div>
+
     <div class="detail-info">
-<div class="detail-breadcrumb">
-  <a href="#" data-page="home">Trang chủ</a> /
-  <a href="#" data-page="products">Sản phẩm</a> /
-  <span style="color:var(--white)">${p.name}</span>
-</div>
+      <div class="detail-breadcrumb">
+        <a href="#" data-page="home">Trang chủ</a> /
+        <a href="#" data-page="products">Sản phẩm</a> /
+        <span style="color:var(--white)">${p.name}</span>
+      </div>
       <h1 class="detail-name">${p.name}</h1>
-      <p class="detail-tagline">${p.sub}</p>
-      <div class="detail-price">${fmt(p.price)} ${oldP}</div>
+      <p class="detail-tagline">${p.description || ''}</p>
+      <div class="detail-price">${fmt(price)}</div>
       <div class="label-sm">Màu sắc</div>
-      <div class="colors-row">${colors}</div>
+      <div class="colors-row">
+        <div class="color-swatch active" style="background:#0a0a0a" onclick="selectColor(this)"></div>
+        <div class="color-swatch" style="background:#e81c1c" onclick="selectColor(this)"></div>
+        <div class="color-swatch" style="background:#f5f5f0" onclick="selectColor(this)"></div>
+      </div>
       <div class="label-sm">Số lượng</div>
       <div class="qty-row">
         <button class="qty-btn" onclick="changeQty(-1)">−</button>
         <input class="qty-val" type="text" value="1" id="qty-input" readonly>
         <button class="qty-btn" onclick="changeQty(1)">+</button>
       </div>
-      <button class="add-to-cart-btn" onclick="addToCartDetail(${p.id})"><span>THÊM VÀO GIỎ</span></button>
+      <button class="add-to-cart-btn" onclick="addToCartDb('${p.name}', ${price})"><span>THÊM VÀO GIỎ</span></button>
       <button class="wishlist-btn">♡ THÊM VÀO WISHLIST</button>
-      <div class="detail-specs">
-        <div class="label-sm" style="margin-bottom:20px;">Thông số kỹ thuật</div>
-        ${specs}
-      </div>
     </div>`;
 
     showPage('detail');
-}
-
-function selectColor(el) {
-    el.parentElement.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-    el.classList.add('active');
-}
-
-function changeQty(delta) {
-    const inp = document.getElementById('qty-input');
-    if (!inp) return;
-    let v = parseInt(inp.value) + delta;
-    if (v < 1) v = 1;
-    if (v > 99) v = 99;
-    inp.value = v;
+    document.getElementById('btn-back-detail')?.addEventListener('click', () => {
+        showPage(lastPage);
+        // Restore scroll sau khi trang đã hiển thị
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                window.scrollTo({top: lastScrollY, behavior: 'instant'});
+            });
+        });
+    });
 }
 
 // ══════════════════════════
@@ -468,28 +555,32 @@ function renderCart() {
     }
     const total = cart.reduce((s, x) => {
         const p = products.find(pr => pr.id === x.id);
-        return s + (p ? p.price * x.qty : 0);
+        // sản phẩm DB không có trong mảng products, lấy price từ cart
+        return s + (p ? p.price * x.qty : (x.price || 0) * x.qty);
     }, 0);
     const shipping = 30000;
     const items = cart.map(x => {
         const p = products.find(pr => pr.id === x.id);
-        if (!p) return '';
+        const name = p ? p.name : x.name || 'Sản phẩm';
+        const sub = p ? p.sub : x.description || '';
+        const emoji = p ? p.emoji : getProductEmoji(x);
+        const price = p ? p.price : (x.price || 0);
         return `
       <div class="cart-item">
-        <div class="cart-item-img" style="font-size:40px;">${p.emoji}</div>
+        <div class="cart-item-img" style="font-size:40px;">${emoji}</div>
         <div>
-          <div class="cart-item-name">${p.name}</div>
-          <div class="cart-item-sub">${p.sub}</div>
+          <div class="cart-item-name">${name}</div>
+          <div class="cart-item-sub">${sub}</div>
           <div class="cart-item-actions">
             <div class="qty-row">
-              <button class="qty-btn" onclick="changeCartQty(${p.id},-1)" style="width:36px;height:36px;font-size:16px;">−</button>
+              <button class="qty-btn" onclick="changeCartQty('${x.id}',-1)" style="width:36px;height:36px;font-size:16px;">−</button>
               <input class="qty-val" type="text" value="${x.qty}" readonly style="width:48px;height:36px;font-size:13px;">
-              <button class="qty-btn" onclick="changeCartQty(${p.id},1)" style="width:36px;height:36px;font-size:16px;">+</button>
+              <button class="qty-btn" onclick="changeCartQty('${x.id}',1)" style="width:36px;height:36px;font-size:16px;">+</button>
             </div>
-            <button class="cart-remove" onclick="removeFromCart(${p.id})">Xóa</button>
+            <button class="cart-remove" onclick="removeFromCart('${x.id}')">Xóa</button>
           </div>
         </div>
-        <div class="cart-item-price">${fmt(p.price * x.qty)}</div>
+        <div class="cart-item-price">${fmt(price * x.qty)}</div>
       </div>`;
     }).join('');
 
@@ -513,6 +604,7 @@ function renderCart() {
 // TOAST
 // ══════════════════════════
 let toastTimer;
+
 function showToast(msg) {
     document.getElementById('toast-msg').textContent = msg;
     const t = document.getElementById('toast');
@@ -571,22 +663,23 @@ function initReveal() {
         if (rect.top < window.innerHeight - 80) el.classList.add('visible');
     });
 }
+
 // ══════════════════════════
-// INIT
+// INIT — cuối file, sau tất cả hàm
 // ══════════════════════════
-window.showPage       = showPage;
-window.toggleMenu     = toggleMenu;
-window.addToCart      = addToCart;
+window.showPage = showPage;
+window.toggleMenu = toggleMenu;
+window.addToCart = addToCart;
 window.addToCartDetail = addToCartDetail;
-window.showDetail     = showDetail;
-window.changeQty      = changeQty;
-window.changeCartQty  = changeCartQty;
+window.showDetail = showDetail;
+window.changeQty = changeQty;
+window.changeCartQty = changeCartQty;
 window.removeFromCart = removeFromCart;
 window.filterProducts = filterProducts;
-window.selectColor    = selectColor;
-window.showToast      = showToast;
-window.addToCartDb    = addToCartDb;
-window.showDbDetail   = showDbDetail;
+window.selectColor = selectColor;
+window.showToast = showToast;
+window.addToCartDb = addToCartDb;
+window.showDbDetail = showDbDetail;
 
 renderFeatured();
 renderDbProducts();

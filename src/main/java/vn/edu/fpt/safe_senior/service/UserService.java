@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.safe_senior.config.PasswordEncoderConfig;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
+import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
 import vn.edu.fpt.safe_senior.entity.EmailVerificationToken;
 import vn.edu.fpt.safe_senior.entity.Role;
@@ -100,21 +101,17 @@ public class UserService {
     }
 
 
-    public UserResponse getUserInfo(String id) {
-        return userMapper.toUserResponse(userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+    public UserResponse getUserInfo(String username) {
+        return userMapper.toUserResponse(userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
     }
 
 
-
-//    @PostAuthorize("returnObject.username == authentication.name")
-//    public UserResponse updateUser(String id, UserUpdateRequest request) {
-//        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-//        userMapper.updateUser(user, request);
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
-//        var roles = roleRepository.findAllById(request.getRoles());
-//        user.setRoles(new HashSet<>(roles));
-//        return userMapper.toUserResponse(userRepository.save(user));
-//    }
+    @PostAuthorize("returnObject.username == authentication.name")
+    public UserResponse update(String username, UserUpdateRequest request) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        userMapper.updateUser(user, request);
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
 
 
     @PreAuthorize("hasRole('ADMIN')")

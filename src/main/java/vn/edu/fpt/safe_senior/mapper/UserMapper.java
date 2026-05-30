@@ -2,7 +2,9 @@ package vn.edu.fpt.safe_senior.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
+import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
 import vn.edu.fpt.safe_senior.entity.Role;
 import vn.edu.fpt.safe_senior.entity.User;
@@ -17,8 +19,8 @@ public interface UserMapper {
 
     UserResponse toUserResponse(User user);
 
-//    @Mapping(target = "roles", ignore = true) // bỏ qua field roles, không map, ignore = true: Field không có trong request, nhưng entity có Set<Role> roles;
-//    void updateUser(@MappingTarget User user, UserUpdateRequest request);
+    @Mapping(target = "roles", ignore = true)
+    void updateUser(@MappingTarget User user, UserUpdateRequest request);
 
     default Set<String> map(Set<Role> roles) {
         if (roles == null) return Set.of();
