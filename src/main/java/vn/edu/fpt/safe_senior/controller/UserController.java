@@ -8,9 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
+import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
 import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
+import vn.edu.fpt.safe_senior.entity.Address;
 import vn.edu.fpt.safe_senior.service.UserService;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -19,6 +23,11 @@ import vn.edu.fpt.safe_senior.service.UserService;
 @RequestMapping("/users")
 public class UserController {
     UserService userService;
+
+    @GetMapping("/address/{id}")
+    public List<AddressResponse> address(@PathVariable String id) {
+        return userService.getAddresses(id);
+    }
 
     @PostMapping
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UseCreateRequest request) {
@@ -36,9 +45,9 @@ public class UserController {
     }
 
     @PutMapping("/username/{username}")
-    ApiResponse<UserResponse> updateUser(@PathVariable String username,@RequestBody UserUpdateRequest request) {
+    ApiResponse<UserResponse> updateUser(@PathVariable String username, @RequestBody UserUpdateRequest request) {
         return ApiResponse.<UserResponse>builder()
-                .result(userService.update(username,request))
+                .result(userService.update(username, request))
                 .build();
     }
 }

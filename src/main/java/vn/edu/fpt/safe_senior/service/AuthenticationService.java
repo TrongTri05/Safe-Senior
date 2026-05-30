@@ -96,6 +96,7 @@ public class AuthenticationService {
                 .expirationTime(new Date(Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli())) // time token
                 .jwtID(UUID.randomUUID().toString())
 //                .claim("scope", buildScope(user))
+                .claim("id", user.getId())
                 .claim("roles",
                         user.getRoles()
                                 .stream()

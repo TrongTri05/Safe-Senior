@@ -14,14 +14,18 @@ import org.springframework.stereotype.Service;
 import vn.edu.fpt.safe_senior.config.PasswordEncoderConfig;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
+import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
+import vn.edu.fpt.safe_senior.entity.Address;
 import vn.edu.fpt.safe_senior.entity.EmailVerificationToken;
 import vn.edu.fpt.safe_senior.entity.Role;
 import vn.edu.fpt.safe_senior.entity.User;
 import vn.edu.fpt.safe_senior.enums.RoleEnum;
 import vn.edu.fpt.safe_senior.exception.AppException;
 import vn.edu.fpt.safe_senior.exception.ErrorCode;
+import vn.edu.fpt.safe_senior.mapper.AddressMapper;
 import vn.edu.fpt.safe_senior.mapper.UserMapper;
+import vn.edu.fpt.safe_senior.repository.AddressRepository;
 import vn.edu.fpt.safe_senior.repository.EmailVerificationTokenRepository;
 import vn.edu.fpt.safe_senior.repository.RoleRepository;
 import vn.edu.fpt.safe_senior.repository.UserRepository;
@@ -42,6 +46,8 @@ public class UserService {
     RoleRepository roleRepository;
     EmailVerificationTokenRepository emailVerificationTokenRepository;
     EmailService emailService;
+    AddressRepository addressRepository;
+    AddressMapper addressMapper;
 
     @NonFinal
     @Value("${app.base-url}")
@@ -111,6 +117,13 @@ public class UserService {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         userMapper.updateUser(user, request);
         return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    public List<AddressResponse> getAddresses(String userId) {
+        return addressRepository.findByUserId(userId)
+                .stream()
+                .map(addressMapper::toAddressResponse)
+                .toList();
     }
 
 

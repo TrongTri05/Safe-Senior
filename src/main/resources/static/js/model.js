@@ -490,9 +490,10 @@ function showDbDetail(name) {
 function addToCart(id) {
     const p = products.find(x => x.id === id);
     if (!p) return;
-    const existing = cart.find(x => x.id === id);
+    // Tìm theo String
+    const existing = cart.find(x => String(x.id) === String(id));
     if (existing) existing.qty++;
-    else cart.push({id, qty: 1});
+    else cart.push({ id, qty: 1 });
     saveCart();
     updateBadge();
     showToast(p.name + ' — đã thêm vào giỏ!');
@@ -502,23 +503,23 @@ function addToCartDetail(id) {
     const qty = parseInt(document.getElementById('qty-input')?.value || 1);
     const p = products.find(x => x.id === id);
     if (!p) return;
-    const existing = cart.find(x => x.id === id);
+    const existing = cart.find(x => String(x.id) === String(id));
     if (existing) existing.qty += qty;
-    else cart.push({id, qty});
+    else cart.push({ id, qty });
     saveCart();
     updateBadge();
     showToast(p.name + ' × ' + qty + ' — đã thêm!');
 }
 
 function removeFromCart(id) {
-    cart = cart.filter(x => x.id !== id);
+    cart = cart.filter(x => String(x.id) !== String(id));
     saveCart();
     updateBadge();
     renderCart();
 }
 
 function changeCartQty(id, delta) {
-    const item = cart.find(x => x.id === id);
+    const item = cart.find(x => String(x.id) === String(id));
     if (!item) return;
     item.qty += delta;
     if (item.qty <= 0) {

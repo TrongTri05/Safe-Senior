@@ -1,5 +1,6 @@
 import api from "./api.js";
-import { logout } from "./logout.js";
+import {logout} from "./logout.js";
+
 let errorTimeout;
 document.addEventListener("DOMContentLoaded", () => {
     const loginBtn = document.querySelector(".login-btn");
@@ -24,7 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const token = response.data.result.token;
                 localStorage.setItem("access_token", token);
                 // Decode JWT — đổi tên biến thành payload_username
-                const payload          = JSON.parse(atob(token.split('.')[1]));
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                localStorage.setItem('userId', payload.id ?? payload.sub);
                 const payload_username = payload.sub;
                 if (payload_username) {
                     localStorage.setItem('username', payload_username);
@@ -64,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function showSuccess(message) {
         showToast?.(message);
     }
+
     function updateAuthUI() {
         const authBtn = document.getElementById("authBtn");
         const dropdown = document.getElementById("userDropdown");
@@ -131,5 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
     updateAuthUI();
 });

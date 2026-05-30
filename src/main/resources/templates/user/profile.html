@@ -55,7 +55,7 @@
 
 <!-- NAV -->
 <nav>
-    <a href="index.html" class="nav-logo">SOS<span>SENIOR</span></a>
+    <a th:href="@{/}" class="nav-logo">SOS<span>SENIOR</span></a>
     <a href="javascript:history.back()" class="nav-back">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Quay lại
@@ -199,44 +199,12 @@
                     <div class="section-block-title">ĐỊA CHỈ GIAO HÀNG</div>
                 </div>
             </div>
-            <div class="addresses-grid">
-                <div class="address-card default">
-                    <div class="address-name">Đỗ Trọng Trí</div>
-                    <div class="address-phone">0901 234 567</div>
-                    <div class="address-text">123 Nguyễn Huệ, Phường Bến Nghé,<br>Quận 1, TP. Hồ Chí Minh</div>
-                    <div class="address-actions">
-                        <button class="address-btn">Chỉnh sửa</button>
-                        <span style="color:var(--grey-border);">|</span>
-                        <button class="address-btn">Xóa</button>
-                    </div>
-                </div>
-                <div class="address-card">
-                    <div class="address-name">Đỗ Trọng Trí</div>
-                    <div class="address-phone">0901 234 567</div>
-                    <div class="address-text">45 Lê Lợi, Phường Lê Lợi,<br>Quận Hải Châu, TP. Đà Nẵng</div>
-                    <div class="address-actions">
-                        <button class="address-btn">Chỉnh sửa</button>
-                        <span style="color:var(--grey-border);">|</span>
-                        <button class="address-btn">Xóa</button>
-                        <span style="color:var(--grey-border);">|</span>
-                        <button class="address-btn">Đặt mặc định</button>
-                    </div>
-                </div>
-                <div class="address-card">
-                    <div class="address-name">Mẹ — Nguyễn Thị Lan</div>
-                    <div class="address-phone">0912 345 678</div>
-                    <div class="address-text">88 Trần Phú, Phường Vĩnh Ninh,<br>TP. Huế, Thừa Thiên Huế</div>
-                    <div class="address-actions">
-                        <button class="address-btn">Chỉnh sửa</button>
-                        <span style="color:var(--grey-border);">|</span>
-                        <button class="address-btn">Xóa</button>
-                        <span style="color:var(--grey-border);">|</span>
-                        <button class="address-btn">Đặt mặc định</button>
-                    </div>
-                </div>
-                <div class="address-add" onclick="openModal('modal-address')">
-                    <div class="address-add-icon">＋</div>
-                    <div class="address-add-text">Thêm địa chỉ mới</div>
+            <div class="addresses-grid" id="addresses-grid">
+                <!-- Loading skeleton -->
+                <div class="address-card" style="opacity:0.4;">
+                    <div style="height:18px;background:var(--grey-mid);width:60%;margin-bottom:8px;"></div>
+                    <div style="height:14px;background:var(--grey-mid);width:40%;margin-bottom:10px;"></div>
+                    <div style="height:14px;background:var(--grey-mid);width:80%;"></div>
                 </div>
             </div>
         </div>
