@@ -3,6 +3,7 @@ package vn.edu.fpt.safe_senior.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
@@ -21,20 +22,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final String[] publicEndpoint = {
-            "/users/**",
             "/auth/**",
-            "/home/**",
             "/products/**",
             "/api/**",
             "/",
             "/profile",
-            "/favicon.ico"
-    };
-    private final String[] publicStaticEndpoint = {
+            "/favicon.ico",
             "/css/**",
             "/js/**",
             "/img/**"
     };
+
 
     private final CustomJwtDecoder customJwtDecoder;
 
@@ -48,8 +46,8 @@ public class SecurityConfig {
         httpSecurity.cors(Customizer.withDefaults());
         httpSecurity
                 .authorizeHttpRequests(request -> request
+                        .requestMatchers(HttpMethod.POST,"/users").permitAll()
                         .requestMatchers(publicEndpoint).permitAll()
-                        .requestMatchers(publicStaticEndpoint).permitAll()
                         .anyRequest().authenticated());
         httpSecurity
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -74,10 +72,8 @@ public class SecurityConfig {
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
-
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-
                 registry.addMapping("/**")
                         .allowedOrigins("*")
                         .allowedMethods("*");

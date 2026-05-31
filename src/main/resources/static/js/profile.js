@@ -265,6 +265,43 @@ async function setDefaultAddress(id) {
 }
 
 // ══════════════════════════
+// CREATE ADDRESS
+// ══════════════════════════
+async function createAddress() {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    const name = document.getElementById('addr-name')?.value.trim();
+    const phone = document.getElementById('addr-phone')?.value.trim();
+    const street = document.getElementById('addr-street')?.value.trim();
+    const district = document.getElementById('addr-district')?.value.trim();
+    const city = document.getElementById('addr-city')?.value.trim();
+
+    // Validate
+    if (!name || !phone || !street || !district || !city) {
+        showToast('Vui lòng nhập đầy đủ thông tin!');
+        return;
+    }
+
+    try {
+        const body = {name, phone, street, district, city};
+        await api.post(`/users/address/${userId}`, body);
+
+        // Xóa trắng form
+        ['addr-name', 'addr-phone', 'addr-street', 'addr-district', 'addr-city']
+            .forEach(id => document.getElementById(id).value = '');
+
+        closeModal('modal-address');
+        await loadAddresses(); // Reload danh sách
+        showToast('Đã thêm địa chỉ mới!');
+
+    } catch (err) {
+        console.error('Lỗi thêm địa chỉ:', err);
+        showToast('Thêm thất bại, thử lại!');
+    }
+}
+
+// ══════════════════════════
 // TABS
 // ══════════════════════════
 function switchTab(id, btn) {
@@ -374,6 +411,7 @@ window.showToast = showToast;
 window.editAddress = editAddress;
 window.deleteAddress = deleteAddress;
 window.setDefaultAddress = setDefaultAddress;
+window.createAddress = createAddress;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserInfo();

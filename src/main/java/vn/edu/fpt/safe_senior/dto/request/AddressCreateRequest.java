@@ -1,6 +1,6 @@
 package vn.edu.fpt.safe_senior.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,8 +9,10 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class AuthenticationRequest {
-    String username;
-    String password;
+public class AddressCreateRequest {
+    String name;
+    String phone;
+    String street;
+    String district;
+    String city;
 }

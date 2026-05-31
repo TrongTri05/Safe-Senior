@@ -14,16 +14,17 @@ public enum ErrorCode {
     USER_NOT_EXISTED(1005, "User not existed", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     ROLE_NOT_EXISTED(1007, "ROLE NOT EXISTED", HttpStatus.FORBIDDEN),
+    INVALID_DOB(1008, "Your age must be at least {min}", HttpStatus.FORBIDDEN),
     EMAIL_EXISTED(1009, "Email existed", HttpStatus.BAD_REQUEST),
     USER_NOT_ACTIVE(1010, "Account not verify", HttpStatus.BAD_REQUEST),
     PASSWORD_NOT_MATCH(1011, "Password not match", HttpStatus.BAD_REQUEST),
-    PRODUCT_NOT_FOUND(2001, "Product not found", HttpStatus.NOT_FOUND),
-    DEVICE_NOT_AVAILABLE(2002, "Device not available", HttpStatus.BAD_REQUEST),
-    DEVICE_NOT_ACTIVE(2004, "Device not active", HttpStatus.BAD_REQUEST),
-    USER_ERROR(2003, "User error", HttpStatus.INTERNAL_SERVER_ERROR),
-    LOGIN_ERROR(2005, "Username or Password error", HttpStatus.INTERNAL_SERVER_ERROR),
-    INVALID_DOB(1008, "Your age must be at least {min}", HttpStatus.FORBIDDEN),
-    UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN);
+    ADDRESS_NOT_FOUND(1012, "Address not found", HttpStatus.NOT_FOUND),
+    UNAUTHORIZED(1013, "You do not have permission", HttpStatus.FORBIDDEN),
+    PRODUCT_NOT_FOUND(1014, "Product not found", HttpStatus.NOT_FOUND),
+    DEVICE_NOT_AVAILABLE(1015, "Device not available", HttpStatus.BAD_REQUEST),
+    DEVICE_NOT_ACTIVE(1016, "Device not active", HttpStatus.BAD_REQUEST),
+    USER_ERROR(1017, "User error", HttpStatus.INTERNAL_SERVER_ERROR),
+    LOGIN_ERROR(1018, "Username or Password error", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile — SOS SENIOR</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/profile.css}">
 </head>
 <body>
@@ -20,7 +21,7 @@
 </div>
 
 <!-- MODAL THÊM ĐỊA CHỈ -->
- <div class="modal-overlay" id="modal-address">
+<div class="modal-overlay" id="modal-address">
     <div class="modal">
         <button class="modal-close" onclick="closeModal('modal-address')">✕</button>
         <div class="modal-title">THÊM ĐỊA CHỈ</div>
@@ -28,27 +29,31 @@
         <div style="display:flex;flex-direction:column;gap:16px;">
             <div class="field-group">
                 <label class="field-label">Họ và tên</label>
-                <input class="field-input" type="text" placeholder="Nguyễn Văn A">
+                <input class="field-input" id="addr-name" type="text" placeholder="Nguyễn Văn A">
             </div>
             <div class="field-group">
                 <label class="field-label">Số điện thoại</label>
-                <input class="field-input" type="text" placeholder="0901 234 567">
+                <input class="field-input" id="addr-phone" type="text" placeholder="0901 234 567">
             </div>
             <div class="field-group">
                 <label class="field-label">Địa chỉ</label>
-                <input class="field-input" type="text" placeholder="Số nhà, tên đường">
+                <input class="field-input" id="addr-street" type="text" placeholder="Số nhà, tên đường">
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div class="field-group">
                     <label class="field-label">Quận / Huyện</label>
-                    <input class="field-input" type="text" placeholder="Quận 1">
+                    <input class="field-input" id="addr-district" type="text" placeholder="Quận 1">
                 </div>
                 <div class="field-group">
                     <label class="field-label">Tỉnh / Thành phố</label>
-                    <input class="field-input" type="text" placeholder="TP. Hồ Chí Minh">
+                    <input class="field-input" id="addr-city" type="text" placeholder="TP. Hồ Chí Minh">
                 </div>
             </div>
-            <button class="btn-save" style="width:100%;padding:16px;" onclick="closeModal('modal-address');showToast('Đã thêm địa chỉ mới!')"><span>LƯU ĐỊA CHỈ</span></button>
+            <!-- Đổi onclick thành gọi createAddress() -->
+            <button class="btn-save" style="width:100%;padding:16px;"
+                    onclick="createAddress()">
+                <span>LƯU ĐỊA CHỈ</span>
+            </button>
         </div>
     </div>
 </div>
@@ -57,7 +62,9 @@
 <nav>
     <a th:href="@{/}" class="nav-logo">SOS<span>SENIOR</span></a>
     <a href="javascript:history.back()" class="nav-back">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
         Quay lại
     </a>
 </nav>
@@ -128,7 +135,8 @@
                 </div>
                 <div style="display:flex;gap:10px;">
                     <button class="btn-edit" id="btn-edit-info" onclick="toggleEdit()">CHỈNH SỬA</button>
-                    <button class="btn-save" id="btn-save-info" style="display:none;" onclick="saveInfo()"><span>LƯU</span></button>
+                    <button class="btn-save" id="btn-save-info" style="display:none;" onclick="saveInfo()">
+                        <span>LƯU</span></button>
                 </div>
             </div>
             <div class="fields-grid" id="fields-view">
@@ -185,7 +193,9 @@
                 <div class="field-group">
                     <label class="field-label">Giới tính</label>
                     <select class="field-input" style="appearance:none;">
-                        <option>Nam</option><option>Nữ</option><option>Khác</option>
+                        <option>Nam</option>
+                        <option>Nữ</option>
+                        <option>Khác</option>
                     </select>
                 </div>
             </div>
@@ -319,12 +329,17 @@
                     <div class="device-model">SN: SPX-2024-001892</div>
                     <div class="device-stat">
                         <span class="device-stat-icon">🔋</span>
-                        <div class="battery-bar"><div class="battery-fill" style="width:78%"></div></div>
+                        <div class="battery-bar">
+                            <div class="battery-fill" style="width:78%"></div>
+                        </div>
                         <strong>78%</strong>
                     </div>
-                    <div class="device-stat"><span class="device-stat-icon">📡</span> GPS: <strong style="color:#00c864;margin-left:4px;">Đang kết nối</strong></div>
-                    <div class="device-stat"><span class="device-stat-icon">📍</span> Vị trí: <strong style="margin-left:4px;">Quận 1, TP.HCM</strong></div>
-                    <div class="device-stat"><span class="device-stat-icon">❤️</span> Nhịp tim: <strong style="margin-left:4px;">72 bpm</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">📡</span> GPS: <strong
+                            style="color:#00c864;margin-left:4px;">Đang kết nối</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">📍</span> Vị trí: <strong
+                            style="margin-left:4px;">Quận 1, TP.HCM</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">❤️</span> Nhịp tim: <strong
+                            style="margin-left:4px;">72 bpm</strong></div>
                 </div>
                 <div class="device-card online">
                     <div class="device-emoji">👴</div>
@@ -332,12 +347,17 @@
                     <div class="device-model">SN: SSR-2024-003741</div>
                     <div class="device-stat">
                         <span class="device-stat-icon">🔋</span>
-                        <div class="battery-bar"><div class="battery-fill low" style="width:18%"></div></div>
+                        <div class="battery-bar">
+                            <div class="battery-fill low" style="width:18%"></div>
+                        </div>
                         <strong style="color:var(--red);">18%</strong>
                     </div>
-                    <div class="device-stat"><span class="device-stat-icon">📡</span> GPS: <strong style="color:#00c864;margin-left:4px;">Đang kết nối</strong></div>
-                    <div class="device-stat"><span class="device-stat-icon">📍</span> Vị trí: <strong style="margin-left:4px;">Quận Hải Châu, Đà Nẵng</strong></div>
-                    <div class="device-stat"><span class="device-stat-icon">❤️</span> Nhịp tim: <strong style="margin-left:4px;">68 bpm</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">📡</span> GPS: <strong
+                            style="color:#00c864;margin-left:4px;">Đang kết nối</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">📍</span> Vị trí: <strong
+                            style="margin-left:4px;">Quận Hải Châu, Đà Nẵng</strong></div>
+                    <div class="device-stat"><span class="device-stat-icon">❤️</span> Nhịp tim: <strong
+                            style="margin-left:4px;">68 bpm</strong></div>
                 </div>
             </div>
         </div>
@@ -395,7 +415,9 @@
                             <div class="security-desc">2 thiết bị đang đăng nhập</div>
                         </div>
                     </div>
-                    <button class="btn-edit" style="color:var(--red);border-color:rgba(232,28,28,0.3);" onclick="showToast('Đã đăng xuất tất cả thiết bị khác!')">ĐĂNG XUẤT TẤT CẢ</button>
+                    <button class="btn-edit" style="color:var(--red);border-color:rgba(232,28,28,0.3);"
+                            onclick="showToast('Đã đăng xuất tất cả thiết bị khác!')">ĐĂNG XUẤT TẤT CẢ
+                    </button>
                 </div>
             </div>
         </div>
@@ -407,7 +429,8 @@
                     <div class="section-block-tag">Cài đặt</div>
                     <div class="section-block-title">THÔNG BÁO</div>
                 </div>
-                <button class="btn-save" onclick="showToast('Đã lưu cài đặt thông báo!')"><span>LƯU CÀI ĐẶT</span></button>
+                <button class="btn-save" onclick="showToast('Đã lưu cài đặt thông báo!')"><span>LƯU CÀI ĐẶT</span>
+                </button>
             </div>
             <div class="notif-list">
                 <div class="notif-item">

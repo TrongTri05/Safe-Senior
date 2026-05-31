@@ -11,7 +11,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import vn.edu.fpt.safe_senior.config.PasswordEncoderConfig;
+import vn.edu.fpt.safe_senior.dto.request.AddressCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
 import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
@@ -106,7 +108,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-
+    @PreAuthorize("#username == authentication.name")
     public UserResponse getUserInfo(String username) {
         return userMapper.toUserResponse(userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
     }
@@ -124,6 +126,26 @@ public class UserService {
                 .stream()
                 .map(addressMapper::toAddressResponse)
                 .toList();
+    }
+
+    public void deleteAddress(String addressId) {
+        addressRepository.deleteById(addressId);
+    }
+
+    public void setDefaultAddress(String addressId) {
+        Address target = addressRepository.findById(addressId)
+                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
+        List<Address> allAddresses = addressRepository.findByUserId(target.getUser().getId());
+        allAddresses.forEach(a -> a.setIsDefault(false));
+        target.setIsDefault(true);
+        addressRepository.saveAll(allAddresses);
+    }
+
+    public AddressResponse createAddress(String userId, AddressCreateRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        Address address = addressMapper.createAddress(request);
+        address.setUser(user);
+        return addressMapper.toAddressResponse(addressRepository.save(address));
     }
 
 

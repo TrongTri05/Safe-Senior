@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import vn.edu.fpt.safe_senior.dto.request.AddressCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
 import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
@@ -27,6 +28,25 @@ public class UserController {
     @GetMapping("/address/{id}")
     public List<AddressResponse> address(@PathVariable String id) {
         return userService.getAddresses(id);
+    }
+
+    @DeleteMapping("/address/{id}")
+    public void deleteAddress(@PathVariable String id) {
+        userService.deleteAddress(id);
+    }
+
+    @PostMapping("/address/{userId}")
+    ApiResponse<AddressResponse> createAddress(@PathVariable String userId, @RequestBody AddressCreateRequest request) {
+        return ApiResponse.<AddressResponse>builder()
+                .result(userService.createAddress(userId, request))
+                .build();
+    }
+
+    @PatchMapping("/address/{addressId}/default")
+    ApiResponse<Void> setDefaultAddress(
+            @PathVariable String addressId) {
+        userService.setDefaultAddress(addressId);
+        return ApiResponse.<Void>builder().build();
     }
 
     @PostMapping
