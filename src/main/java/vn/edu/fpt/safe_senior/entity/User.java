@@ -48,8 +48,10 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     List<UserContact> contacts;
+
     @OneToMany(mappedBy = "user")
     List<EmergencyLog> emergencyLogs;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
@@ -64,4 +66,7 @@ public class User {
             orphanRemoval = true
     )
     List<Address> addresses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    List<Order> orders;
 }

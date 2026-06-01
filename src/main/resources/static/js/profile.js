@@ -1,5 +1,5 @@
 import api from "./api.js";
-
+import { logout } from "./logout.js";
 // ══════════════════════════
 // CURSOR — dùng delegation thay vì querySelectorAll
 // ══════════════════════════
@@ -398,6 +398,70 @@ function showToast(msg) {
     toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+
+// ══════════════════════════
+// CHANGE PASSWORD
+// ══════════════════════════
+async function changePassword() {
+    const oldPassword        = document.getElementById('pwd-old')?.value.trim();
+    const newPassword        = document.getElementById('pwd-new')?.value.trim();
+    const confirmNewPassword = document.getElementById('pwd-confirm')?.value.trim();
+    const errorEl            = document.getElementById('pwd-error');
+
+    // Reset error
+    errorEl.style.display = 'none';
+    errorEl.textContent   = '';
+
+    // Validate FE
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+        errorEl.textContent   = 'Vui lòng nhập đầy đủ thông tin!';
+        errorEl.style.display = 'block';
+        return;
+    }
+    if (newPassword !== confirmNewPassword) {
+        errorEl.textContent   = 'Mật khẩu mới không khớp!';
+        errorEl.style.display = 'block';
+        return;
+    }
+    if (newPassword.length < 8) {
+        errorEl.textContent   = 'Mật khẩu mới tối thiểu 8 ký tự!';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    try {
+        await api.put('/users/change-password', {
+            oldPassword,
+            newPassword,
+            confirmNewPassword
+        });
+
+        // Xóa trắng form
+        ['pwd-old', 'pwd-new', 'pwd-confirm']
+            .forEach(id => document.getElementById(id).value = '');
+
+        closeModal('modal-password');
+        showToast('Đổi mật khẩu thành công!');
+
+    } catch (err) {
+        const msg = err.response?.data?.message ?? 'Đổi mật khẩu thất bại!';
+        errorEl.textContent   = msg;
+        errorEl.style.display = 'block';
+        console.error('Lỗi đổi mật khẩu:', err);
+    }
+}
+
+async function logoutAllDevices() {
+    openModal('modal-confirm-logout');
+    const btn = document.getElementById('btn-confirm-logout');
+    const handler = async () => {
+        btn.removeEventListener('click', handler);
+        closeModal('modal-confirm-logout');
+        showToast('Đang đăng xuất...');
+        await logout();
+    };
+    btn.addEventListener('click', handler);
+}
 // ══════════════════════════
 // EXPOSE TO WINDOW
 // ══════════════════════════
@@ -412,6 +476,8 @@ window.editAddress = editAddress;
 window.deleteAddress = deleteAddress;
 window.setDefaultAddress = setDefaultAddress;
 window.createAddress = createAddress;
+window.changePassword = changePassword;
+window.logoutAllDevices = logoutAllDevices;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserInfo();

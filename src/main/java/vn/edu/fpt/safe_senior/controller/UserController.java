@@ -7,12 +7,12 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.safe_senior.dto.request.AddressCreateRequest;
+import vn.edu.fpt.safe_senior.dto.request.ChangePasswordRequest;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
 import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
 import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
-import vn.edu.fpt.safe_senior.entity.Address;
 import vn.edu.fpt.safe_senior.service.UserService;
 
 import java.util.List;
@@ -70,4 +70,14 @@ public class UserController {
                 .result(userService.update(username, request))
                 .build();
     }
+
+
+    @PutMapping("/change-password")
+    public ApiResponse<Void> changePassword(@RequestBody ChangePasswordRequest request) {
+        userService.changePass(request);
+        return ApiResponse.<Void>builder()
+                .message("Password changed successfully!")
+                .build();
+    }
+
 }

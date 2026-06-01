@@ -1,26 +1,25 @@
 package vn.edu.fpt.safe_senior.service;
 
-import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import vn.edu.fpt.safe_senior.dto.response.BuyProductResponse;
+import vn.edu.fpt.safe_senior.dto.request.OrderCreateRequest;
+import vn.edu.fpt.safe_senior.dto.request.OrderItemRequest;
 import vn.edu.fpt.safe_senior.dto.response.ProductResponse;
-import vn.edu.fpt.safe_senior.entity.Device;
-import vn.edu.fpt.safe_senior.entity.Product;
-import vn.edu.fpt.safe_senior.entity.User;
+import vn.edu.fpt.safe_senior.entity.*;
 import vn.edu.fpt.safe_senior.enums.DeviceEnum;
+import vn.edu.fpt.safe_senior.enums.OrderEnum;
+import vn.edu.fpt.safe_senior.enums.PaymentEnum;
 import vn.edu.fpt.safe_senior.enums.ProductEnum;
 import vn.edu.fpt.safe_senior.exception.AppException;
 import vn.edu.fpt.safe_senior.exception.ErrorCode;
 import vn.edu.fpt.safe_senior.mapper.ProductMapper;
-import vn.edu.fpt.safe_senior.repository.DeviceRepository;
-import vn.edu.fpt.safe_senior.repository.ProductRepository;
-import vn.edu.fpt.safe_senior.repository.UserRepository;
+import vn.edu.fpt.safe_senior.repository.*;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,6 +31,10 @@ public class ProductService {
     ProductMapper productMapper;
     UserRepository userRepository;
     DeviceRepository deviceRepository;
+    AddressRepository addressRepository;
+    OrderRepository orderRepository;
+    OrderItemRepository orderItemRepository;
+
 
     public List<ProductResponse> getAllArtists() {
         return productRepository.findAllProductByStatus("ACTIVE").stream()
@@ -40,33 +43,55 @@ public class ProductService {
     }
 
 
-    @Transactional
-    public BuyProductResponse buyProduct(String productId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public void buyProduct(String userId, OrderCreateRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        Address address = addressRepository.findByIdAndUser_Id(request.getAddressId(), userId)
+                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
 
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        BigDecimal total = BigDecimal.ZERO;
+        List<OrderItem> orderItems = new ArrayList<>();
+        List<Product> productsToUpdate = new ArrayList<>();
+        List<Device> devicesToUpdate = new ArrayList<>();
 
-        Device device = deviceRepository
-                .findByProductAndStatus(product, DeviceEnum.INACTIVE.name())
-                .orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_AVAILABLE));
+        for (OrderItemRequest item : request.getItems()) {
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        device.setUser(user);
-        device.setStatus(DeviceEnum.ACTIVE.name());
-        product.setStatus(ProductEnum.INACTIVE.name());
-        deviceRepository.save(device);
-        productRepository.save(product);
+            BigDecimal subtotal = product.getPrice()
+                    .multiply(BigDecimal.valueOf(item.getQuantity()));
+            total = total.add(subtotal);
 
+            orderItems.add(OrderItem.builder()
+                    .product(product)
+                    .quantity(item.getQuantity())
+                    .unitPrice(product.getPrice())
+                    .subtotal(subtotal)
+                    .build());
+            Device device = deviceRepository.findByProductAndStatus(product, DeviceEnum.INACTIVE.name())
+                    .orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_FOUND));
+            device.setUser(user);
+            device.setStatus(DeviceEnum.SOLD.name());
+            devicesToUpdate.add(device);
 
-        BuyProductResponse buyProductResponse = new BuyProductResponse();
-        buyProductResponse.setName(product.getName());
-        buyProductResponse.setDescription(product.getDescription());
-        buyProductResponse.setPrice(product.getPrice());
-        buyProductResponse.setDeviceId(device.getDeviceId());
+            product.setStatus(ProductEnum.INACTIVE.name());
+            productsToUpdate.add(product);
+        }
 
-        return buyProductResponse;
+        Order order = Order.builder()
+                .user(user)
+                .address(address)
+                .totalAmount(total)
+                .paymentMethod(request.getPaymentMethod())
+                .note(request.getNote())
+                .orderStatus(OrderEnum.PENDING.name())
+                .paymentStatus(PaymentEnum.PENDING.name())
+                .build();
+        Order saved = orderRepository.save(order);
+
+        orderItems.forEach(i -> i.setOrder(saved));
+        orderItemRepository.saveAll(orderItems);
+        productRepository.saveAll(productsToUpdate);
+        deviceRepository.saveAll(devicesToUpdate);
     }
 }

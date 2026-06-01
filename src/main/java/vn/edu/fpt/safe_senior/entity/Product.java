@@ -32,4 +32,7 @@ public class Product {
     LocalDateTime updatedAt;
     @OneToMany(mappedBy = "product")
     List<Device> devices;
+
+    @OneToMany(mappedBy = "product")
+    List<OrderItem> orderItems;
 }

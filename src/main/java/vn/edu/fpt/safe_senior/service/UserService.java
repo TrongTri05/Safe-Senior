@@ -10,13 +10,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import vn.edu.fpt.safe_senior.config.PasswordEncoderConfig;
 import vn.edu.fpt.safe_senior.dto.request.AddressCreateRequest;
+import vn.edu.fpt.safe_senior.dto.request.ChangePasswordRequest;
 import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
 import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
+import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
 import vn.edu.fpt.safe_senior.entity.Address;
 import vn.edu.fpt.safe_senior.entity.EmailVerificationToken;
@@ -50,6 +54,7 @@ public class UserService {
     EmailService emailService;
     AddressRepository addressRepository;
     AddressMapper addressMapper;
+    PasswordEncoder passwordEncoder;
 
     @NonFinal
     @Value("${app.base-url}")
@@ -146,6 +151,23 @@ public class UserService {
         Address address = addressMapper.createAddress(request);
         address.setUser(user);
         return addressMapper.toAddressResponse(addressRepository.save(address));
+    }
+
+    public void changePass(ChangePasswordRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_ERROR);
+        }
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_DUPLICATE);
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
 

@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BuyProductResponse {
+public class OrderItemResponse {
     String name;
     String description;
     BigDecimal price;

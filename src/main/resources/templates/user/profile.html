@@ -376,10 +376,45 @@
                         <div class="security-icon">🔒</div>
                         <div>
                             <div class="security-title">MẬT KHẨU</div>
-                            <div class="security-desc">Lần đổi cuối: 3 tháng trước</div>
+                            <div class="security-desc">Bảo vệ tài khoản của bạn</div>
                         </div>
                     </div>
-                    <button class="btn-edit" onclick="showToast('Chức năng đang phát triển!')">ĐỔI MẬT KHẨU</button>
+
+                    <!-- MODAL ĐỔI MẬT KHẨU -->
+                    <div class="modal-overlay" id="modal-password">
+                        <div class="modal">
+                            <button class="modal-close" onclick="closeModal('modal-password')">✕</button>
+                            <div class="modal-title">ĐỔI MẬT KHẨU</div>
+                            <p class="modal-sub">Nhập mật khẩu hiện tại và mật khẩu mới</p>
+                            <div style="display:flex;flex-direction:column;gap:16px;">
+                                <div class="field-group">
+                                    <label class="field-label">Mật khẩu hiện tại</label>
+                                    <input class="field-input" id="pwd-old" type="password" placeholder="••••••••">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Mật khẩu mới</label>
+                                    <input class="field-input" id="pwd-new" type="password" placeholder="••••••••">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Xác nhận mật khẩu mới</label>
+                                    <input class="field-input" id="pwd-confirm" type="password" placeholder="••••••••">
+                                </div>
+                                <!-- Error message -->
+                                <div id="pwd-error" style="
+                display:none;
+                color:var(--red);
+                font-family:var(--font-mono);
+                font-size:11px;
+                letter-spacing:1px;">
+                                </div>
+                                <button class="btn-save" style="width:100%;padding:16px;"
+                                        onclick="changePassword()">
+                                    <span>XÁC NHẬN ĐỔI MẬT KHẨU</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-edit" onclick="openModal('modal-password')">ĐỔI MẬT KHẨU</button>
                 </div>
                 <div class="security-item">
                     <div class="security-left">
@@ -390,8 +425,9 @@
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;">
-                        <span class="security-status status-on">BẬT</span>
-                        <button class="toggle-btn" onclick="showToast('Đã cập nhật cài đặt 2FA!')">TẮT</button>
+                        <span class="security-status status-on"
+                              onclick="showToast('Chức năng đang phát triển!')">BẬT</span>
+                        <button class="toggle-btn" onclick="showToast('Chức năng đang phát triển!')">TẮT</button>
                     </div>
                 </div>
                 <div class="security-item">
@@ -412,16 +448,39 @@
                         <div class="security-icon">📋</div>
                         <div>
                             <div class="security-title">PHIÊN ĐĂNG NHẬP</div>
-                            <div class="security-desc">2 thiết bị đang đăng nhập</div>
+                            <div class="security-desc">Đăng xuất tất cả các thiết bị</div>
                         </div>
                     </div>
-                    <button class="btn-edit" style="color:var(--red);border-color:rgba(232,28,28,0.3);"
-                            onclick="showToast('Đã đăng xuất tất cả thiết bị khác!')">ĐĂNG XUẤT TẤT CẢ
+                    <button class="btn-edit"
+                            style="color:var(--red);border-color:rgba(232,28,28,0.3);"
+                            onclick="logoutAllDevices()">
+                        ĐĂNG XUẤT
                     </button>
                 </div>
             </div>
         </div>
-
+        <!-- MODAL CONFIRM LOGOUT -->
+        <div class="modal-overlay" id="modal-confirm-logout">
+            <div class="modal" style="max-width:400px;text-align:center;">
+                <div style="font-size:40px;margin-bottom:20px;">⚠</div>
+                <div class="modal-title">ĐĂNG XUẤT</div>
+                <p class="modal-sub" style="margin-bottom:32px;">
+                    Tất cả phiên đăng nhập trên các thiết bị khác sẽ bị kết thúc. Bạn chắc chắn?
+                </p>
+                <div style="display:flex;gap:12px;">
+                    <button class="btn-edit"
+                            style="flex:1;padding:14px;"
+                            onclick="closeModal('modal-confirm-logout')">
+                        HỦY
+                    </button>
+                    <button class="btn-save"
+                            id="btn-confirm-logout"
+                            style="flex:1;padding:14px;">
+                        <span>XÁC NHẬN</span>
+                    </button>
+                </div>
+            </div>
+        </div>
         <!-- TAB: THÔNG BÁO -->
         <div class="section-block" id="tab-notif">
             <div class="section-block-header">

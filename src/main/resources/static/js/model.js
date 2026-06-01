@@ -313,7 +313,7 @@ function showDetail(id) {
         showPage(lastPage);
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                window.scrollTo({ top: lastScrollY, behavior: 'instant' });
+                window.scrollTo({top: lastScrollY, behavior: 'instant'});
             });
         });
     });
@@ -357,7 +357,7 @@ function dbProductCardHTML(p) {
     <div class="product-card" onclick="showDbDetail('${p.name}')">
       <div class="product-img">
         <div class="product-img-inner" style="font-size:80px;display:flex;align-items:center;justify-content:center;">${emoji}</div>
-        <button class="product-quick-add" onclick="event.stopPropagation();addToCartDb('${p.name}',${Number(p.price)})">
+        <button class="product-quick-add" onclick="event.stopPropagation();addToCartDb('${p.id}','${p.name}',${Number(p.price)})">
           + THÊM VÀO GIỎ
         </button>
       </div>
@@ -376,14 +376,57 @@ function dbProductCardHTML(p) {
     </div>`;
 }
 
-function addToCartDb(name, price) {
-    const id = 'db_' + name;
+function addToCartDb(id, name, price) {
+    const qty = parseInt(document.getElementById('qty-input')?.value || 1);
     const existing = cart.find(x => x.id === id);
-    if (existing) existing.qty++;
-    else cart.push({id, qty: 1, name, price, fromDb: true});
+    if (existing) existing.qty += qty;
+    else cart.push({id, qty, name, price, fromDb: true});
     saveCart();
     updateBadge();
-    showToast(name + ' — đã thêm vào giỏ!');
+    showToast(name + ' × ' + qty + ' — đã thêm!');
+}
+
+async function checkout() {
+    const dbItems = cart.filter(x => x.fromDb);
+    if (dbItems.length === 0) {
+        showToast('Không có sản phẩm hợp lệ để đặt hàng!');
+        return;
+    }
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+        showToast('Vui lòng đăng nhập!');
+        return;
+    }
+    try {
+        // Lấy danh sách địa chỉ, tìm cái mặc định
+        const res = await api.get(`/users/address/${userId}`);
+        const addresses = res.data?.result ?? res.data ?? [];
+        const defaultAddr = addresses.find(a => a.isDefault) ?? addresses[0];
+        if (!defaultAddr) {
+            showToast('Bạn chưa có địa chỉ giao hàng!');
+            return;
+        }
+        const paymentMethod = document.getElementById('payment-method')?.value || 'COD';
+        const payload = {
+            addressId: defaultAddr.id,
+            paymentMethod,
+            note: document.querySelector('.note-input')?.value || '',
+            items: dbItems.map(x => ({
+                productId: String(x.id),
+                quantity: x.qty
+            }))
+        };
+        await api.post('/buy/orders', payload);
+        cart = [];
+        saveCart();
+        updateBadge();
+        showToast('Đặt hàng thành công!');
+        showPage('home');
+
+    } catch (err) {
+        showToast('Lỗi đặt hàng, thử lại!');
+        console.error(err);
+    }
 }
 
 async function renderDbProducts() {
@@ -468,7 +511,7 @@ function showDbDetail(name) {
         <input class="qty-val" type="text" value="1" id="qty-input" readonly>
         <button class="qty-btn" onclick="changeQty(1)">+</button>
       </div>
-      <button class="add-to-cart-btn" onclick="addToCartDb('${p.name}', ${price})"><span>THÊM VÀO GIỎ</span></button>
+      <button class="add-to-cart-btn" onclick="addToCartDb('${p.id}', '${p.name}', ${price})"><span>THÊM VÀO GIỎ</span></button>
       <button class="wishlist-btn">♡ THÊM VÀO WISHLIST</button>
     </div>`;
 
@@ -493,7 +536,7 @@ function addToCart(id) {
     // Tìm theo String
     const existing = cart.find(x => String(x.id) === String(id));
     if (existing) existing.qty++;
-    else cart.push({ id, qty: 1 });
+    else cart.push({id, qty: 1});
     saveCart();
     updateBadge();
     showToast(p.name + ' — đã thêm vào giỏ!');
@@ -505,7 +548,7 @@ function addToCartDetail(id) {
     if (!p) return;
     const existing = cart.find(x => String(x.id) === String(id));
     if (existing) existing.qty += qty;
-    else cart.push({ id, qty });
+    else cart.push({id, qty});
     saveCart();
     updateBadge();
     showToast(p.name + ' × ' + qty + ' — đã thêm!');
@@ -596,7 +639,11 @@ function renderCart() {
         <div class="summary-row total"><span>Tổng cộng</span><span>${fmt(total + shipping)}</span></div>
         <input class="promo-input" type="text" placeholder="MÃ GIẢM GIÁ">
         <button class="btn-outline" style="width:100%;padding:14px;font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:none;margin-bottom:12px;">ÁP DỤNG</button>
-        <button class="btn-primary" style="width:100%;padding:16px;font-size:11px;" onclick="showToast('Chức năng thanh toán đang phát triển!')"><span>THANH TOÁN NGAY</span></button>
+        <select class="promo-input" id="payment-method" style="margin-bottom:12px;">
+  <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+  <option value="BANKING">Chuyển khoản ngân hàng</option>
+</select>
+        <button class="btn-primary" style="width:100%;padding:16px;font-size:11px;" onclick="checkout()"><span>THANH TOÁN NGAY</span></button>
       </div>
     </div>`;
 }
@@ -681,6 +728,7 @@ window.selectColor = selectColor;
 window.showToast = showToast;
 window.addToCartDb = addToCartDb;
 window.showDbDetail = showDbDetail;
+window.checkout = checkout;
 
 renderFeatured();
 renderDbProducts();

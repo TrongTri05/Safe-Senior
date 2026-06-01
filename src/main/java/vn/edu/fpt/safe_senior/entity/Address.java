@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -47,6 +48,9 @@ public class Address {
 
     @Column(name = "updated_at")
     LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "address")
+    List<Order> orders;
 
     @PrePersist
     public void prePersist() {

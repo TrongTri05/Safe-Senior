@@ -133,13 +133,14 @@ public class AuthenticationService {
             var signToken = verifyToken(request.getToken(), true);
             String jit = signToken.getJWTClaimsSet().getJWTID();
             Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+            if (!invalidatedTokenRepository.existsById(jit)) {
+                InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                        .id(jit)
+                        .expiration(expiryTime)
+                        .build();
+                invalidatedTokenRepository.save(invalidatedToken);
+            }
 
-            InvalidatedToken invalidatedToken = InvalidatedToken.builder()
-                    .id(jit)
-                    .expiration(expiryTime)
-                    .build();
-
-            invalidatedTokenRepository.save(invalidatedToken);
         } catch (AppException e) {
             log.info("Token already expired");
         }

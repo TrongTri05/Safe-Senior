@@ -4,5 +4,6 @@ public enum DeviceEnum {
     ACTIVE,
     INACTIVE,
     OFFLINE,
-    BLOCKED
+    BLOCKED,
+    SOLD
 }

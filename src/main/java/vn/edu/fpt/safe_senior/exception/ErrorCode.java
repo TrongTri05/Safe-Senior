@@ -24,6 +24,10 @@ public enum ErrorCode {
     DEVICE_NOT_AVAILABLE(1015, "Device not available", HttpStatus.BAD_REQUEST),
     DEVICE_NOT_ACTIVE(1016, "Device not active", HttpStatus.BAD_REQUEST),
     USER_ERROR(1017, "User error", HttpStatus.INTERNAL_SERVER_ERROR),
+    PASSWORD_DUPLICATE(1019, "New password must not be the same as the old password.", HttpStatus.BAD_REQUEST),
+    PASSWORD_ERROR(1020,"Wrong password", HttpStatus.BAD_REQUEST),
+    DEVICE_NOT_FOUND(1021, "Device not found", HttpStatus.BAD_REQUEST),
+    NOT_ADDRESS_AVAILABLE(1021,"Address not available", HttpStatus.BAD_REQUEST),
     LOGIN_ERROR(1018, "Username or Password error", HttpStatus.INTERNAL_SERVER_ERROR);
 
 

@@ -3,12 +3,10 @@ package vn.edu.fpt.safe_senior.controller;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+import vn.edu.fpt.safe_senior.dto.request.OrderCreateRequest;
 import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
-import vn.edu.fpt.safe_senior.dto.response.BuyProductResponse;
 import vn.edu.fpt.safe_senior.service.ProductService;
 
 @RestController
@@ -17,12 +15,13 @@ import vn.edu.fpt.safe_senior.service.ProductService;
 @RequestMapping("/buy")
 public class BuyController {
     ProductService productService;
-    @PostMapping("/{id}")
-    public ApiResponse<BuyProductResponse> buyProduct(
-            @PathVariable String id) {
-        return ApiResponse.<BuyProductResponse>builder()
-                .result(productService.buyProduct(id))
-                .message("Product successfully buy")
+
+    @PostMapping("/orders")
+    public ApiResponse<Void> buyProduct(@RequestBody OrderCreateRequest request) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        productService.buyProduct(userId, request);
+        return ApiResponse.<Void>builder()
+                .message("Order placed successfully")
                 .build();
     }
 }
