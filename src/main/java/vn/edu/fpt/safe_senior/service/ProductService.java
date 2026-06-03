@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.safe_senior.dto.request.OrderCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.OrderItemRequest;
@@ -43,21 +44,20 @@ public class ProductService {
     }
 
 
-    public void buyProduct(String userId, OrderCreateRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
-        Address address = addressRepository.findByIdAndUser_Id(request.getAddressId(), userId)
+    public void buyProduct(OrderCreateRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        Address address = addressRepository.findByIdAndUser_Id(request.getAddressId(), user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
-
         BigDecimal total = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
         List<Product> productsToUpdate = new ArrayList<>();
         List<Device> devicesToUpdate = new ArrayList<>();
 
         for (OrderItemRequest item : request.getItems()) {
+            System.out.println("productId = " + item.getProductId());
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
-
             BigDecimal subtotal = product.getPrice()
                     .multiply(BigDecimal.valueOf(item.getQuantity()));
             total = total.add(subtotal);
@@ -73,7 +73,6 @@ public class ProductService {
             device.setUser(user);
             device.setStatus(DeviceEnum.SOLD.name());
             devicesToUpdate.add(device);
-
             product.setStatus(ProductEnum.INACTIVE.name());
             productsToUpdate.add(product);
         }

@@ -30,9 +30,8 @@ public class Product {
     LocalDateTime createdAt;
     @Column(name = "updated_at")
     LocalDateTime updatedAt;
-    @OneToMany(mappedBy = "product")
-    List<Device> devices;
-
+    @OneToOne(mappedBy = "product")
+    Device device;
     @OneToMany(mappedBy = "product")
     List<OrderItem> orderItems;
 }

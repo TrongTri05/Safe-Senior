@@ -388,6 +388,7 @@ function addToCartDb(id, name, price) {
 
 async function checkout() {
     const dbItems = cart.filter(x => x.fromDb);
+    console.log('dbItems:', JSON.stringify(dbItems));
     if (dbItems.length === 0) {
         showToast('Không có sản phẩm hợp lệ để đặt hàng!');
         return;
@@ -435,6 +436,8 @@ async function renderDbProducts() {
     try {
         const res = await api.get('/products');
         const data = res.data?.result ?? res.data ?? [];
+        console.log('product fields:', Object.keys(data[0])); // ← xem tên các field
+        console.log('first product:', data[0]);
         dbProductsCache = data;
         if (!data.length) {
             el.innerHTML = `

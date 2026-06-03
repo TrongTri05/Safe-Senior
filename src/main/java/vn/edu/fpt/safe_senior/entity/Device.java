@@ -19,7 +19,7 @@ public class Device {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
-    @Column(name = "device_id")
+    @Column(name = "device_id", unique = true)
     String deviceId;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -27,14 +27,12 @@ public class Device {
     String name;
     String status;
     String serverUrl;
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "product_id")
     Product product;
     @Column(name = "created_at", updatable = false)
     LocalDateTime created;
-    @Column(name = "configuredAt")
     LocalDateTime configuredAt;
-    @Column(name = "lastConnectedAt")
     LocalDateTime lastConnectedAt;
     @OneToMany(mappedBy = "device")
     List<DeviceConfigHistory> configHistories;

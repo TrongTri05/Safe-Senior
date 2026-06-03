@@ -318,6 +318,7 @@ function switchTab(id, btn) {
 
     // Load data theo từng tab
     if (id === 'address') loadAddresses();
+    if (id === 'orders') loadOrders();
 }
 
 
@@ -361,6 +362,299 @@ async function saveInfo() {
     document.getElementById('btn-save-info').style.display = 'none';
 }
 
+
+// ══════════════════════════
+// ORDERS
+// ══════════════════════════
+let ordersCache = [];
+
+const ORDER_STATUS_LABEL = {
+    PENDING:   { text: 'Chờ xác nhận', cls: 'status-processing' },
+    CONFIRMED: { text: 'Đã xác nhận',  cls: 'status-processing' },
+    SHIPPING:  { text: 'Đang giao',     cls: 'status-shipping'   },
+    DELIVERED: { text: 'Đã giao',       cls: 'status-delivered'  },
+    CANCELLED: { text: 'Đã huỷ',        cls: 'status-cancelled'  },
+};
+
+function fmtPrice(n) {
+    return Number(n).toLocaleString('vi-VN') + '₫';
+}
+
+function fmtOrderDate(val) {
+    if (!val) return '—';
+    const d = new Date(val);
+    return isNaN(d) ? '—' : d.toLocaleDateString('vi-VN', {
+        day: '2-digit', month: 'long', year: 'numeric'
+    });
+}
+
+async function loadOrders() {
+    const listEl = document.getElementById('orders-list');
+    const countEl = document.getElementById('orders-count-label');
+    if (!listEl) return;
+    try {
+        const res = await api.get('/order/user-orders');
+        const data = res.data?.result ?? res.data ?? [];
+        ordersCache = data;
+        if (countEl) countEl.textContent = `${data.length} đơn hàng`;
+        if (!data.length) {
+            listEl.innerHTML = `
+                <div style="text-align:center;padding:40px;
+                    font-family:var(--font-mono);font-size:12px;
+                    letter-spacing:2px;color:var(--grey-light);">
+                    CHƯA CÓ ĐƠN HÀNG
+                </div>`;
+            return;
+        }
+        listEl.innerHTML = data.map(o => {
+            const st = ORDER_STATUS_LABEL[o.orderStatus] ?? { text: o.orderStatus, cls: '' };
+            const firstItem = o.items?.[0];
+            const moreCount = (o.items?.length ?? 0) - 1;
+            return `
+            <div class="order-card" onclick="showOrderDetail('${o.orderId}')" 
+                 style="cursor:pointer;">
+                <div class="order-header">
+                    <div>
+                        <div class="order-id">#${o.orderId.slice(0, 8).toUpperCase()}</div>
+                        <div class="order-date">${fmtOrderDate(o.createdAt)}</div>
+                    </div>
+                    <div class="order-status ${st.cls}">${st.text}</div>
+                </div>
+                <div class="order-items">
+                    ${firstItem ? `
+                    <div class="order-item">
+                        <div class="order-item-emoji">📦</div>
+                        <div class="order-item-info">
+                            <div class="order-item-name">${firstItem.product?.name ?? '—'}</div>
+                            <div class="order-item-sub">SL: ${firstItem.quantity}</div>
+                        </div>
+                        <div class="order-item-price">${fmtPrice(firstItem.subtotal)}</div>
+                    </div>` : ''}
+                    ${moreCount > 0 ? `
+                    <div style="font-family:var(--font-mono);font-size:11px;
+                                color:var(--grey-light);padding:8px 0;">
+                        +${moreCount} sản phẩm khác
+                    </div>` : ''}
+                </div>
+                <div class="order-footer">
+                    <div class="order-total-label">Tổng cộng</div>
+                    <div class="order-total-val">${fmtPrice(o.totalAmount)}</div>
+                </div>
+            </div>`;
+        }).join('');
+
+    } catch (err) {
+        console.error('Lỗi load orders:', err);
+        listEl.innerHTML = `
+            <div style="text-align:center;padding:40px;
+                color:var(--red);font-family:var(--font-mono);
+                font-size:12px;letter-spacing:2px;">
+                ⚠ KHÔNG THỂ TẢI ĐƠN HÀNG
+            </div>`;
+    }
+}
+
+function showOrderDetail(orderId) {
+    const o = ordersCache.find(x => x.orderId === orderId);
+    if (!o) return;
+
+    document.getElementById('orders-list').style.display = 'none';
+    document.getElementById('order-detail').style.display = 'block';
+
+    const st = ORDER_STATUS_LABEL[o.orderStatus] ?? { text: o.orderStatus, cls: '' };
+
+    // Timeline steps
+    const steps  = ['PENDING', 'CONFIRMED', 'SHIPPING', 'DELIVERED'];
+    const curIdx = steps.indexOf(o.orderStatus);
+    const timelineHtml = steps.map((s, i) => {
+        const labels = { PENDING:'Chờ xác nhận', CONFIRMED:'Đã xác nhận', SHIPPING:'Đang giao', DELIVERED:'Đã giao' };
+        const done   = i <= curIdx;
+        const active = i === curIdx;
+        return `
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
+            ${i < steps.length - 1 ? `
+            <div style="position:absolute;top:14px;left:50%;width:100%;height:2px;
+                background:${done && i < curIdx ? 'var(--red)' : 'var(--grey-border)'};
+                z-index:0;"></div>` : ''}
+            <div style="
+                width:28px;height:28px;border-radius:50%;
+                border:2px solid ${done ? 'var(--red)' : 'var(--grey-border)'};
+                background:${active ? 'var(--red)' : done ? 'var(--red-glow)' : 'var(--black)'};
+                display:flex;align-items:center;justify-content:center;
+                z-index:1;position:relative;
+                box-shadow:${active ? '0 0 12px rgba(232,28,28,0.5)' : 'none'};
+                transition:all 0.3s;">
+                ${done ? `<svg width="12" height="12" fill="none" stroke="${active ? '#fff' : 'var(--red)'}"
+                    stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M20 6L9 17l-5-5"/></svg>` : ''}
+            </div>
+            <div style="margin-top:8px;font-family:var(--font-mono);font-size:9px;
+                letter-spacing:1.5px;text-transform:uppercase;text-align:center;
+                color:${done ? 'var(--white)' : 'var(--grey-light)'};">
+                ${labels[s]}
+            </div>
+        </div>`;
+    }).join('');
+
+    const itemsHtml = (o.items ?? []).map(item => `
+        <div style="
+            display:grid;grid-template-columns:52px 1fr auto;
+            gap:16px;align-items:center;
+            padding:20px;background:var(--black);
+            border:1px solid var(--grey-border);
+            margin-bottom:8px;transition:border-color 0.3s;">
+            <div style="
+                width:52px;height:52px;
+                background:var(--grey-mid);
+                display:flex;align-items:center;justify-content:center;
+                font-size:24px;border:1px solid var(--grey-border);">📦</div>
+            <div>
+                <div style="font-family:var(--font-display);font-size:18px;
+                    letter-spacing:1px;margin-bottom:4px;">
+                    ${item.product?.name ?? '—'}
+                </div>
+                <div style="font-size:12px;color:var(--grey-light);margin-bottom:6px;">
+                    ${item.product?.description ?? ''}
+                </div>
+                ${item.deviceId ? `
+                <div style="
+                    display:inline-flex;align-items:center;gap:6px;
+                    font-family:var(--font-mono);font-size:10px;letter-spacing:2px;
+                    padding:4px 10px;
+                    border:1px solid rgba(232,28,28,0.3);
+                    color:var(--red);background:var(--red-glow);">
+                    📡 ${item.deviceId}
+                </div>` : ''}
+            </div>
+            <div style="text-align:right;">
+                <div style="font-family:var(--font-mono);font-size:15px;
+                    font-weight:700;color:var(--white);">
+                    ${fmtPrice(item.subtotal)}
+                </div>
+                <div style="font-family:var(--font-mono);font-size:11px;
+                    color:var(--grey-light);margin-top:4px;">
+                    ${fmtPrice(item.unitPrice)} × ${item.quantity}
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    const payMethodIcon = { COD:'💵', BANKING:'🏦', MOMO:'📱' };
+    const payIcon = payMethodIcon[o.paymentMethod] ?? '💳';
+
+    const payStatusColor = o.paymentStatus === 'PAID' ? '#00c864' : 'var(--grey-light)';
+
+    document.getElementById('order-detail-content').innerHTML = `
+
+        <!-- ORDER ID + STATUS -->
+        <div style="
+            display:flex;justify-content:space-between;align-items:flex-start;
+            padding-bottom:24px;border-bottom:1px solid var(--grey-border);
+            margin-bottom:28px;">
+            <div>
+                <div style="font-family:var(--font-mono);font-size:10px;
+                    letter-spacing:3px;color:var(--red);margin-bottom:8px;">
+                    MÃ ĐƠN HÀNG
+                </div>
+                <div style="font-family:var(--font-display);font-size:28px;
+                    letter-spacing:2px;">
+                    #${o.orderId.slice(0, 8).toUpperCase()}
+                </div>
+                <div style="font-family:var(--font-mono);font-size:11px;
+                    color:var(--grey-light);margin-top:6px;letter-spacing:1px;">
+                    ${fmtOrderDate(o.createdAt)}
+                </div>
+            </div>
+            <div class="order-status ${st.cls}" style="font-size:11px;padding:8px 18px;">
+                ${st.text}
+            </div>
+        </div>
+
+        <!-- TIMELINE -->
+        ${o.orderStatus !== 'CANCELLED' ? `
+        <div style="
+            padding:24px 20px;
+            background:var(--black);
+            border:1px solid var(--grey-border);
+            margin-bottom:24px;">
+            <div style="font-family:var(--font-mono);font-size:10px;
+                letter-spacing:3px;color:var(--grey-light);margin-bottom:20px;">
+                TIẾN TRÌNH ĐƠN HÀNG
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0 12px;">
+                ${timelineHtml}
+            </div>
+        </div>` : `
+        <div style="
+            padding:20px;background:rgba(232,28,28,0.06);
+            border:1px solid rgba(232,28,28,0.3);
+            margin-bottom:24px;
+            display:flex;align-items:center;gap:12px;">
+            <span style="font-size:20px;">❌</span>
+            <div>
+                <div style="font-family:var(--font-mono);font-size:11px;
+                    letter-spacing:2px;color:var(--red);">ĐƠN HÀNG ĐÃ BỊ HUỶ</div>
+            </div>
+        </div>`}
+
+        <!-- ITEMS -->
+        <div style="font-family:var(--font-mono);font-size:10px;
+            letter-spacing:3px;color:var(--grey-light);margin-bottom:12px;">
+            SẢN PHẨM (${o.items?.length ?? 0})
+        </div>
+        ${itemsHtml}
+
+        <!-- PAYMENT INFO -->
+        <div style="
+            margin-top:20px;padding:20px;
+            background:var(--black);border:1px solid var(--grey-border);">
+            <div style="font-family:var(--font-mono);font-size:10px;
+                letter-spacing:3px;color:var(--grey-light);margin-bottom:16px;">
+                THANH TOÁN
+            </div>
+            <div style="display:flex;justify-content:space-between;
+                align-items:center;padding:10px 0;
+                border-bottom:1px solid var(--grey-border);">
+                <span style="font-size:13px;color:var(--grey-light);">
+                    Phương thức
+                </span>
+                <span style="font-family:var(--font-mono);font-size:12px;
+                    letter-spacing:1px;display:flex;align-items:center;gap:6px;">
+                    ${payIcon} ${o.paymentMethod}
+                </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;
+                align-items:center;padding:10px 0;
+                border-bottom:1px solid var(--grey-border);">
+                <span style="font-size:13px;color:var(--grey-light);">
+                    Trạng thái thanh toán
+                </span>
+                <span style="font-family:var(--font-mono);font-size:11px;
+                    letter-spacing:2px;padding:4px 12px;
+                    background:${o.paymentStatus === 'PAID'
+        ? 'rgba(0,200,100,0.1)' : 'rgba(255,255,255,0.05)'};
+                    border:1px solid ${o.paymentStatus === 'PAID'
+        ? 'rgba(0,200,100,0.3)' : 'var(--grey-border)'};
+                    color:${payStatusColor};">
+                    ${o.paymentStatus}
+                </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;
+                align-items:center;padding-top:16px;">
+                <span style="font-family:var(--font-mono);font-size:11px;
+                    letter-spacing:2px;color:var(--white);">TỔNG CỘNG</span>
+                <span style="font-family:var(--font-mono);font-size:22px;
+                    font-weight:700;color:var(--red);">
+                    ${fmtPrice(o.totalAmount)}
+                </span>
+            </div>
+        </div>`;
+
+    document.getElementById('btn-back-orders').onclick = () => {
+        document.getElementById('order-detail').style.display = 'none';
+        document.getElementById('orders-list').style.display = 'block';
+    };
+}
 // ══════════════════════════
 // MODAL
 // ══════════════════════════
@@ -476,6 +770,7 @@ window.editAddress = editAddress;
 window.deleteAddress = deleteAddress;
 window.setDefaultAddress = setDefaultAddress;
 window.createAddress = createAddress;
+window.showOrderDetail = showOrderDetail;
 window.changePassword = changePassword;
 window.logoutAllDevices = logoutAllDevices;
 

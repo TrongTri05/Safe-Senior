@@ -110,7 +110,7 @@
                 <span class="nav-dot"></span> Địa chỉ giao hàng
             </button>
             <button class="sidebar-nav-item" onclick="switchTab('orders', this)">
-                <span class="nav-dot"></span> Lịch sử đơn hàng
+                <span class="nav-dot"></span> Đơn hàng
             </button>
             <button class="sidebar-nav-item" onclick="switchTab('devices', this)">
                 <span class="nav-dot"></span> Thiết bị SOS
@@ -226,90 +226,26 @@
                     <div class="section-block-tag">Lịch sử mua sắm</div>
                     <div class="section-block-title">ĐƠN HÀNG CỦA TÔI</div>
                 </div>
-                <div style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light);">8 đơn hàng</div>
+                <div style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light);"
+                     id="orders-count-label"></div>
             </div>
-            <div class="orders-list">
-
-                <div class="order-card">
-                    <div class="order-header">
-                        <div>
-                            <div class="order-id">#ORD-2024-001</div>
-                            <div class="order-date">15 tháng 11, 2024</div>
-                        </div>
-                        <div class="order-status status-delivered">Đã giao hàng</div>
-                    </div>
-                    <div class="order-items">
-                        <div class="order-item">
-                            <div class="order-item-emoji">⌚</div>
-                            <div class="order-item-info">
-                                <div class="order-item-name">SOS PRO X</div>
-                                <div class="order-item-sub">Màu đen — SL: 1</div>
-                            </div>
-                            <div class="order-item-price">1.990.000₫</div>
-                        </div>
-                    </div>
-                    <div class="order-footer">
-                        <div class="order-total-label">Tổng cộng</div>
-                        <div class="order-total-val">2.020.000₫</div>
-                    </div>
+            <!-- LIST VIEW -->
+            <div class="orders-list" id="orders-list">
+                <div style="text-align:center;padding:40px;font-family:var(--font-mono);
+                    font-size:12px;letter-spacing:2px;color:var(--grey-light);">
+                    ĐANG TẢI...
                 </div>
-
-                <div class="order-card">
-                    <div class="order-header">
-                        <div>
-                            <div class="order-id">#ORD-2024-002</div>
-                            <div class="order-date">02 tháng 12, 2024</div>
-                        </div>
-                        <div class="order-status status-shipping">Đang giao hàng</div>
-                    </div>
-                    <div class="order-items">
-                        <div class="order-item">
-                            <div class="order-item-emoji">👴</div>
-                            <div class="order-item-info">
-                                <div class="order-item-name">SOS SENIOR</div>
-                                <div class="order-item-sub">Màu xám — SL: 1</div>
-                            </div>
-                            <div class="order-item-price">1.290.000₫</div>
-                        </div>
-                        <div class="order-item">
-                            <div class="order-item-emoji">🧒</div>
-                            <div class="order-item-info">
-                                <div class="order-item-name">SOS KIDS</div>
-                                <div class="order-item-sub">Màu cam — SL: 2</div>
-                            </div>
-                            <div class="order-item-price">1.980.000₫</div>
-                        </div>
-                    </div>
-                    <div class="order-footer">
-                        <div class="order-total-label">Tổng cộng</div>
-                        <div class="order-total-val">3.300.000₫</div>
-                    </div>
-                </div>
-
-                <div class="order-card">
-                    <div class="order-header">
-                        <div>
-                            <div class="order-id">#ORD-2024-003</div>
-                            <div class="order-date">28 tháng 11, 2024</div>
-                        </div>
-                        <div class="order-status status-processing">Đang xử lý</div>
-                    </div>
-                    <div class="order-items">
-                        <div class="order-item">
-                            <div class="order-item-emoji">💎</div>
-                            <div class="order-item-info">
-                                <div class="order-item-name">SOS PRO ELITE</div>
-                                <div class="order-item-sub">Màu trắng — SL: 1</div>
-                            </div>
-                            <div class="order-item-price">2.990.000₫</div>
-                        </div>
-                    </div>
-                    <div class="order-footer">
-                        <div class="order-total-label">Tổng cộng</div>
-                        <div class="order-total-val">3.020.000₫</div>
-                    </div>
-                </div>
-
+            </div>
+            <!-- DETAIL VIEW -->
+            <div id="order-detail" style="display:none;">
+                <button id="btn-back-orders" style="
+            font-family:var(--font-mono);font-size:11px;letter-spacing:2px;
+            text-transform:uppercase;background:none;border:none;
+            color:var(--grey-light);cursor:pointer;
+            display:flex;align-items:center;gap:8px;padding:0;margin-bottom:24px;">
+                    ← QUAY LẠI
+                </button>
+                <div id="order-detail-content"></div>
             </div>
         </div>
 
@@ -536,10 +472,8 @@
                 </div>
             </div>
         </div>
-
     </div>
 </div>
-
 <script type="module" th:src="@{/js/profile.js}"></script>
 </body>
 </html>

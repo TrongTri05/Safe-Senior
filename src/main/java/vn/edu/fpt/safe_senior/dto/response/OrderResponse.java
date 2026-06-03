@@ -14,10 +14,10 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderResponse {
     String orderId;
-    String orderStatus;
-    String paymentStatus;
-    String paymentMethod;
     BigDecimal totalAmount;
+    String paymentMethod;
+    String paymentStatus;
+    String orderStatus;
     LocalDateTime createdAt;
     List<OrderItemResponse> items;
 }

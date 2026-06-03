@@ -18,8 +18,8 @@ public class BuyController {
 
     @PostMapping("/orders")
     public ApiResponse<Void> buyProduct(@RequestBody OrderCreateRequest request) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        productService.buyProduct(userId, request);
+        System.out.println(request);
+        productService.buyProduct(request);
         return ApiResponse.<Void>builder()
                 .message("Order placed successfully")
                 .build();

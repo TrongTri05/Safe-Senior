@@ -12,8 +12,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderItemResponse {
-    String name;
-    String description;
-    BigDecimal price;
+    String id;
+    Integer quantity;
+    BigDecimal unitPrice;
+    BigDecimal subtotal;
+    ProductResponse product;
     String deviceId;
 }
