@@ -1,5 +1,5 @@
 import api from "./api.js";
-import { logout } from "./logout.js";
+import {logout} from "./logout.js";
 // ══════════════════════════
 // CURSOR — dùng delegation thay vì querySelectorAll
 // ══════════════════════════
@@ -319,6 +319,7 @@ function switchTab(id, btn) {
     // Load data theo từng tab
     if (id === 'address') loadAddresses();
     if (id === 'orders') loadOrders();
+    if (id === 'devices') loadDevices();
 }
 
 
@@ -369,11 +370,11 @@ async function saveInfo() {
 let ordersCache = [];
 
 const ORDER_STATUS_LABEL = {
-    PENDING:   { text: 'Chờ xác nhận', cls: 'status-processing' },
-    CONFIRMED: { text: 'Đã xác nhận',  cls: 'status-processing' },
-    SHIPPING:  { text: 'Đang giao',     cls: 'status-shipping'   },
-    DELIVERED: { text: 'Đã giao',       cls: 'status-delivered'  },
-    CANCELLED: { text: 'Đã huỷ',        cls: 'status-cancelled'  },
+    PENDING: {text: 'Chờ xác nhận', cls: 'status-processing'},
+    CONFIRMED: {text: 'Đã xác nhận', cls: 'status-processing'},
+    SHIPPING: {text: 'Đang giao', cls: 'status-shipping'},
+    DELIVERED: {text: 'Đã giao', cls: 'status-delivered'},
+    CANCELLED: {text: 'Đã huỷ', cls: 'status-cancelled'},
 };
 
 function fmtPrice(n) {
@@ -407,7 +408,7 @@ async function loadOrders() {
             return;
         }
         listEl.innerHTML = data.map(o => {
-            const st = ORDER_STATUS_LABEL[o.orderStatus] ?? { text: o.orderStatus, cls: '' };
+            const st = ORDER_STATUS_LABEL[o.orderStatus] ?? {text: o.orderStatus, cls: ''};
             const firstItem = o.items?.[0];
             const moreCount = (o.items?.length ?? 0) - 1;
             return `
@@ -461,14 +462,14 @@ function showOrderDetail(orderId) {
     document.getElementById('orders-list').style.display = 'none';
     document.getElementById('order-detail').style.display = 'block';
 
-    const st = ORDER_STATUS_LABEL[o.orderStatus] ?? { text: o.orderStatus, cls: '' };
+    const st = ORDER_STATUS_LABEL[o.orderStatus] ?? {text: o.orderStatus, cls: ''};
 
     // Timeline steps
-    const steps  = ['PENDING', 'CONFIRMED', 'SHIPPING', 'DELIVERED'];
+    const steps = ['PENDING', 'CONFIRMED', 'SHIPPING', 'DELIVERED'];
     const curIdx = steps.indexOf(o.orderStatus);
     const timelineHtml = steps.map((s, i) => {
-        const labels = { PENDING:'Chờ xác nhận', CONFIRMED:'Đã xác nhận', SHIPPING:'Đang giao', DELIVERED:'Đã giao' };
-        const done   = i <= curIdx;
+        const labels = {PENDING: 'Chờ xác nhận', CONFIRMED: 'Đã xác nhận', SHIPPING: 'Đang giao', DELIVERED: 'Đã giao'};
+        const done = i <= curIdx;
         const active = i === curIdx;
         return `
         <div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
@@ -539,7 +540,7 @@ function showOrderDetail(orderId) {
         </div>
     `).join('');
 
-    const payMethodIcon = { COD:'💵', BANKING:'🏦', MOMO:'📱' };
+    const payMethodIcon = {COD: '💵', BANKING: '🏦', MOMO: '📱'};
     const payIcon = payMethodIcon[o.paymentMethod] ?? '💳';
 
     const payStatusColor = o.paymentStatus === 'PAID' ? '#00c864' : 'var(--grey-light)';
@@ -646,8 +647,18 @@ function showOrderDetail(orderId) {
                 <span style="font-family:var(--font-mono);font-size:22px;
                     font-weight:700;color:var(--red);">
                     ${fmtPrice(o.totalAmount)}
-                </span>
+                </span>            
             </div>
+        
+${o.paymentMethod === 'BANKING' && o.paymentStatus === 'PENDING' ? `
+<button onclick="openQrModal('${o.orderId}')" style="
+    width:100%;margin-top:16px;padding:14px;
+    background:var(--red);border:none;
+    font-family:var(--font-mono);font-size:11px;
+    letter-spacing:3px;text-transform:uppercase;
+    color:#fff;cursor:pointer;">
+    THANH TOÁN NGAY
+</button>` : ''}
         </div>`;
 
     document.getElementById('btn-back-orders').onclick = () => {
@@ -655,6 +666,152 @@ function showOrderDetail(orderId) {
         document.getElementById('orders-list').style.display = 'block';
     };
 }
+
+
+// ══════════════════════════
+// DEVICES
+// ══════════════════════════
+function getDeviceEmoji(name) {
+    const n = (name || '').toLowerCase();
+    if (n.includes('pro')) return '⌚';
+    if (n.includes('sport')) return '🏃';
+    if (n.includes('kids')) return '🧒';
+    if (n.includes('senior')) return '👴';
+    if (n.includes('family')) return '👨‍👩‍👧';
+    if (n.includes('elite')) return '💎';
+    return '📟';
+}
+
+function getDeviceStatusInfo(status) {
+    switch (status) {
+        case 'ACTIVE':
+            return { label: 'Đang hoạt động', color: '#00c864', cardClass: 'online' };
+        case 'SOLD':
+            return { label: 'Chưa kích hoạt', color: 'var(--grey-light)', cardClass: '' };
+        case 'OFFLINE':
+            return { label: 'Ngoại tuyến', color: 'var(--grey-light)', cardClass: '' };
+        case 'BLOCKED':
+            return { label: 'Đã khoá', color: 'var(--red)', cardClass: '' };
+        case 'INACTIVE':
+            return { label: 'Không hoạt động', color: 'var(--grey-light)', cardClass: '' };
+        default:
+            return { label: status, color: 'var(--grey-light)', cardClass: '' };
+    }
+}
+
+function fmtDateTime(val) {
+    if (!val) return '—';
+    const d = new Date(val);
+    return isNaN(d) ? '—' : d.toLocaleString('vi-VN');
+}
+
+async function loadDevices() {
+    const grid = document.getElementById('devices-grid');
+    const label = document.getElementById('devices-online-label');
+    if (!grid) return;
+
+    try {
+        const res = await api.get('/api/user-devices');
+        const data = res.data?.result ?? res.data ?? [];
+
+        const onlineCount = data.filter(d => d.status === 'ACTIVE').length;
+        if (label) {
+            label.textContent = onlineCount > 0
+                ? `${onlineCount} thiết bị online`
+                : 'Không có thiết bị online';
+            label.style.color = onlineCount > 0 ? '#00c864' : 'var(--grey-light)';
+        }
+
+        if (!data.length) {
+            grid.innerHTML = `
+                <div style="text-align:center;padding:40px;
+                    font-family:var(--font-mono);font-size:12px;
+                    letter-spacing:2px;color:var(--grey-light);">
+                    CHƯA CÓ THIẾT BỊ
+                </div>`;
+            return;
+        }
+
+        grid.innerHTML = data.map(d => {
+            const st = getDeviceStatusInfo(d.status);
+            const emoji = getDeviceEmoji(d.name);
+            const isSold = d.status === 'SOLD';
+
+            return `
+            <div class="device-card ${st.cardClass}">
+                <div class="device-emoji">${emoji}</div>
+                <div class="device-name">${d.name ?? '—'}</div>
+                <div class="device-model" style="font-family:var(--font-mono);
+                    font-size:11px;color:var(--grey-light);margin-bottom:12px;">
+                    ID: ${d.deviceId ?? '—'}
+                </div>
+
+                <div class="device-stat">
+                    <span class="device-stat-icon">📡</span>
+                    Trạng thái:
+                    <strong style="color:${st.color};margin-left:4px;">
+                        ${st.label}
+                    </strong>
+                </div>
+
+               ${isSold ? `
+            <div style="margin-top:16px;padding:14px;
+    border:1px dashed var(--grey-border);
+    font-family:var(--font-mono);font-size:10px;
+    letter-spacing:2px;color:var(--grey-light);
+    text-align:center;line-height:2.2;">
+    THIẾT BỊ CHƯA ĐƯỢC KÍCH HOẠT<br>
+    <span style="color:var(--white);font-size:11px;">
+        Vui lòng setup thiết bị để bắt đầu sử dụng
+    </span>
+    <br>
+    <button onclick="openSetupGuide('${d.deviceId}')" style="
+        display:inline-flex;align-items:center;gap:8px;
+        margin-top:10px;padding:8px 18px;
+        background:none;
+        border:1px solid var(--grey-border);
+        color:var(--grey-light);
+        font-family:var(--font-mono);font-size:10px;
+        letter-spacing:2px;text-transform:uppercase;
+        cursor:pointer;transition:all 0.3s;">
+        <div style="
+            width:20px;height:20px;border-radius:50%;
+            border:1.5px solid var(--grey-light);
+            display:flex;align-items:center;justify-content:center;
+            font-size:12px;font-family:var(--font-display);">?</div>
+        HƯỚNG DẪN SETUP
+    </button>
+</div>` : `
+                <div class="device-stat">
+                    <span class="device-stat-icon">🕐</span>
+                    Kết nối lần cuối:
+                    <strong style="margin-left:4px;">
+                        ${fmtDateTime(d.lastConnectedAt)}
+                    </strong>
+                </div>
+                <div class="device-stat">
+                    <span class="device-stat-icon">⚙️</span>
+                    Cấu hình lúc:
+                    <strong style="margin-left:4px;">
+                        ${fmtDateTime(d.configuredAt)}
+                    </strong>
+                </div>
+                `}
+            </div>`;
+        }).join('');
+
+    } catch (err) {
+        console.error('Lỗi load devices:', err);
+        grid.innerHTML = `
+            <div style="text-align:center;padding:40px;
+                color:var(--red);font-family:var(--font-mono);
+                font-size:12px;letter-spacing:2px;">
+                ⚠ KHÔNG THỂ TẢI THIẾT BỊ
+            </div>`;
+    }
+}
+
+
 // ══════════════════════════
 // MODAL
 // ══════════════════════════
@@ -697,28 +854,28 @@ function showToast(msg) {
 // CHANGE PASSWORD
 // ══════════════════════════
 async function changePassword() {
-    const oldPassword        = document.getElementById('pwd-old')?.value.trim();
-    const newPassword        = document.getElementById('pwd-new')?.value.trim();
+    const oldPassword = document.getElementById('pwd-old')?.value.trim();
+    const newPassword = document.getElementById('pwd-new')?.value.trim();
     const confirmNewPassword = document.getElementById('pwd-confirm')?.value.trim();
-    const errorEl            = document.getElementById('pwd-error');
+    const errorEl = document.getElementById('pwd-error');
 
     // Reset error
     errorEl.style.display = 'none';
-    errorEl.textContent   = '';
+    errorEl.textContent = '';
 
     // Validate FE
     if (!oldPassword || !newPassword || !confirmNewPassword) {
-        errorEl.textContent   = 'Vui lòng nhập đầy đủ thông tin!';
+        errorEl.textContent = 'Vui lòng nhập đầy đủ thông tin!';
         errorEl.style.display = 'block';
         return;
     }
     if (newPassword !== confirmNewPassword) {
-        errorEl.textContent   = 'Mật khẩu mới không khớp!';
+        errorEl.textContent = 'Mật khẩu mới không khớp!';
         errorEl.style.display = 'block';
         return;
     }
     if (newPassword.length < 8) {
-        errorEl.textContent   = 'Mật khẩu mới tối thiểu 8 ký tự!';
+        errorEl.textContent = 'Mật khẩu mới tối thiểu 8 ký tự!';
         errorEl.style.display = 'block';
         return;
     }
@@ -739,7 +896,7 @@ async function changePassword() {
 
     } catch (err) {
         const msg = err.response?.data?.message ?? 'Đổi mật khẩu thất bại!';
-        errorEl.textContent   = msg;
+        errorEl.textContent = msg;
         errorEl.style.display = 'block';
         console.error('Lỗi đổi mật khẩu:', err);
     }
@@ -756,6 +913,110 @@ async function logoutAllDevices() {
     };
     btn.addEventListener('click', handler);
 }
+
+// ══════════════════════════
+// QR PAYMENT MODAL
+// ══════════════════════════
+function openQrModal(orderId) {
+    const o = ordersCache.find(x => x.orderId === orderId);
+    if (!o) return;
+
+    // Tạo modal nếu chưa có
+    let modal = document.getElementById('modal-qr');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modal-qr';
+        modal.className = 'modal-overlay';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);' +
+            'display:flex;align-items:center;justify-content:center;z-index:99999;';
+        document.body.appendChild(modal);
+
+        // Đóng khi click ngoài
+        modal.addEventListener('click', e => {
+            if (e.target === modal) modal.classList.remove('open');
+        });
+    }
+
+    modal.innerHTML = `
+    <div style="
+        background:var(--bg-card, #111);
+        border:1px solid var(--grey-border);
+        padding:32px;
+        max-width:380px;
+        width:90%;
+        text-align:center;
+        position:relative;">
+
+        <button onclick="document.getElementById('modal-qr').classList.remove('open')" style="
+            position:absolute;top:16px;right:16px;
+            background:none;border:none;
+            color:var(--grey-light);cursor:pointer;
+            font-family:var(--font-mono);font-size:18px;">✕</button>
+
+        <div style="font-family:var(--font-mono);font-size:10px;
+                    letter-spacing:3px;color:var(--grey-light);margin-bottom:8px;">
+            THANH TOÁN QUA
+        </div>
+        <div style="font-family:var(--font-mono);font-size:14px;
+                    font-weight:700;color:var(--white);margin-bottom:24px;">
+            CHUYỂN KHOẢN NGÂN HÀNG
+        </div>
+
+        <img src="/img/QrPayment.png" alt="QR Payment"
+             style="width:220px;height:220px;object-fit:contain;
+                    border:1px solid var(--grey-border);padding:8px;
+                    background:#fff;margin-bottom:20px;">
+
+        <div style="border:1px solid var(--grey-border);padding:12px;
+                    margin-bottom:16px;text-align:left;">
+            <div style="display:flex;justify-content:space-between;
+                        margin-bottom:8px;">
+                <span style="font-family:var(--font-mono);font-size:10px;
+                             letter-spacing:2px;color:var(--grey-light);">
+                    MÃ ĐƠN HÀNG
+                </span>
+                <span style="font-family:var(--font-mono);font-size:11px;
+                             color:var(--white);">
+                    #${o.orderId.slice(0, 8).toUpperCase()}
+                </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+                <span style="font-family:var(--font-mono);font-size:10px;
+                             letter-spacing:2px;color:var(--grey-light);">
+                    SỐ TIỀN
+                </span>
+                <span style="font-family:var(--font-mono);font-size:14px;
+                             font-weight:700;color:var(--red);">
+                    ${fmtPrice(o.totalAmount)}
+                </span>
+            </div>
+        </div>
+
+        <div style="font-family:var(--font-mono);font-size:10px;
+                    letter-spacing:1px;color:var(--grey-light);line-height:1.8;">
+            Quét mã QR để thanh toán.<br>
+            Đơn hàng sẽ được xác nhận sau khi<br>
+            chúng tôi nhận được thanh toán.
+        </div>
+    </div>`;
+
+    modal.classList.add('open');
+}
+
+// ══════════════════════════
+// SETUP GUIDE
+// ══════════════════════════
+function openSetupGuide(deviceId) {
+    // Điền device ID vào modal
+    const idEls = [
+        document.getElementById('setup-device-id'),
+        document.getElementById('setup-device-id-field')
+    ];
+    idEls.forEach(el => { if (el) el.textContent = deviceId ?? '—'; });
+    openModal('modal-setup-guide');
+}
+
+
 // ══════════════════════════
 // EXPOSE TO WINDOW
 // ══════════════════════════
@@ -773,6 +1034,9 @@ window.createAddress = createAddress;
 window.showOrderDetail = showOrderDetail;
 window.changePassword = changePassword;
 window.logoutAllDevices = logoutAllDevices;
+window.openQrModal = openQrModal;
+window.loadDevices = loadDevices;
+window.openSetupGuide = openSetupGuide;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserInfo();

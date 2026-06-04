@@ -8,8 +8,12 @@ import vn.edu.fpt.safe_senior.dto.request.DeviceDisconnectRequest;
 import vn.edu.fpt.safe_senior.dto.request.DeviceRegisterRequest;
 import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.DeviceRegisterResponse;
+import vn.edu.fpt.safe_senior.dto.response.DeviceResponse;
+import vn.edu.fpt.safe_senior.entity.Device;
 import vn.edu.fpt.safe_senior.service.DeviceService;
 import vn.edu.fpt.safe_senior.service.EmergencyService;
+
+import java.util.List;
 
 
 @RestController
@@ -38,7 +42,7 @@ public class DeviceController {
     }
 
 
-    @GetMapping("/emergency")
+    @PostMapping("/emergency")
     public ApiResponse<String> emergency(@RequestParam String deviceId) {
         emergencyService.handleEmergency(deviceId);
         return ApiResponse.<String>builder()
@@ -46,4 +50,13 @@ public class DeviceController {
                 .result(deviceId)
                 .build();
     }
+
+    @GetMapping("/user-devices")
+    public ApiResponse<List<DeviceResponse>> userDevices() {
+        return ApiResponse.<List<DeviceResponse>>builder()
+                .result(deviceService.getUserDevices())
+                .message("User devices retrieved successfully")
+                .build();
+    }
 }
+

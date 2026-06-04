@@ -249,6 +249,7 @@
             </div>
         </div>
 
+
         <!-- TAB: THIẾT BỊ SOS -->
         <div class="section-block" id="tab-devices">
             <div class="section-block-header">
@@ -256,44 +257,13 @@
                     <div class="section-block-tag">Quản lý</div>
                     <div class="section-block-title">THIẾT BỊ SOS</div>
                 </div>
-                <div style="font-family:var(--font-mono);font-size:11px;color:#00c864;">2 thiết bị online</div>
+                <div style="font-family:var(--font-mono);font-size:11px;color:#00c864;"
+                     id="devices-online-label"></div>
             </div>
-            <div class="devices-grid">
-                <div class="device-card online">
-                    <div class="device-emoji">⌚</div>
-                    <div class="device-name">SOS PRO X</div>
-                    <div class="device-model">SN: SPX-2024-001892</div>
-                    <div class="device-stat">
-                        <span class="device-stat-icon">🔋</span>
-                        <div class="battery-bar">
-                            <div class="battery-fill" style="width:78%"></div>
-                        </div>
-                        <strong>78%</strong>
-                    </div>
-                    <div class="device-stat"><span class="device-stat-icon">📡</span> GPS: <strong
-                            style="color:#00c864;margin-left:4px;">Đang kết nối</strong></div>
-                    <div class="device-stat"><span class="device-stat-icon">📍</span> Vị trí: <strong
-                            style="margin-left:4px;">Quận 1, TP.HCM</strong></div>
-                    <div class="device-stat"><span class="device-stat-icon">❤️</span> Nhịp tim: <strong
-                            style="margin-left:4px;">72 bpm</strong></div>
-                </div>
-                <div class="device-card online">
-                    <div class="device-emoji">👴</div>
-                    <div class="device-name">SOS SENIOR</div>
-                    <div class="device-model">SN: SSR-2024-003741</div>
-                    <div class="device-stat">
-                        <span class="device-stat-icon">🔋</span>
-                        <div class="battery-bar">
-                            <div class="battery-fill low" style="width:18%"></div>
-                        </div>
-                        <strong style="color:var(--red);">18%</strong>
-                    </div>
-                    <div class="device-stat"><span class="device-stat-icon">📡</span> GPS: <strong
-                            style="color:#00c864;margin-left:4px;">Đang kết nối</strong></div>
-                    <div class="device-stat"><span class="device-stat-icon">📍</span> Vị trí: <strong
-                            style="margin-left:4px;">Quận Hải Châu, Đà Nẵng</strong></div>
-                    <div class="device-stat"><span class="device-stat-icon">❤️</span> Nhịp tim: <strong
-                            style="margin-left:4px;">68 bpm</strong></div>
+            <div class="devices-grid" id="devices-grid">
+                <div style="text-align:center;padding:40px;font-family:var(--font-mono);
+                    font-size:12px;letter-spacing:2px;color:var(--grey-light);">
+                    ĐANG TẢI...
                 </div>
             </div>
         </div>
@@ -472,6 +442,218 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+<!-- MODAL HƯỚNG DẪN SETUP THIẾT BỊ -->
+<div class="modal-overlay" id="modal-setup-guide">
+    <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
+        <button class="modal-close" onclick="closeModal('modal-setup-guide')">✕</button>
+
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+            <div style="
+                width:44px;height:44px;border-radius:50%;
+                border:2px solid var(--red);
+                display:flex;align-items:center;justify-content:center;
+                font-family:var(--font-display);font-size:22px;color:var(--red);
+                flex-shrink:0;">?</div>
+            <div>
+                <div class="modal-title" style="font-size:26px;margin-bottom:2px;">
+                    HƯỚNG DẪN SETUP
+                </div>
+                <div style="font-family:var(--font-mono);font-size:10px;
+                    letter-spacing:2px;color:var(--grey-light);">
+                    THIẾT BỊ: <span id="setup-device-id" style="color:var(--red);">—</span>
+                </div>
+            </div>
+        </div>
+
+        <p style="font-size:13px;color:var(--grey-light);
+            margin-bottom:28px;line-height:1.7;padding:12px 16px;
+            background:var(--red-glow);border-left:2px solid var(--red);">
+            Khi nhận được sản phẩm, quý khách vui lòng thực hiện các bước sau
+            để thiết bị hoạt động được.
+        </p>
+
+        <!-- STEPS -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+            <!-- B1 -->
+            <div style="display:flex;gap:16px;align-items:flex-start;">
+                <div style="
+                    width:32px;height:32px;border-radius:50%;
+                    background:var(--red);color:var(--white);
+                    font-family:var(--font-display);font-size:16px;
+                    display:flex;align-items:center;justify-content:center;
+                    flex-shrink:0;">1</div>
+                <div style="padding-top:4px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;
+                        letter-spacing:2px;color:var(--white);margin-bottom:6px;">
+                        KHỞI ĐỘNG THIẾT BỊ
+                    </div>
+                    <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">
+                        Nhấn giữ nút trên thiết bị <strong style="color:var(--white);">5 giây</strong>
+                        cho đến khi đèn LED chuyển sang trạng thái
+                        <strong style="color:var(--red);">nhấp nháy</strong>.
+                    </div>
+                </div>
+            </div>
+
+            <div style="height:1px;background:var(--grey-border);margin-left:48px;"></div>
+
+            <!-- B2 -->
+            <div style="display:flex;gap:16px;align-items:flex-start;">
+                <div style="
+                    width:32px;height:32px;border-radius:50%;
+                    background:var(--red);color:var(--white);
+                    font-family:var(--font-display);font-size:16px;
+                    display:flex;align-items:center;justify-content:center;
+                    flex-shrink:0;">2</div>
+                <div style="padding-top:4px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;
+                        letter-spacing:2px;color:var(--white);margin-bottom:6px;">
+                        KẾT NỐI WIFI THIẾT BỊ
+                    </div>
+                    <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">
+                        Mở điện thoại → Cài đặt WiFi → Kết nối vào mạng
+                        <span style="
+                            font-family:var(--font-mono);font-size:11px;
+                            padding:2px 8px;background:var(--grey-mid);
+                            border:1px solid var(--grey-border);color:var(--white);">
+                            ESP32_Setup
+                        </span>
+                        <br><br>
+                        Sau đó mở trình duyệt và truy cập:
+                        <span style="
+                            font-family:var(--font-mono);font-size:11px;
+                            padding:2px 8px;background:var(--grey-mid);
+                            border:1px solid var(--red);color:var(--red);">
+                            192.168.4.1
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="height:1px;background:var(--grey-border);margin-left:48px;"></div>
+
+            <!-- B3 -->
+            <div style="display:flex;gap:16px;align-items:flex-start;">
+                <div style="
+                    width:32px;height:32px;border-radius:50%;
+                    background:var(--red);color:var(--white);
+                    font-family:var(--font-display);font-size:16px;
+                    display:flex;align-items:center;justify-content:center;
+                    flex-shrink:0;">3</div>
+                <div style="padding-top:4px;flex:1;">
+                    <div style="font-family:var(--font-mono);font-size:11px;
+                        letter-spacing:2px;color:var(--white);margin-bottom:10px;">
+                        CẤU HÌNH THIẾT BỊ
+                    </div>
+                    <div style="
+                        background:var(--black);border:1px solid var(--grey-border);
+                        padding:16px;display:flex;flex-direction:column;gap:10px;">
+                        <div style="display:flex;justify-content:space-between;
+                            align-items:center;padding-bottom:10px;
+                            border-bottom:1px solid var(--grey-border);">
+                            <span style="font-family:var(--font-mono);font-size:10px;
+                                letter-spacing:2px;color:var(--grey-light);">SSID</span>
+                            <span style="font-size:13px;color:var(--white);">
+                                Tên WiFi nhà bạn
+                            </span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;
+                            align-items:center;padding-bottom:10px;
+                            border-bottom:1px solid var(--grey-border);">
+                            <span style="font-family:var(--font-mono);font-size:10px;
+                                letter-spacing:2px;color:var(--grey-light);">PASSWORD</span>
+                            <span style="font-size:13px;color:var(--white);">
+                                Mật khẩu WiFi
+                            </span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;
+                            align-items:center;">
+                            <span style="font-family:var(--font-mono);font-size:10px;
+                                letter-spacing:2px;color:var(--grey-light);">DEVICE ID</span>
+                            <span id="setup-device-id-field" style="
+                                font-family:var(--font-mono);font-size:12px;
+                                color:var(--red);letter-spacing:2px;">—</span>
+                        </div>
+                    </div>
+                    <!-- Lưu ý -->
+                    <div style="
+                        margin-top:10px;padding:10px 14px;
+                        background:rgba(232,28,28,0.06);
+                        border-left:2px solid var(--red);
+                        font-size:12px;color:var(--grey-light);line-height:1.6;">
+                        ⚠ <strong style="color:var(--white);">Lưu ý:</strong>
+                        Quý khách cần nhập <strong style="color:var(--red);">chính xác Device ID</strong>
+                        của thiết bị được cấp khi mua hàng.
+                    </div>
+                </div>
+            </div>
+
+            <div style="height:1px;background:var(--grey-border);margin-left:48px;"></div>
+
+            <!-- B4 -->
+            <div style="display:flex;gap:16px;align-items:flex-start;">
+                <div style="
+                    width:32px;height:32px;border-radius:50%;
+                    background:var(--red);color:var(--white);
+                    font-family:var(--font-display);font-size:16px;
+                    display:flex;align-items:center;justify-content:center;
+                    flex-shrink:0;">4</div>
+                <div style="padding-top:4px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;
+                        letter-spacing:2px;color:var(--white);margin-bottom:6px;">
+                        LƯU CẤU HÌNH
+                    </div>
+                    <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">
+                        Trên trình duyệt hoặc trong phần WiFi, sau khi điền đầy đủ thông tin
+                        → Nhấn nút
+                        <span style="
+                            font-family:var(--font-mono);font-size:11px;
+                            padding:3px 12px;background:var(--red);color:var(--white);">
+                            SAVE
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="height:1px;background:var(--grey-border);margin-left:48px;"></div>
+
+            <!-- B5 -->
+            <div style="display:flex;gap:16px;align-items:flex-start;">
+                <div style="
+                    width:32px;height:32px;border-radius:50%;
+                    background:var(--red);color:var(--white);
+                    font-family:var(--font-display);font-size:16px;
+                    display:flex;align-items:center;justify-content:center;
+                    flex-shrink:0;">5</div>
+                <div style="padding-top:4px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;
+                        letter-spacing:2px;color:var(--white);margin-bottom:6px;">
+                        HOÀN THÀNH
+                    </div>
+                    <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">
+                        Sau khi Save thành công, đèn LED sẽ
+                        <strong style="color:#00c864;">sáng liên tục</strong>
+                        và không còn nhấp nháy.
+                        <br>
+                        <span style="
+                            display:inline-flex;align-items:center;gap:6px;
+                            margin-top:8px;font-family:var(--font-mono);font-size:10px;
+                            letter-spacing:2px;color:#00c864;">
+                            ✓ SETUP ĐÃ HOÀN THÀNH
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <button class="btn-save" style="width:100%;padding:14px;margin-top:28px;"
+                onclick="closeModal('modal-setup-guide')">
+            <span>ĐÃ HIỂU</span>
+        </button>
     </div>
 </div>
 <script type="module" th:src="@{/js/profile.js}"></script>

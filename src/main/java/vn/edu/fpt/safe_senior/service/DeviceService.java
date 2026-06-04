@@ -4,20 +4,23 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import vn.edu.fpt.safe_senior.dto.request.DeviceDisconnectRequest;
 import vn.edu.fpt.safe_senior.dto.request.DeviceRegisterRequest;
-import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.DeviceRegisterResponse;
+import vn.edu.fpt.safe_senior.dto.response.DeviceResponse;
 import vn.edu.fpt.safe_senior.entity.Device;
 import vn.edu.fpt.safe_senior.entity.User;
 import vn.edu.fpt.safe_senior.enums.DeviceEnum;
 import vn.edu.fpt.safe_senior.exception.AppException;
 import vn.edu.fpt.safe_senior.exception.ErrorCode;
+import vn.edu.fpt.safe_senior.mapper.DeviceMapper;
 import vn.edu.fpt.safe_senior.repository.DeviceRepository;
+import vn.edu.fpt.safe_senior.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,8 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DeviceService {
     DeviceRepository deviceRepository;
+    UserRepository userRepository;
+    DeviceMapper deviceMapper;
 
     public DeviceRegisterResponse register(DeviceRegisterRequest request) {
         String deviceId = request.getDeviceId();
@@ -47,5 +52,14 @@ public class DeviceService {
 
         device.setStatus(DeviceEnum.INACTIVE.name());
         deviceRepository.save(device);
+    }
+
+    public List<DeviceResponse> getUserDevices() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        return deviceRepository.findAllByUserId(user.getId()).stream()
+                .map(deviceMapper::toDeviceResponse)
+                .toList();
     }
 }
