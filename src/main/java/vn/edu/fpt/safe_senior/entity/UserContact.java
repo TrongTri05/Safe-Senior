@@ -15,17 +15,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserContact {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
-    @Column(name = "phone_number", nullable = false, length = 20)
     String phoneNumber;
-    @Column(name = "is_primary")
-    Boolean primary;
-    @Column(name = "created_at")
     LocalDateTime createdAt;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    User user;
+    @JoinColumn(name = "device_id")
+    Device device;
 }

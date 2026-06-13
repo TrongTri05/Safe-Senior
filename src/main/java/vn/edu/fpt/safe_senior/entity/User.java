@@ -13,6 +13,7 @@ import java.util.Set;
 
 @Entity
 @Getter
+@Builder
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -45,9 +46,6 @@ public class User {
             this.createdAt = LocalDateTime.now();
         }
     }
-
-    @OneToMany(mappedBy = "user")
-    List<UserContact> contacts;
 
     @OneToMany(mappedBy = "user")
     List<EmergencyLog> emergencyLogs;

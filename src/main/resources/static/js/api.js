@@ -74,6 +74,8 @@ api.interceptors.request.use(
                         onRefreshed(newToken);
                     } catch (e) {
                         removeToken();
+                        localStorage.removeItem('userId');
+                        localStorage.removeItem('username');
                         onRefreshFailed(e);
                         return Promise.reject(e);
                     } finally {
@@ -116,6 +118,8 @@ api.interceptors.response.use(
                 return api(originalRequest);
             } catch (refreshError) {
                 removeToken();
+                localStorage.removeItem('userId');
+                localStorage.removeItem('username');
                 document
                     .getElementById("loginModal")
                     ?.classList.remove("hidden");

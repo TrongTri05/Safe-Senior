@@ -134,6 +134,5 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
     updateAuthUI();
 });

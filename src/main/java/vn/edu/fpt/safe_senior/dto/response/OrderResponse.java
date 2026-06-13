@@ -20,4 +20,5 @@ public class OrderResponse {
     String orderStatus;
     LocalDateTime createdAt;
     List<OrderItemResponse> items;
+    UserResponse user;
 }

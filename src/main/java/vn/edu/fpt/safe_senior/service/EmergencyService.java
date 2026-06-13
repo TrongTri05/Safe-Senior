@@ -28,7 +28,6 @@ public class EmergencyService {
 
     public void handleEmergency(String deviceId) {
         Device device = deviceRepository.findByDeviceId(deviceId).orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_AVAILABLE));
-
         if (!DeviceEnum.ACTIVE.name().equals(device.getStatus())) {
             throw new AppException(ErrorCode.DEVICE_NOT_ACTIVE);
         }
@@ -47,10 +46,10 @@ public class EmergencyService {
                 .build();
         emergencyLogRepository.save(logEntity);
 
-        List<UserContact> contacts = user.getContacts();
+//        List<UserContact> contacts = user.getContacts();
 
-        for (UserContact contact : contacts)
-            log.info("SEND SOS TO: {}", contact.getPhoneNumber());
+//        for (UserContact contact : contacts)
+//            log.info("SEND SOS TO: {}", contact.getPhoneNumber());
         log.info("EMERGENCY SUCCESS: {}", deviceId);
     }
 

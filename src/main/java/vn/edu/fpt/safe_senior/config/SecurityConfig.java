@@ -27,6 +27,9 @@ public class SecurityConfig {
             "/api/**",
             "/",
             "/profile",
+            "/aboutUs",
+            "/luckyspin",
+            "/users/abouts",
             "/favicon.ico",
             "/css/**",
             "/js/**",
@@ -35,7 +38,6 @@ public class SecurityConfig {
 
 
     private final CustomJwtDecoder customJwtDecoder;
-
     public SecurityConfig(CustomJwtDecoder customJwtDecoder) {
         this.customJwtDecoder = customJwtDecoder;
     }
@@ -63,6 +65,7 @@ public class SecurityConfig {
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
+        jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("roles");
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);

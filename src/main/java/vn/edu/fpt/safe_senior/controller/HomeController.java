@@ -14,4 +14,14 @@ public class HomeController {
     public String profile() {
         return "user/profile";
     }
+
+    @GetMapping("/aboutUs")
+    public String aboutUs() {
+        return "user/aboutUs";
+    }
+
+    @GetMapping("/luckyspin")
+    public String luckyspin() {
+        return "user/luckyspin";
+    }
 }

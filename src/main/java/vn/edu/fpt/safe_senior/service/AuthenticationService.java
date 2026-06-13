@@ -5,6 +5,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -13,10 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import vn.edu.fpt.safe_senior.dto.request.AuthenticationRequest;
-import vn.edu.fpt.safe_senior.dto.request.IntrospectRequest;
-import vn.edu.fpt.safe_senior.dto.request.LogoutRequest;
-import vn.edu.fpt.safe_senior.dto.request.RefreshTokenRequest;
+import vn.edu.fpt.safe_senior.dto.request.*;
 import vn.edu.fpt.safe_senior.dto.response.AuthenticationResponse;
 import vn.edu.fpt.safe_senior.dto.response.IntrospectResponse;
 import vn.edu.fpt.safe_senior.entity.InvalidatedToken;
@@ -27,10 +25,12 @@ import vn.edu.fpt.safe_senior.exception.ErrorCode;
 import vn.edu.fpt.safe_senior.repository.InvalidatedTokenRepository;
 import vn.edu.fpt.safe_senior.repository.UserRepository;
 
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -40,6 +40,11 @@ import java.util.UUID;
 public class AuthenticationService {
     UserRepository userRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
+    EmailService emailService;
+
+    @NonFinal
+    @Value("${app.base-url}")
+    protected String baseUrl;
 
     @NonFinal
     @Value("${jwt.signerKey}")
@@ -183,7 +188,32 @@ public class AuthenticationService {
                 .token(token)
                 .authenticated(true)
                 .build();
+    }
 
+
+    public void forgetPasssword(ForgotPassRequest request) {
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new AppException(ErrorCode.FORGOT_PASSWORD_EMAIL));
+        if (!user.getIsActive()) {
+            throw new AppException(ErrorCode.USER_NOT_ACTIVE);
+        }
+        String kyTuMau = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom secureRandom = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < 9; i++) {
+            int index = secureRandom.nextInt(kyTuMau.length());
+            sb.append(kyTuMau.charAt(index));
+        }
+
+        String newPassword = sb.toString();
+        String subject = "Khôi phục mật khẩu Safe Website";
+        String content = "Đây là mật khẩu được cấp lại: "
+                + newPassword
+                + ". Vui lòng đăng nhập và đổi mật khẩu ngay sau khi đăng nhập.";
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        emailService.sendVerificationEmail(user.getEmail(), subject, content);
     }
 }
 

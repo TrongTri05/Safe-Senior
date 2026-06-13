@@ -13,6 +13,8 @@ import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
 import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
 import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
+import vn.edu.fpt.safe_senior.entity.About;
+import vn.edu.fpt.safe_senior.service.AboutService;
 import vn.edu.fpt.safe_senior.service.UserService;
 
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
     UserService userService;
+    AboutService aboutService;
 
     @GetMapping("/address/{id}")
     public List<AddressResponse> address(@PathVariable String id) {
@@ -43,10 +46,10 @@ public class UserController {
     }
 
     @PatchMapping("/address/{addressId}/default")
-    ApiResponse<Void> setDefaultAddress(
-            @PathVariable String addressId) {
+    ApiResponse<Void> setDefaultAddress(@PathVariable String addressId) {
         userService.setDefaultAddress(addressId);
-        return ApiResponse.<Void>builder().build();
+        return ApiResponse.<Void>builder()
+                .build();
     }
 
     @PostMapping
@@ -80,4 +83,8 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/abouts")
+    public List<About> getAllMembers() {
+        return aboutService.getAllMembers();
+    }
 }

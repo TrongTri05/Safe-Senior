@@ -739,6 +739,20 @@ async function loadDevices() {
 
             return `
             <div class="device-card ${st.cardClass}">
+              <!-- Nút + ở góc trên phải, cạnh chấm online -->
+    <button onclick="openSosContacts('${d.deviceId}')" style="
+        position:absolute;top:12px;right:${st.cardClass === 'online' ? '36px' : '12px'};
+        width:24px;height:24px;border-radius:50%;
+        background:none;
+        border:1.5px solid var(--grey-border);
+        color:var(--grey-light);font-size:16px;line-height:1;
+        display:flex;align-items:center;justify-content:center;
+        cursor:pointer;transition:all 0.3s;z-index:2;"
+        title="Cài đặt số điện thoại khẩn cấp"
+        onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+        onmouseout="this.style.borderColor='var(--grey-border)';this.style.color='var(--grey-light)'">
+        +
+    </button>
                 <div class="device-emoji">${emoji}</div>
                 <div class="device-name">${d.name ?? '—'}</div>
                 <div class="device-model" style="font-family:var(--font-mono);
@@ -810,6 +824,88 @@ async function loadDevices() {
             </div>`;
     }
 }
+
+
+// ══════════════════════════
+// SOS CONTACTS
+// ══════════════════════════
+let currentSosDeviceId = null;
+
+async function openSosContacts(deviceId) {
+    currentSosDeviceId = deviceId;
+
+    const labelEl = document.getElementById('sos-device-id-label');
+    if (labelEl) labelEl.textContent = deviceId ?? '—';
+
+    const errEl = document.getElementById('sos-error');
+    if (errEl) errEl.style.display = 'none';
+
+    // Reset slots trước
+    [1, 2, 3].forEach(i => {
+        const inp = document.getElementById(`sos-phone-${i}`);
+        if (inp) inp.value = '';
+    });
+
+    // Load số hiện tại từ DB
+    try {
+        const res  = await api.get(`/api/user-devices/${deviceId}/sos-contacts`);
+        const data = res.data?.result ?? [];          // result là List<SosContactResponse>
+
+        data.forEach((contact, idx) => {
+            if (idx >= 3) return;
+            const inp = document.getElementById(`sos-phone-${idx + 1}`);
+            if (inp) inp.value = contact.phone ?? '';
+        });
+    } catch (err) {
+        console.warn('Chưa có SOS contacts:', err);
+    }
+
+    openModal('modal-sos-contacts');
+}
+
+async function saveSosContacts() {
+    if (!currentSosDeviceId) return;
+
+    const errEl = document.getElementById('sos-error');
+    errEl.style.display = 'none';
+
+    // Thu thập — giữ nguyên slot, bỏ slot trống
+    const phones = [1, 2, 3]
+        .map(i => document.getElementById(`sos-phone-${i}`)?.value.trim())
+        .filter(p => p && p.length > 0);
+
+    // Validate
+    const phoneRegex = /^(0|\+84)[0-9]{8,10}$/;
+    for (const p of phones) {
+        if (!phoneRegex.test(p)) {
+            errEl.textContent   = `Số điện thoại "${p}" không hợp lệ!`;
+            errEl.style.display = 'block';
+            return;
+        }
+    }
+
+    if (phones.length === 0) {
+        errEl.textContent   = 'Vui lòng nhập ít nhất 1 số điện thoại!';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    try {
+        await api.put(`/api/user-devices/${currentSosDeviceId}/sos-contacts`, { phones });
+        closeModal('modal-sos-contacts');
+        showToast(`Đã lưu ${phones.length} số SOS cho ${currentSosDeviceId}!`);
+    } catch (err) {
+        const msg = err.response?.data?.message ?? 'Lưu thất bại, thử lại!';
+        errEl.textContent   = msg;
+        errEl.style.display = 'block';
+    }
+}
+
+function clearSosPhone(slot) {
+    const inp = document.getElementById(`sos-phone-${slot}`);
+    if (inp) inp.value = '';
+}
+
 
 
 // ══════════════════════════
@@ -1037,6 +1133,9 @@ window.logoutAllDevices = logoutAllDevices;
 window.openQrModal = openQrModal;
 window.loadDevices = loadDevices;
 window.openSetupGuide = openSetupGuide;
+window.openSosContacts  = openSosContacts;
+window.saveSosContacts  = saveSosContacts;
+window.clearSosPhone    = clearSosPhone;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserInfo();

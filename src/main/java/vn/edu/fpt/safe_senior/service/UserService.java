@@ -22,23 +22,24 @@ import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
 import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
 import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
+import vn.edu.fpt.safe_senior.dto.response.UserStatsResponse;
 import vn.edu.fpt.safe_senior.entity.Address;
 import vn.edu.fpt.safe_senior.entity.EmailVerificationToken;
 import vn.edu.fpt.safe_senior.entity.Role;
 import vn.edu.fpt.safe_senior.entity.User;
+import vn.edu.fpt.safe_senior.enums.DeviceEnum;
+import vn.edu.fpt.safe_senior.enums.OrderEnum;
 import vn.edu.fpt.safe_senior.enums.RoleEnum;
 import vn.edu.fpt.safe_senior.exception.AppException;
 import vn.edu.fpt.safe_senior.exception.ErrorCode;
 import vn.edu.fpt.safe_senior.mapper.AddressMapper;
 import vn.edu.fpt.safe_senior.mapper.UserMapper;
-import vn.edu.fpt.safe_senior.repository.AddressRepository;
-import vn.edu.fpt.safe_senior.repository.EmailVerificationTokenRepository;
-import vn.edu.fpt.safe_senior.repository.RoleRepository;
-import vn.edu.fpt.safe_senior.repository.UserRepository;
+import vn.edu.fpt.safe_senior.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -55,6 +56,8 @@ public class UserService {
     AddressRepository addressRepository;
     AddressMapper addressMapper;
     PasswordEncoder passwordEncoder;
+    OrderRepository orderRepository;
+    DeviceRepository deviceRepository;
 
     @NonFinal
     @Value("${app.base-url}")
@@ -118,7 +121,7 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
     }
 
-
+    @Transactional
     @PostAuthorize("returnObject.username == authentication.name")
     public UserResponse update(String username, UserUpdateRequest request) {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -145,6 +148,7 @@ public class UserService {
         target.setIsDefault(true);
         addressRepository.saveAll(allAddresses);
     }
+
 
     public AddressResponse createAddress(String userId, AddressCreateRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));

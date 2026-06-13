@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Spin — SOS SENIOR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/lucky.css}">
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">Thông báo</span>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div class="result-overlay" id="result-overlay">
+    <div class="result-card">
+        <div class="result-emoji" id="result-emoji">🎉</div>
+        <div class="result-label">Chúc mừng bạn đã nhận được</div>
+        <div class="result-prize" id="result-prize">Voucher 10%</div>
+        <div class="result-desc" id="result-desc">Voucher đã được lưu vào tài khoản của bạn.</div>
+        <button class="result-close" onclick="closeResult()">TUYỆT VỜI!</button>
+    </div>
+</div>
+
+<!-- MODAL HƯỚNG DẪN -->
+<div class="modal-overlay" id="modal-guide">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('modal-guide')">✕</button>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+            <div style="width:44px;height:44px;border-radius:50%;background:var(--gold-glow);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:22px;color:var(--gold);flex-shrink:0;">
+                ?
+            </div>
+            <div>
+                <div style="font-family:var(--font-display);font-size:26px;letter-spacing:2px;">HƯỚNG DẪN CHƠI</div>
+                <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--grey-light);">
+                    LUCKY SPIN — SOS SENIOR
+                </div>
+            </div>
+        </div>
+
+        <!-- Cách chơi -->
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:14px;">
+            CÁCH CHƠI
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
+            <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--black);font-family:var(--font-display);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    1
+                </div>
+                <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">Đảm bảo bạn đã <strong
+                        style="color:var(--white);">đăng nhập</strong> vào tài khoản SOS SENIOR.
+                </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--black);font-family:var(--font-display);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    2
+                </div>
+                <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">Kiểm tra số lượt quay hiển thị ở
+                    <strong style="color:var(--white);">tâm vòng quay</strong>.
+                </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--black);font-family:var(--font-display);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    3
+                </div>
+                <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">Click vào chữ <strong
+                        style="color:var(--gold);">LUCKY</strong> để quay. Mỗi lần quay tốn <strong
+                        style="color:var(--white);">1 lượt</strong>.
+                </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--black);font-family:var(--font-display);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    4
+                </div>
+                <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">Phần thưởng sẽ được <strong
+                        style="color:var(--white);">tự động lưu</strong> vào tài khoản của bạn sau khi quay.
+                </div>
+            </div>
+        </div>
+
+        <!-- Cách nhận lượt -->
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:14px;">
+            CÁCH NHẬN LƯỢT QUAY
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:20px;">🛒</span>
+                    <div>
+                        <div style="font-size:13px;color:var(--white);">Mua đơn hàng từ 500.000₫</div>
+                        <div style="font-family:var(--font-mono);font-size:10px;color:var(--grey-light);">Mỗi đơn hàng
+                            đủ điều kiện
+                        </div>
+                    </div>
+                </div>
+                <div style="font-family:var(--font-display);font-size:20px;color:var(--gold);">+1</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:20px;">📦</span>
+                    <div>
+                        <div style="font-size:13px;color:var(--white);">Sở hữu 3 sản phẩm trên web</div>
+                        <div style="font-family:var(--font-mono);font-size:10px;color:var(--grey-light);">Tích lũy theo
+                            tổng đơn hàng
+                        </div>
+                    </div>
+                </div>
+                <div style="font-family:var(--font-display);font-size:20px;color:var(--gold);">+1</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:20px;">⭐</span>
+                    <div>
+                        <div style="font-size:13px;color:var(--white);">Lên hạng thành viên VIP</div>
+                        <div style="font-family:var(--font-mono);font-size:10px;color:var(--grey-light);">Nhận ngay khi
+                            đạt hạng mới
+                        </div>
+                    </div>
+                </div>
+                <div style="font-family:var(--font-display);font-size:20px;color:var(--gold);">+3</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:20px;">🎂</span>
+                    <div>
+                        <div style="font-size:13px;color:var(--white);">Sinh nhật của bạn</div>
+                        <div style="font-family:var(--font-mono);font-size:10px;color:var(--grey-light);">Tặng mỗi năm
+                            một lần
+                        </div>
+                    </div>
+                </div>
+                <div style="font-family:var(--font-display);font-size:20px;color:var(--gold);">+2</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:20px;">👥</span>
+                    <div>
+                        <div style="font-size:13px;color:var(--white);">Giới thiệu bạn bè đăng ký</div>
+                        <div style="font-family:var(--font-mono);font-size:10px;color:var(--grey-light);">Mỗi người bạn
+                            giới thiệu thành công
+                        </div>
+                    </div>
+                </div>
+                <div style="font-family:var(--font-display);font-size:20px;color:var(--gold);">+1</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--black);border:1px solid var(--grey-border);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:20px;">🔄</span>
+                    <div>
+                        <div style="font-size:13px;color:var(--white);">Trúng thưởng "+1 lượt quay"</div>
+                        <div style="font-family:var(--font-mono);font-size:10px;color:var(--grey-light);">Từ kết quả
+                            vòng quay
+                        </div>
+                    </div>
+                </div>
+                <div style="font-family:var(--font-display);font-size:20px;color:var(--gold);">+1</div>
+            </div>
+        </div>
+
+        <button style="width:100%;padding:14px;margin-top:24px;background:var(--gold);color:var(--black);font-family:var(--font-mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;border:none;cursor:none;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);"
+                onclick="closeModal('modal-guide')">ĐÃ HIỂU
+        </button>
+    </div>
+</div>
+
+<!-- NAV -->
+<nav>
+    <a th:href="@{/}" class="nav-logo">SOS<span>SENIOR</span></a>
+    <a href="javascript:history.back()" class="nav-back">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        Quay lại
+    </a>
+</nav>
+
+<!-- PAGE -->
+<div class="spin-page">
+    <div class="bg-radial"></div>
+    <div class="bg-grid"></div>
+
+    <!-- HEADER -->
+    <div class="spin-header">
+        <div class="spin-eyebrow">Vòng quay may mắn</div>
+        <div class="spin-title">LUCKY SPIN</div>
+    </div>
+
+    <!-- LEFT: PRIZE LIST -->
+    <div class="spin-left">
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:3px;color:var(--grey-light);margin-bottom:16px;">
+            DANH SÁCH PHẦN THƯỞNG
+        </div>
+        <div class="prize-legend" id="prize-legend"></div>
+    </div>
+
+    <!-- CENTER: WHEEL -->
+    <div class="spin-center">
+        <div class="wheel-wrap">
+            <div class="wheel-glow"></div>
+
+            <!-- Pointer -->
+            <svg class="wheel-pointer" width="28" height="36" viewBox="0 0 28 36">
+                <polygon points="14,36 0,8 14,16 28,8" fill="#f5c842"/>
+                <polygon points="14,32 4,10 14,17 24,10" fill="#0a0a0a" opacity="0.4"/>
+            </svg>
+
+            <canvas id="wheelCanvas" width="460" height="460"></canvas>
+            <div class="wheel-outer-ring"></div>
+
+            <!-- Center button -->
+            <div class="wheel-center" id="spinBtn" onclick="handleSpin()">
+                <div class="wheel-center-spins" id="spinsDisplay">—</div>
+                <div class="wheel-center-label">LUCKY</div>
+                <div class="wheel-center-sub">Nhấn để quay</div>
+            </div>
+
+            <!-- Help button -->
+            <button class="help-btn" onclick="openModal('modal-guide')" title="Hướng dẫn">?</button>
+        </div>
+
+        <!-- Info bar -->
+        <div class="spin-info-bar">
+            <div class="spin-info-item">
+                <div class="spin-info-num" id="info-spins">—</div>
+                <div class="spin-info-label">Lượt còn lại</div>
+            </div>
+            <div class="spin-info-item">
+                <div class="spin-info-num" id="info-total">—</div>
+                <div class="spin-info-label">Tổng đã quay</div>
+            </div>
+            <div class="spin-info-item">
+                <div class="spin-info-num" id="info-prizes">—</div>
+                <div class="spin-info-label">Phần thưởng</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: HISTORY -->
+    <div class="spin-right">
+        <div class="history-title">LỊCH SỬ</div>
+        <div class="history-list" id="history-list">
+            <div class="history-empty">CHƯA CÓ LỊCH SỬ QUAY</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import api from './js/api.js';
+
+    // ══════════════════════════
+    // PRIZES CONFIG
+    // ══════════════════════════
+    const PRIZES = [
+        {id: 0, label: 'Voucher 10%', emoji: '🎫', color: '#e8a020', textColor: '#0a0a0a', weight: 25},
+        {id: 1, label: 'Voucher 30%', emoji: '🎟️', color: '#e81c1c', textColor: '#f5f5f0', weight: 15},
+        {id: 2, label: 'May mắn lần sau', emoji: '💫', color: '#2a2a2a', textColor: '#888888', weight: 30},
+        {id: 3, label: '1x SOS Pro', emoji: '⌚', color: '#1a3a6a', textColor: '#f5f5f0', weight: 3},
+        {id: 4, label: '+1 Lượt quay', emoji: '🔄', color: '#1a4a2a', textColor: '#00c864', weight: 12},
+        {id: 5, label: 'Voucher 100%', emoji: '🏆', color: '#f5c842', textColor: '#0a0a0a', weight: 2},
+        {id: 6, label: 'Voucher 50%', emoji: '💎', color: '#6a1a6a', textColor: '#f5f5f0', weight: 8},
+        {id: 7, label: 'Voucher 20%', emoji: '🎁', color: '#3a1a0a', textColor: '#f5a040', weight: 5},
+    ];
+
+    // ══════════════════════════
+    // STATE
+    // ══════════════════════════
+    let spinCount = 0;
+    let totalSpun = 0;
+    let prizeCount = 0;
+    let isSpinning = false;
+    let currentAngle = 0;
+    let idleAnimId = null;
+    let spinHistory = [];
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const SIZE = canvas.width;
+    const R = SIZE / 2;
+    const SEG = (2 * Math.PI) / PRIZES.length;
+
+    // ══════════════════════════
+    // DRAW WHEEL
+    // ══════════════════════════
+    function drawWheel(angle = 0) {
+        ctx.clearRect(0, 0, SIZE, SIZE);
+        ctx.save();
+        ctx.translate(R, R);
+        ctx.rotate(angle);
+
+        PRIZES.forEach((p, i) => {
+            const start = i * SEG - Math.PI / 2;
+            const end = start + SEG;
+
+            // Segment fill
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, R - 6, start, end);
+            ctx.closePath();
+            ctx.fillStyle = p.color;
+            ctx.fill();
+
+            // Segment border
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, R - 6, start, end);
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Text
+            ctx.save();
+            ctx.rotate(start + SEG / 2);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = p.textColor;
+            ctx.font = `bold 12px 'Space Mono', monospace`;
+            ctx.shadowColor = 'rgba(0,0,0,0.6)';
+            ctx.shadowBlur = 4;
+
+            // Emoji
+            ctx.font = '20px serif';
+            ctx.fillText(p.emoji, R - 30, 6);
+
+            // Label (split if long)
+            ctx.font = `bold 11px 'Space Mono', monospace`;
+            ctx.fillStyle = p.textColor;
+            const words = p.label.split(' ');
+            if (words.length <= 2) {
+                ctx.fillText(p.label, R - 58, 5);
+            } else {
+                ctx.fillText(words.slice(0, 2).join(' '), R - 58, -3);
+                ctx.fillText(words.slice(2).join(' '), R - 58, 12);
+            }
+            ctx.restore();
+        });
+
+        // Inner shadow ring
+        const grad = ctx.createRadialGradient(0, 0, R * 0.45, 0, 0, R - 6);
+        grad.addColorStop(0, 'rgba(0,0,0,0.5)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(0, 0, R - 6, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    // ══════════════════════════
+    // IDLE ANIMATION (slow rotate)
+    // ══════════════════════════
+    let lastTime = 0;
+
+    function idleLoop(ts) {
+        if (!isSpinning) {
+            const delta = ts - lastTime;
+            lastTime = ts;
+            currentAngle += (delta / 1000) * 0.25; // 0.25 rad/s = ~slow
+            drawWheel(currentAngle);
+        }
+        idleAnimId = requestAnimationFrame(idleLoop);
+    }
+
+    requestAnimationFrame(idleLoop);
+
+    // ══════════════════════════
+    // PRIZE LEGEND
+    // ══════════════════════════
+    function renderLegend() {
+        const el = document.getElementById('prize-legend');
+        el.innerHTML = PRIZES.map(p => `
+    <div class="prize-item">
+      <div class="prize-dot" style="background:${p.color};border:1px solid rgba(255,255,255,0.1);"></div>
+      <div class="prize-label">
+        <strong>${p.emoji} ${p.label}</strong>
+      </div>
+    </div>`).join('');
+    }
+
+    // ══════════════════════════
+    // LOAD USER SPINS
+    // ══════════════════════════
+    async function loadSpinData() {
+        try {
+            const res = await api.get('/spin/info');
+            const data = res.data?.result ?? res.data;
+            spinCount = data?.remainingSpins ?? 0;
+            totalSpun = data?.totalSpins ?? 0;
+            prizeCount = 0; // BE chưa trả prizeCount, tính tạm
+            updateUI();
+            if (data?.history?.length) renderHistory(data.history);
+        } catch (err) {
+            spinCount = 0;
+            totalSpun = 0;
+            updateUI();
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('spinsDisplay').textContent = spinCount;
+        document.getElementById('info-spins').textContent = spinCount;
+        document.getElementById('info-total').textContent = totalSpun;
+        document.getElementById('info-prizes').textContent = prizeCount;
+
+        const btn = document.getElementById('spinBtn');
+        if (spinCount <= 0) {
+            btn.style.opacity = '0.5';
+            document.getElementById('wheel-center-sub') && (document.querySelector('.wheel-center-sub').textContent = 'Hết lượt');
+        } else {
+            btn.style.opacity = '1';
+            document.querySelector('.wheel-center-sub').textContent = 'Nhấn để quay';
+        }
+    }
+
+
+    async function handleSpin() {
+        if (isSpinning) return;
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            showToast('⚠ Vui lòng đăng nhập để quay!', true);
+            return;
+        }
+        if (spinCount <= 0) {
+            showToast('⚠ Bạn không còn lượt quay!', true);
+            return;
+        }
+
+        isSpinning = true;
+        cancelAnimationFrame(idleAnimId);
+
+        try {
+            const res = await api.post('/spin/spin');
+            const data = res.data?.result ?? res.data;
+            animateSpin(data.prizeIndex);   // BE trả 0/2/4/7 — FE quay đúng ô
+            spinCount = data.remainingSpins;
+
+        } catch (err) {
+            isSpinning = false;
+            idleAnimId = requestAnimationFrame(idleLoop);
+            showToast('⚠ Lỗi kết nối, thử lại!', true);
+        }
+    }
+
+    function animateSpin(targetIndex) {
+        const segAngle = (2 * Math.PI) / PRIZES.length;
+        // Góc của ô target tính từ đầu (12 giờ = -PI/2)
+        // Pointer ở trên cùng, wheel quay ngược chiều kim đồng hồ
+        // Cần đưa tâm ô target lên đúng vị trí pointer (trên cùng)
+        const targetCenter = targetIndex * segAngle + segAngle / 2;
+
+        // Góc cần quay để target lên đỉnh
+        const toTop = (2 * Math.PI) - (targetCenter % (2 * Math.PI));
+
+        // Chuẩn hóa currentAngle về [0, 2PI)
+        const normalizedCurrent = ((currentAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+
+        // Tổng góc = N vòng đầy + phần còn thiếu để đến target
+        const extraSpins = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
+        let diff = (toTop - normalizedCurrent + 2 * Math.PI) % (2 * Math.PI);
+        if (diff < 0.1) diff += 2 * Math.PI; // tránh quay quá ít
+
+        const endAngle = currentAngle + extraSpins + diff;
+
+        const duration = 4500;
+        const startAngle = currentAngle;
+        const startTime = performance.now();
+
+        function easeOut(t) {
+            return 1 - Math.pow(1 - t, 4);
+        }
+
+        function spinFrame(ts) {
+            const elapsed = ts - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            currentAngle = startAngle + (endAngle - startAngle) * easeOut(progress);
+            drawWheel(currentAngle);
+
+            if (progress < 1) {
+                requestAnimationFrame(spinFrame);
+            } else {
+                isSpinning = false;
+                idleAnimId = requestAnimationFrame(idleLoop);
+                onSpinEnd(targetIndex);
+            }
+        }
+
+        requestAnimationFrame(spinFrame);
+    }
+
+    function onSpinEnd(index) {
+        const prize = PRIZES[index];
+        totalSpun++;
+        if (prize.id !== 2) prizeCount++; // không tính "may mắn lần sau"
+
+        // Thêm +1 nếu prize là +1 lượt
+        if (prize.id === 4) spinCount++;
+
+        updateUI();
+
+        // Thêm vào history
+        const now = new Date();
+        spinHistory.unshift({prize, time: now});
+        renderHistory(spinHistory);
+
+        // Hiệu ứng confetti nếu không phải "may mắn lần sau"
+        if (prize.id !== 2) spawnConfetti(prize.color);
+
+        // Hiển thị result
+        setTimeout(() => showResult(prize), 400);
+    }
+
+    // ══════════════════════════
+    // RESULT
+    // ══════════════════════════
+    function showResult(prize) {
+        const isBad = prize.id === 2;
+        document.getElementById('result-emoji').textContent = prize.emoji;
+        document.getElementById('result-prize').textContent = prize.label;
+        document.getElementById('result-desc').textContent = isBad
+            ? 'Đừng nản lòng! Hãy thử lại lần sau nhé 🍀'
+            : 'Phần thưởng đã được lưu vào tài khoản của bạn. Kiểm tra trong mục Voucher!';
+
+        const card = document.querySelector('.result-card');
+        card.style.borderColor = isBad ? 'var(--grey-border)' : prize.color;
+        card.querySelector('.result-label').style.color = isBad ? 'var(--grey-light)' : 'var(--gold)';
+        document.getElementById('result-overlay').classList.add('show');
+    }
+
+    window.closeResult = function () {
+        document.getElementById('result-overlay').classList.remove('show');
+    };
+
+    // ══════════════════════════
+    // CONFETTI
+    // ══════════════════════════
+    function spawnConfetti(color) {
+        const colors = [color, '#f5c842', '#e81c1c', '#ffffff', '#00c864'];
+        for (let i = 0; i < 60; i++) {
+            const el = document.createElement('div');
+            el.className = 'confetti-piece';
+            el.style.cssText = `
+      left:${Math.random() * 100}vw;
+      top:-10px;
+      background:${colors[Math.floor(Math.random() * colors.length)]};
+      width:${4 + Math.random() * 8}px;
+      height:${4 + Math.random() * 8}px;
+      border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+      --dur:${2 + Math.random() * 2}s;
+      --delay:${Math.random() * 0.8}s;
+    `;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        }
+    }
+
+    // ══════════════════════════
+    // HISTORY
+    // ══════════════════════════
+    function renderHistory(list) {
+        const el = document.getElementById('history-list');
+        if (!list || !list.length) {
+            el.innerHTML = '<div class="history-empty">CHƯA CÓ LỊCH SỬ QUAY</div>';
+            return;
+        }
+        el.innerHTML = list.slice(0, 20).map(h => {
+            // BE trả prizeIndex và prizeLabel — map sang PRIZES để lấy color/emoji
+            const prize = PRIZES[h.prizeIndex] ?? PRIZES[2];
+            const time = h.spunAt ? new Date(h.spunAt) : new Date();
+            return `
+        <div class="history-item">
+            <div class="history-prize-dot" style="background:${prize.color}"></div>
+            <div class="history-prize-name">${prize.emoji} ${h.prizeLabel}</div>
+            <div class="history-time">
+                ${time.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}
+            </div>
+        </div>`;
+        }).join('');
+    }
+
+    // ══════════════════════════
+    // MODAL & TOAST
+    // ══════════════════════════
+    window.openModal = function (id) {
+        document.getElementById(id).classList.add('open');
+    };
+    window.closeModal = function (id) {
+        document.getElementById(id).classList.remove('open');
+    };
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.addEventListener('click', e => {
+            if (e.target === m) m.classList.remove('open');
+        });
+    });
+
+    let toastTimer;
+
+    function showToast(msg, isError = false) {
+        const t = document.getElementById('toast');
+        t.style.borderLeftColor = isError ? 'var(--red)' : 'var(--gold)';
+        document.getElementById('toast-msg').textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ══════════════════════════
+    // CURSOR
+    // ══════════════════════════
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursor-ring');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => {
+        mx = e.clientX;
+        my = e.clientY;
+        cursor.style.left = mx + 'px';
+        cursor.style.top = my + 'px';
+    });
+    (function animateRing() {
+        rx += (mx - rx) * .15;
+        ry += (my - ry) * .15;
+        ring.style.left = rx + 'px';
+        ring.style.top = ry + 'px';
+        requestAnimationFrame(animateRing);
+    })();
+    document.addEventListener('mouseover', e => {
+        if (e.target.closest('button,a,[onclick]')) document.body.classList.add('hovering');
+    });
+    document.addEventListener('mouseout', e => {
+        if (e.target.closest('button,a,[onclick]')) document.body.classList.remove('hovering');
+    });
+
+    // ══════════════════════════
+    // EXPOSE & INIT
+    // ══════════════════════════
+    window.handleSpin = handleSpin;
+    renderLegend();
+    loadSpinData();
+    drawWheel(0);
+</script>
+</body>
+</html>

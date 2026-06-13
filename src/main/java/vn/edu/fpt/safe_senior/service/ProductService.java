@@ -1,5 +1,6 @@
 package vn.edu.fpt.safe_senior.service;
 
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -37,13 +38,15 @@ public class ProductService {
     OrderItemRepository orderItemRepository;
 
 
-    public List<ProductResponse> getAllArtists() {
+
+    public List<ProductResponse> getAllProducts() {
         return productRepository.findAllProductByStatus("ACTIVE").stream()
                 .map(productMapper::toProductResponse)
                 .toList();
     }
 
 
+    @Transactional
     public void buyProduct(OrderCreateRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -55,7 +58,6 @@ public class ProductService {
         List<Device> devicesToUpdate = new ArrayList<>();
 
         for (OrderItemRequest item : request.getItems()) {
-            System.out.println("productId = " + item.getProductId());
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
             BigDecimal subtotal = product.getPrice()
@@ -71,7 +73,6 @@ public class ProductService {
             Device device = deviceRepository.findByProductAndStatus(product, DeviceEnum.INACTIVE.name())
                     .orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_FOUND));
             device.setUser(user);
-            device.setStatus(DeviceEnum.SOLD.name());
             devicesToUpdate.add(device);
             product.setStatus(ProductEnum.INACTIVE.name());
             productsToUpdate.add(product);

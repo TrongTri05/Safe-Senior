@@ -19,7 +19,7 @@ public class ProductController {
     @GetMapping
     public ApiResponse<List<ProductResponse>> getAllProducts() {
         return ApiResponse.<List<ProductResponse>>builder()
-                .result(productService.getAllArtists())
+                .result(productService.getAllProducts())
                 .build();
     }
 }

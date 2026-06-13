@@ -28,6 +28,10 @@ public enum ErrorCode {
     PASSWORD_ERROR(1020,"Wrong password", HttpStatus.BAD_REQUEST),
     DEVICE_NOT_FOUND(1021, "Device not found", HttpStatus.BAD_REQUEST),
     NOT_ADDRESS_AVAILABLE(1021,"Address not available", HttpStatus.BAD_REQUEST),
+    FORGOT_PASSWORD_EMAIL(1022,"If the email address exists, we will send you a recovery link.", HttpStatus.BAD_REQUEST),
+    MAX_SOS_CONTACTS(1023,"The limit on the number of phone numbers requiring support has been reached.", HttpStatus.BAD_REQUEST),
+    NO_SPIN_LEFT(1024,"No spin left", HttpStatus.BAD_REQUEST),
+    VOUCHER_NOT_FOUND(1025,"Voucher not found", HttpStatus.NOT_FOUND),
     LOGIN_ERROR(1018, "Username or Password error", HttpStatus.INTERNAL_SERVER_ERROR);
 
 

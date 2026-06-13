@@ -71,7 +71,7 @@
 
 
 <!-- MAIN -->
-<div class="profile-wrap">
+ <div class="profile-wrap">
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="profile-card">
@@ -340,6 +340,18 @@
                     <div class="security-left">
                         <div class="security-icon">🛡️</div>
                         <div>
+                            <div class="security-title">Danh sách SĐT</div>
+                            <div class="security-desc">Nhận hỗ trợ</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;">
+                        <button class="toggle-btn">Xem</button>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <div class="security-left">
+                        <div class="security-icon">🛡️</div>
+                        <div>
                             <div class="security-title">ĐĂNG NHẬP GOOGLE</div>
                             <div class="security-desc">Liên kết với tài khoản Google</div>
                         </div>
@@ -445,7 +457,7 @@
     </div>
 </div>
 <!-- MODAL HƯỚNG DẪN SETUP THIẾT BỊ -->
-<div class="modal-overlay" id="modal-setup-guide">
+ <div class="modal-overlay" id="modal-setup-guide">
     <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
         <button class="modal-close" onclick="closeModal('modal-setup-guide')">✕</button>
 
@@ -636,7 +648,7 @@
                     <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">
                         Sau khi Save thành công, đèn LED sẽ
                         <strong style="color:#00c864;">sáng liên tục</strong>
-                        và không còn nhấp nháy.
+                        và không còn nhấp nháy. Bước tiếp ở giao diện website -> Profile -> Thiết bị SOS quý khách vui lòng thêm ít nhất 1 SĐT để nhận cảnh báo khi dùng thiết bị.
                         <br>
                         <span style="
                             display:inline-flex;align-items:center;gap:6px;
@@ -649,10 +661,120 @@
             </div>
 
         </div>
-
         <button class="btn-save" style="width:100%;padding:14px;margin-top:28px;"
                 onclick="closeModal('modal-setup-guide')">
             <span>ĐÃ HIỂU</span>
+        </button>
+    </div>
+</div>
+
+<!-- MODAL SỐ ĐIỆN THOẠI KHẨN CẤP -->
+<div class="modal-overlay" id="modal-sos-contacts">
+    <div class="modal" style="max-width:500px;">
+        <button class="modal-close" onclick="closeModal('modal-sos-contacts')">✕</button>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+            <div style="
+                width:40px;height:40px;border-radius:50%;
+                background:var(--red-glow);border:1.5px solid var(--red);
+                display:flex;align-items:center;justify-content:center;
+                font-size:18px;flex-shrink:0;">🆘</div>
+            <div>
+                <div class="modal-title" style="font-size:24px;margin-bottom:2px;">
+                    SỐ ĐIỆN THOẠI KHẨN CẤP
+                </div>
+                <div style="font-family:var(--font-mono);font-size:10px;
+                    letter-spacing:2px;color:var(--grey-light);">
+                    THIẾT BỊ: <span id="sos-device-id-label" style="color:var(--red);">—</span>
+                </div>
+            </div>
+        </div>
+
+        <p style="font-size:13px;color:var(--grey-light);line-height:1.7;
+            margin-bottom:24px;padding:12px 16px;
+            background:var(--red-glow);border-left:2px solid var(--red);">
+            Khi nhấn nút SOS trên thiết bị, hệ thống sẽ gửi tín hiệu cảnh báo đến
+            <strong style="color:var(--white);">tối đa 3 số điện thoại</strong> bên dưới theo thứ tự ưu tiên.
+        </p>
+
+        <!-- CONTACT SLOTS -->
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;"
+             id="sos-contact-slots">
+
+            <!-- Slot 1 -->
+            <div style="
+                display:flex;align-items:center;gap:12px;
+                padding:16px;background:var(--black);
+                border:1px solid var(--grey-border);">
+                <div style="
+                    width:28px;height:28px;border-radius:50%;
+                    background:var(--red);color:var(--white);
+                    font-family:var(--font-display);font-size:14px;
+                    display:flex;align-items:center;justify-content:center;
+                    flex-shrink:0;">1</div>
+                <input class="field-input" type="tel" id="sos-phone-1"
+                       placeholder="Số điện thoại ưu tiên 1"
+                       style="flex:1;margin:0;">
+                <button onclick="clearSosPhone(1)" style="
+                    background:none;border:none;color:var(--grey-light);
+                    font-size:18px;cursor:pointer;padding:4px;
+                    transition:color 0.3s;line-height:1;"
+                        title="Xóa">✕</button>
+            </div>
+
+            <!-- Slot 2 -->
+            <div style="
+                display:flex;align-items:center;gap:12px;
+                padding:16px;background:var(--black);
+                border:1px solid var(--grey-border);">
+                <div style="
+                    width:28px;height:28px;border-radius:50%;
+                    background:var(--grey-mid);color:var(--white);
+                    font-family:var(--font-display);font-size:14px;
+                    display:flex;align-items:center;justify-content:center;
+                    flex-shrink:0;">2</div>
+                <input class="field-input" type="tel" id="sos-phone-2"
+                       placeholder="Số điện thoại ưu tiên 2"
+                       style="flex:1;margin:0;">
+                <button onclick="clearSosPhone(2)" style="
+                    background:none;border:none;color:var(--grey-light);
+                    font-size:18px;cursor:pointer;padding:4px;
+                    transition:color 0.3s;line-height:1;"
+                        title="Xóa">✕</button>
+            </div>
+
+            <!-- Slot 3 -->
+            <div style="
+                display:flex;align-items:center;gap:12px;
+                padding:16px;background:var(--black);
+                border:1px solid var(--grey-border);">
+                <div style="
+                    width:28px;height:28px;border-radius:50%;
+                    background:var(--grey-mid);color:var(--white);
+                    font-family:var(--font-display);font-size:14px;
+                    display:flex;align-items:center;justify-content:center;
+                    flex-shrink:0;">3</div>
+                <input class="field-input" type="tel" id="sos-phone-3"
+                       placeholder="Số điện thoại ưu tiên 3"
+                       style="flex:1;margin:0;">
+                <button onclick="clearSosPhone(3)" style="
+                    background:none;border:none;color:var(--grey-light);
+                    font-size:18px;cursor:pointer;padding:4px;
+                    transition:color 0.3s;line-height:1;"
+                        title="Xóa">✕</button>
+            </div>
+        </div>
+
+        <!-- Error msg -->
+        <div id="sos-error" style="
+            display:none;margin-bottom:16px;
+            font-family:var(--font-mono);font-size:11px;letter-spacing:1px;
+            padding:10px 14px;border-left:2px solid var(--red);
+            background:var(--red-glow);color:var(--red);">
+        </div>
+
+        <button class="btn-save" style="width:100%;padding:16px;"
+                onclick="saveSosContacts()">
+            <span>LƯU SỐ ĐIỆN THOẠI</span>
         </button>
     </div>
 </div>

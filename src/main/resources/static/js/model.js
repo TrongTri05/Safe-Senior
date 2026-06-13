@@ -188,6 +188,7 @@ function showPage(id) {
     if (id === 'products') renderAllProducts();
     if (id === 'cart') renderCart();
     if (id === 'home') initReveal();
+    if (id === 'forgot-password') resetForgotForm?.();
     setTimeout(initReveal, 50);
 }
 
@@ -394,6 +395,7 @@ async function checkout() {
         return;
     }
     const userId = localStorage.getItem('userId');
+    console.log('userId:', userId);
     if (!userId) {
         showToast('Vui lòng đăng nhập!');
         return;
@@ -423,14 +425,18 @@ async function checkout() {
         updateBadge();
         showToast('Đặt hàng thành công!');
         showPage('home');
-
     } catch (err) {
-        showToast('Lỗi đặt hàng, thử lại!');
+        const status = err.response?.status;
+        if (status === 401) {
+            showToast('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!');
+        } else {
+            showToast('Lỗi đặt hàng, thử lại!');
+        }
         console.error(err);
     }
 }
 
-async function renderDbProducts() {
+async function renderDBProducts() {
     const el = document.getElementById('db-products');
     if (!el) return;
     try {
@@ -671,6 +677,104 @@ function toggleMenu() {
     document.getElementById('mobile-menu').classList.toggle('open');
 }
 
+
+// ══════════════════════════
+// FORGOT PASSWORD
+// ══════════════════════════
+let countdownTimer;
+async function submitForgotPassword() {
+    const email = document.getElementById('forgot-email')?.value.trim();
+    const msgEl = document.getElementById('forgot-msg');
+    const btn = document.getElementById('forgot-submit-btn');
+    // Reset
+    msgEl.style.display = 'none';
+    msgEl.textContent = '';
+
+    if (!email) {
+        showForgotMsg('Vui lòng nhập email!', 'error');
+        return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showForgotMsg('Email không hợp lệ!', 'error');
+        return;
+    }
+
+    // Loading state
+    btn.disabled = true;
+    btn.querySelector('span').textContent = 'ĐANG GỬI...';
+
+    try {
+        await api.post('/auth/forgot-password', {email});
+        // Chuyển sang step 2
+        document.getElementById('forgot-step-1').style.display = 'none';
+        document.getElementById('forgot-step-2').style.display = 'flex';
+        document.getElementById('forgot-email-display').textContent = email;
+        startCountdown();
+
+    } catch (err) {
+        const msg = err.response?.data?.message ?? 'Có lỗi xảy ra, thử lại!';
+        showForgotMsg(msg, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'GỬI YÊU CẦU';
+    }
+}
+
+function showForgotMsg(text, type) {
+    const el = document.getElementById('forgot-msg');
+    el.textContent = text;
+    el.style.display = 'block';
+    el.style.borderLeftColor = type === 'error' ? 'var(--red)' : '#00c864';
+    el.style.color = type === 'error' ? 'var(--red)' : '#00c864';
+}
+
+function startCountdown() {
+    let sec = 60;
+    const numEl = document.getElementById('countdown-num');
+    const countEl = document.getElementById('resend-countdown');
+    const resendBtn = document.getElementById('resend-btn');
+
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+        sec--;
+        numEl.textContent = sec;
+        if (sec <= 0) {
+            clearInterval(countdownTimer);
+            countEl.style.display = 'none';
+            resendBtn.style.display = 'inline';
+        }
+    }, 1000);
+}
+
+async function resendEmail() {
+    const email = document.getElementById('forgot-email')?.value.trim();
+    if (!email) return;
+    try {
+        await api.post('/auth/forgot-password', {email});
+        // Reset countdown
+        document.getElementById('resend-btn').style.display = 'none';
+        document.getElementById('resend-countdown').style.display = 'inline';
+        startCountdown();
+        showToast?.('Đã gửi lại email!');
+    } catch (err) {
+        showToast?.('Gửi lại thất bại, thử lại!');
+    }
+}
+
+// Reset form khi quay lại trang
+function resetForgotForm() {
+    const s1 = document.getElementById('forgot-step-1');
+    const s2 = document.getElementById('forgot-step-2');
+    if (s1) s1.style.display = 'flex';
+    if (s2) s2.style.display = 'none';
+    const inp = document.getElementById('forgot-email');
+    if (inp) inp.value = '';
+    const msg = document.getElementById('forgot-msg');
+    if (msg) msg.style.display = 'none';
+    clearInterval(countdownTimer);
+}
+
+
 // ══════════════════════════
 // CUSTOM CURSOR
 // ══════════════════════════
@@ -732,9 +836,11 @@ window.showToast = showToast;
 window.addToCartDb = addToCartDb;
 window.showDbDetail = showDbDetail;
 window.checkout = checkout;
+window.submitForgotPassword = submitForgotPassword;
+window.resendEmail = resendEmail;
 
 renderFeatured();
-renderDbProducts();
+renderDBProducts();
 updateBadge();
 setTimeout(initReveal, 300);
 

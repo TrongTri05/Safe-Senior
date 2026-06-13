@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Về Chúng Tôi — SOS SENIOR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/about.css}">
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+    <a th:href="@{/}" class="nav-logo">SOS<span>SENIOR</span></a>
+    <a href="javascript:history.back()" class="nav-back">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        Quay lại
+    </a>
+</nav>
+
+<!-- HERO -->
+<section class="about-hero">
+    <div class="about-hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="about-hero-content">
+        <div class="hero-eyebrow">Câu chuyện của chúng tôi</div>
+        <h1>VỀ<br>CHÚNG<span>TÔI</span></h1>
+        <p class="about-hero-desc">
+            SOS SENIOR ra đời từ một sứ mệnh giản dị nhưng sâu sắc — mang lại sự an toàn và bình yên cho những người
+            thân yêu của bạn, bất kể khoảng cách.
+        </p>
+    </div>
+    <div class="hero-year">2024</div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+    <div class="marquee-track">
+        <span class="marquee-item">An toàn tuyệt đối</span>
+        <span class="marquee-item">Công nghệ GPS tiên tiến</span>
+        <span class="marquee-item">Kết nối gia đình</span>
+        <span class="marquee-item">Hỗ trợ 24/7</span>
+        <span class="marquee-item">Made in Vietnam</span>
+        <span class="marquee-item">Bảo hành chính hãng</span>
+        <span class="marquee-item">An toàn tuyệt đối</span>
+        <span class="marquee-item">Công nghệ GPS tiên tiến</span>
+        <span class="marquee-item">Kết nối gia đình</span>
+        <span class="marquee-item">Hỗ trợ 24/7</span>
+        <span class="marquee-item">Made in Vietnam</span>
+        <span class="marquee-item">Bảo hành chính hãng</span>
+    </div>
+</div>
+
+<!-- ABOUT -->
+<section>
+    <div class="about-grid">
+        <div class="about-text reveal">
+            <div class="section-label">Chúng tôi là ai</div>
+            <h2 class="section-title">SAFE<br>SENIOR<br>TECHNOLOGY</h2>
+            <p>
+                <strong>SAFE-SENIOR Technology</strong> là công ty công nghệ Việt Nam chuyên phát triển các giải pháp
+                thiết bị thông minh phục vụ an toàn cá nhân. Chúng tôi tin rằng mỗi người đều xứng đáng được bảo vệ, đặc
+                biệt là người cao tuổi và trẻ nhỏ.
+            </p>
+            <p>
+                Sản phẩm <strong>SOS SENIOR</strong> là thiết bị đeo tay thông minh tích hợp GPS, cảm biến sức khỏe và
+                nút SOS khẩn cấp — kết nối người dùng với gia đình và trung tâm hỗ trợ chỉ trong vài giây.
+            </p>
+            <p>
+                Với hơn <strong>50.000 người dùng</strong> trên toàn quốc và đội ngũ kỹ thuật tận tâm, chúng tôi cam kết
+                không ngừng cải tiến để mang lại trải nghiệm tốt nhất.
+            </p>
+        </div>
+        <div class="about-stats reveal reveal-delay-2">
+            <div class="about-stat">
+                <div class="about-stat-num">50K+</div>
+                <div class="about-stat-label">Người dùng tin tưởng</div>
+            </div>
+            <div class="about-stat">
+                <div class="about-stat-num">99.8%</div>
+                <div class="about-stat-label">Độ chính xác GPS</div>
+            </div>
+            <div class="about-stat">
+                <div class="about-stat-num">24/7</div>
+                <div class="about-stat-label">Hỗ trợ khẩn cấp</div>
+            </div>
+            <div class="about-stat">
+                <div class="about-stat-num">3+</div>
+                <div class="about-stat-label">Năm kinh nghiệm</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MISSION -->
+<section class="mission-section">
+    <div class="reveal">
+        <div class="section-label">Sứ mệnh & Giá trị</div>
+        <h2 class="section-title">CAM KẾT<br>CỦA CHÚNG TÔI</h2>
+    </div>
+    <div class="mission-grid">
+        <div class="mission-card reveal reveal-delay-1">
+            <div class="mission-icon">🛡️</div>
+            <div class="mission-num">01</div>
+            <div class="mission-title">AN TOÀN TUYỆT ĐỐI</div>
+            <p class="mission-desc">Mỗi sản phẩm được kiểm tra nghiêm ngặt qua hơn 100 bài thử nghiệm trước khi đến tay
+                khách hàng. Chúng tôi không thỏa hiệp với chất lượng.</p>
+        </div>
+        <div class="mission-card reveal reveal-delay-2">
+            <div class="mission-icon">❤️</div>
+            <div class="mission-num">02</div>
+            <div class="mission-title">KẾT NỐI YÊU THƯƠNG</div>
+            <p class="mission-desc">Công nghệ của chúng tôi không chỉ định vị — mà còn kết nối các thành viên trong gia
+                đình, xóa bỏ khoảng cách địa lý và lo âu.</p>
+        </div>
+        <div class="mission-card reveal reveal-delay-3">
+            <div class="mission-icon">🚀</div>
+            <div class="mission-num">03</div>
+            <div class="mission-title">ĐỔI MỚI LIÊN TỤC</div>
+            <p class="mission-desc">Chúng tôi lắng nghe người dùng và liên tục cải tiến sản phẩm. Mỗi bản cập nhật là
+                một cam kết về trải nghiệm tốt hơn.</p>
+        </div>
+    </div>
+</section>
+
+<!-- POLICIES -->
+<section class="policy-section">
+    <div class="reveal">
+        <div class="section-label">Chính sách</div>
+        <h2 class="section-title">CHÍNH SÁCH<br>& QUY ĐỊNH</h2>
+    </div>
+    <div class="policy-tabs">
+        <button class="policy-tab active" onclick="switchPolicy('return', this)">Đổi trả & Hoàn tiền</button>
+        <button class="policy-tab" onclick="switchPolicy('warranty', this)">Bảo hành</button>
+        <button class="policy-tab" onclick="switchPolicy('privacy', this)">Bảo mật dữ liệu</button>
+        <button class="policy-tab" onclick="switchPolicy('shipping', this)">Vận chuyển</button>
+    </div>
+
+    <!-- ĐỔI TRẢ -->
+    <div class="policy-content active" id="policy-return">
+        <div class="policy-body">
+            <div class="policy-card reveal">
+                <div class="policy-card-icon">🔄</div>
+                <div class="policy-card-title">ĐIỀU KIỆN ĐỔI TRẢ</div>
+                <ul class="policy-list">
+                    <li>Sản phẩm còn nguyên hộp, đầy đủ phụ kiện và tem bảo hành</li>
+                    <li>Trong vòng <strong style="color:var(--white);">7 ngày</strong> kể từ ngày nhận hàng</li>
+                    <li>Sản phẩm lỗi do nhà sản xuất: đổi mới hoặc hoàn tiền 100%</li>
+                    <li>Không có dấu hiệu va đập, trầy xước do người dùng</li>
+                    <li>Kèm hoá đơn mua hàng hoặc mã đơn hàng</li>
+                </ul>
+                <div class="policy-highlight">
+                    <p>⚠ <strong>Lưu ý:</strong> Sản phẩm đã kích hoạt và sử dụng bình thường <strong>không được đổi
+                        trả</strong> trừ trường hợp lỗi kỹ thuật được xác nhận bởi trung tâm bảo hành.</p>
+                </div>
+            </div>
+            <div class="policy-card reveal reveal-delay-1">
+                <div class="policy-card-icon">💰</div>
+                <div class="policy-card-title">QUY TRÌNH HOÀN TIỀN</div>
+                <ul class="policy-list">
+                    <li>Liên hệ hotline <strong style="color:var(--white);">1800-1088</strong> hoặc email
+                        support@sossenior.vn
+                    </li>
+                    <li>Cung cấp mã đơn hàng và mô tả lỗi sản phẩm</li>
+                    <li>Gửi sản phẩm về địa chỉ trung tâm theo hướng dẫn</li>
+                    <li>Kiểm tra sản phẩm trong vòng <strong style="color:var(--white);">3–5 ngày làm việc</strong></li>
+                    <li>Hoàn tiền qua tài khoản ngân hàng trong <strong style="color:var(--white);">7–10 ngày</strong>
+                    </li>
+                </ul>
+                <div class="policy-highlight">
+                    <p>✓ <strong>Cam kết:</strong> Hoàn tiền 100% không câu hỏi nếu sản phẩm lỗi kỹ thuật trong 7 ngày
+                        đầu.</p>
+                </div>
+            </div>
+            <div class="policy-card policy-full reveal reveal-delay-2">
+                <div class="policy-card-icon">❌</div>
+                <div class="policy-card-title">TRƯỜNG HỢP KHÔNG ĐƯỢC ĐỔI TRẢ</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <ul class="policy-list">
+                        <li>Sản phẩm bị hư hỏng do tác động vật lý (rơi, vỡ)</li>
+                        <li>Hết thời hạn đổi trả 7 ngày</li>
+                        <li>Thiếu phụ kiện, hộp hoặc tem bảo hành</li>
+                    </ul>
+                    <ul class="policy-list">
+                        <li>Sản phẩm bị ngấm nước vượt mức IP68</li>
+                        <li>Sản phẩm đã được sửa chữa ngoài trung tâm uỷ quyền</li>
+                        <li>Không có hoá đơn hoặc mã đơn hàng hợp lệ</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BẢO HÀNH -->
+    <div class="policy-content" id="policy-warranty">
+        <div class="policy-body">
+            <div class="policy-card reveal">
+                <div class="policy-card-icon">🛡️</div>
+                <div class="policy-card-title">CHẾ ĐỘ BẢO HÀNH</div>
+                <ul class="policy-list">
+                    <li>Bảo hành chính hãng <strong style="color:var(--white);">12 tháng</strong> kể từ ngày mua</li>
+                    <li>Bảo hành lỗi kỹ thuật từ nhà sản xuất miễn phí 100%</li>
+                    <li>Hỗ trợ kỹ thuật từ xa qua app và hotline 24/7</li>
+                    <li>Sửa chữa tại nhà hoặc tại trung tâm trên toàn quốc</li>
+                    <li>Cập nhật firmware miễn phí trong suốt vòng đời sản phẩm</li>
+                </ul>
+            </div>
+            <div class="policy-card reveal reveal-delay-1">
+                <div class="policy-card-icon">⚠️</div>
+                <div class="policy-card-title">ĐIỀU KIỆN BẢO HÀNH</div>
+                <ul class="policy-list">
+                    <li>Còn trong thời hạn bảo hành</li>
+                    <li>Tem bảo hành còn nguyên vẹn, không bị bóc hoặc rách</li>
+                    <li>Lỗi phát sinh từ nhà sản xuất, không phải do người dùng</li>
+                    <li>Không tự ý tháo lắp hoặc sửa chữa bên ngoài</li>
+                </ul>
+                <div class="policy-highlight">
+                    <p>📞 Hotline bảo hành: <strong>1800-1088</strong> (miễn phí, 8:00–22:00 hàng ngày)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BẢO MẬT -->
+    <div class="policy-content" id="policy-privacy">
+        <div class="policy-body">
+            <div class="policy-card reveal">
+                <div class="policy-card-icon">🔒</div>
+                <div class="policy-card-title">THU THẬP DỮ LIỆU</div>
+                <ul class="policy-list">
+                    <li>Chỉ thu thập dữ liệu cần thiết: vị trí GPS, nhịp tim, thông tin tài khoản</li>
+                    <li>Dữ liệu vị trí chỉ chia sẻ với thành viên gia đình được uỷ quyền</li>
+                    <li>Không bán hoặc chia sẻ dữ liệu cá nhân cho bên thứ ba</li>
+                    <li>Mã hoá toàn bộ dữ liệu bằng AES-256 và TLS 1.3</li>
+                    <li>Người dùng có quyền yêu cầu xoá dữ liệu bất kỳ lúc nào</li>
+                </ul>
+            </div>
+            <div class="policy-card reveal reveal-delay-1">
+                <div class="policy-card-icon">🗄️</div>
+                <div class="policy-card-title">LƯU TRỮ & BẢO VỆ</div>
+                <ul class="policy-list">
+                    <li>Dữ liệu được lưu trữ trên máy chủ đặt tại Việt Nam</li>
+                    <li>Tuân thủ Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân</li>
+                    <li>Kiểm tra bảo mật định kỳ mỗi 6 tháng bởi bên thứ ba</li>
+                    <li>Xác thực 2 yếu tố (2FA) cho tài khoản người dùng</li>
+                </ul>
+                <div class="policy-highlight">
+                    <p>🔐 <strong>Cam kết:</strong> Dữ liệu của bạn thuộc về bạn. Chúng tôi chỉ là người giữ hộ.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VẬN CHUYỂN -->
+    <div class="policy-content" id="policy-shipping">
+        <div class="policy-body">
+            <div class="policy-card reveal">
+                <div class="policy-card-icon">🚚</div>
+                <div class="policy-card-title">PHƯƠNG THỨC VẬN CHUYỂN</div>
+                <ul class="policy-list">
+                    <li>Giao hàng tiêu chuẩn: <strong style="color:var(--white);">3–5 ngày</strong> toàn quốc</li>
+                    <li>Giao hàng nhanh: <strong style="color:var(--white);">1–2 ngày</strong> nội thành HCM, HN, ĐN
+                    </li>
+                    <li>Giao hàng hoả tốc: <strong style="color:var(--white);">2–4 giờ</strong> (nội thành, áp dụng giờ
+                        hành chính)
+                    </li>
+                    <li>Đối tác vận chuyển: GHN, GHTK, ViettelPost, J&T</li>
+                    <li>Theo dõi đơn hàng realtime qua app hoặc SMS</li>
+                </ul>
+            </div>
+            <div class="policy-card reveal reveal-delay-1">
+                <div class="policy-card-icon">💳</div>
+                <div class="policy-card-title">PHÍ VẬN CHUYỂN & THANH TOÁN</div>
+                <ul class="policy-list">
+                    <li>Miễn phí vận chuyển cho đơn hàng từ <strong style="color:var(--white);">500.000₫</strong></li>
+                    <li>Phí vận chuyển tiêu chuẩn: <strong style="color:var(--white);">30.000₫</strong></li>
+                    <li>Thanh toán COD (tiền mặt khi nhận hàng)</li>
+                    <li>Chuyển khoản ngân hàng, ví điện tử MoMo, ZaloPay</li>
+                    <li>Trả góp 0% lãi suất qua thẻ tín dụng</li>
+                </ul>
+                <div class="policy-highlight">
+                    <p>🎁 <strong>Ưu đãi:</strong> Thành viên VIP được miễn phí vận chuyển hoàn toàn cho mọi đơn hàng.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TIMELINE -->
+<section style="background:var(--grey);border-top:1px solid var(--grey-border);">
+    <div class="reveal">
+        <div class="section-label">Hành trình</div>
+        <h2 class="section-title">LỊCH SỬ<br>PHÁT TRIỂN</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;">
+        <div class="timeline reveal reveal-delay-1">
+            <div class="timeline-item">
+                <div class="timeline-year">2021</div>
+                <div class="timeline-title">THÀNH LẬP</div>
+                <p class="timeline-desc">SAFE-SENIOR Technology được thành lập bởi nhóm kỹ sư trẻ với mong muốn bảo vệ
+                    người cao tuổi Việt Nam bằng công nghệ.</p>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-year">2022</div>
+                <div class="timeline-title">RA MẮT SẢN PHẨM ĐẦU TIÊN</div>
+                <p class="timeline-desc">SOS SENIOR v1.0 ra đời với tính năng GPS cơ bản và nút SOS, nhận được phản hồi
+                    tích cực từ 500 khách hàng thử nghiệm đầu tiên.</p>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-year">2023</div>
+                <div class="timeline-title">MỞ RỘNG TOÀN QUỐC</div>
+                <p class="timeline-desc">Mở rộng phân phối đến 63 tỉnh thành, đạt mốc 10.000 thiết bị. Ra mắt ứng dụng
+                    di động SOS SENIOR trên iOS và Android.</p>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-year">2024</div>
+                <div class="timeline-title">PHIÊN BẢN PRO & NÂNG CẤP</div>
+                <p class="timeline-desc">Ra mắt SOS PRO X với màn hình AMOLED, theo dõi SpO2 và nhịp tim. Vượt mốc
+                    50.000 người dùng tích cực trên toàn quốc.</p>
+            </div>
+        </div>
+        <div class="reveal reveal-delay-2" style="padding-top:8px;">
+            <div style="background:var(--black);border:1px solid var(--grey-border);padding:40px;">
+                <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:3px;color:var(--red);margin-bottom:20px;">
+                    SỨ MỆNH 2025
+                </div>
+                <div style="font-family:var(--font-display);font-size:36px;line-height:1.1;margin-bottom:20px;">
+                    100.000<br>NGƯỜI DÙNG
+                </div>
+                <p style="font-size:14px;color:var(--grey-light);line-height:1.8;margin-bottom:24px;">Mục tiêu của chúng
+                    tôi là phủ rộng đến mọi gia đình Việt Nam, với dòng sản phẩm đa dạng từ trẻ em đến người cao tuổi,
+                    giá thành phù hợp mọi đối tượng.</p>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--grey-border);">
+                        <span style="font-size:13px;color:var(--grey-light);">Mở rộng quốc tế</span>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:var(--red);">Q2 2025</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--grey-border);">
+                        <span style="font-size:13px;color:var(--grey-light);">Tích hợp AI sức khoẻ</span>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:var(--red);">Q3 2025</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:12px 0;">
+                        <span style="font-size:13px;color:var(--grey-light);">SOS SENIOR 3.0</span>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:var(--red);">Q4 2025</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TEAM -->
+<section>
+    <div class="reveal">
+        <div class="section-label">Con người</div>
+        <h2 class="section-title">ĐỘI NGŨ<br>SÁNG LẬP</h2>
+    </div>
+    <div id="teamGrid"
+         class="team-grid"
+         style="grid-template-columns:repeat(3,1fr);">
+    </div>
+</section>
+<!-- CONTACT STRIP -->
+<div class="contact-strip">
+    <div>
+        <h2>CÒN THẮC MẮC?</h2>
+        <p>Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn</p>
+    </div>
+    <button class="contact-btn" onclick="window.location.href='mailto:support@sossenior.vn'">LIÊN HỆ NGAY</button>
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-bottom">
+        <div class="footer-copy">© 2026 SOS-SENIOR. ALL RIGHTS RESERVED — SAFE-SENIOR TECHNOLOGY</div>
+        <div class="footer-socials">
+            <a href="#" class="social-btn">f</a>
+            <a href="#" class="social-btn">in</a>
+            <a href="#" class="social-btn">ig</a>
+            <a href="#" class="social-btn">yt</a>
+        </div>
+    </div>
+</footer>
+<script type="module" th:src="@{/js/about.js}"></script>
+</body>
+</html>
