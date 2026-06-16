@@ -31,10 +31,7 @@ public class LuckyService {
     UserVoucherRepository userVoucherRepository;
 
     public SpinResponse spin(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
-
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         UserSpinBalance balance = spinBalanceRepository.findByUserId(user.getId())
                 .orElse(UserSpinBalance.builder()
                         .user(user)
@@ -42,8 +39,9 @@ public class LuckyService {
                         .totalSpins(0)
                         .build());
 
-        if (balance.getRemainingSpins() <= 0)
+        if (balance.getRemainingSpins() <= 0) {
             throw new AppException(ErrorCode.NO_SPIN_LEFT);
+        }
 
         SpinPrize prize = weightedRandom();
 
@@ -95,8 +93,8 @@ public class LuckyService {
     }
 
     public SpinInfoResponse getSpinInfo(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
         UserSpinBalance balance = spinBalanceRepository.findByUserId(user.getId())
                 .orElse(UserSpinBalance.builder()
                         .user(user)

@@ -27,10 +27,10 @@ public class DeviceLocation {
     Device device;
 
     @Column(name = "latitude", nullable = false, precision = 10, scale = 8)
-    BigDecimal N;  // Latitude (Vĩ độ - Bắc)
+    BigDecimal latitude;  // Latitude (Vĩ độ - Bắc)
 
     @Column(name = "longitude", nullable = false, precision = 11, scale = 8)
-    BigDecimal E;  // Longitude (Kinh độ - Đông)
+    BigDecimal longitude;  // Longitude (Kinh độ - Đông)
 
     @Column(name = "created_at", nullable = false)
     LocalDateTime createdAt;

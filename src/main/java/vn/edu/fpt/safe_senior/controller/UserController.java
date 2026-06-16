@@ -6,14 +6,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import vn.edu.fpt.safe_senior.dto.request.AddressCreateRequest;
-import vn.edu.fpt.safe_senior.dto.request.ChangePasswordRequest;
-import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
-import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
+import vn.edu.fpt.safe_senior.dto.request.*;
 import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
 import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
+import vn.edu.fpt.safe_senior.dto.response.UserContactResponse;
 import vn.edu.fpt.safe_senior.dto.response.UserResponse;
 import vn.edu.fpt.safe_senior.entity.About;
+import vn.edu.fpt.safe_senior.entity.UserContact;
 import vn.edu.fpt.safe_senior.service.AboutService;
 import vn.edu.fpt.safe_senior.service.UserService;
 
@@ -83,8 +82,21 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/contacts")
+    public List<UserContactResponse> getContacts() {
+        return userService.getContacts();
+    }
+
     @GetMapping("/abouts")
     public List<About> getAllMembers() {
         return aboutService.getAllMembers();
+    }
+
+    @PutMapping("/feedback")
+    public ApiResponse<Void> feedback(@RequestBody FeedbackRequest feedbackRequest) {
+        userService.feedback(feedbackRequest);
+        return ApiResponse.<Void>builder()
+                .message("Feedback successfully!")
+                .build();
     }
 }

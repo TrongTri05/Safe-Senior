@@ -1,13 +1,13 @@
 package vn.edu.fpt.safe_senior.service;
-
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -16,11 +16,16 @@ public class EmailService {
     JavaMailSender mailSender;
 
     public void sendVerificationEmail(String to, String subject, String content) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(content);
-        mailSender.send(message);
-        log.info("Sent verification email to {}", to);
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(content, true);
+            mailSender.send(message);
+            log.info("Sent email to {}", to);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Cannot send email", e);
+        }
     }
 }

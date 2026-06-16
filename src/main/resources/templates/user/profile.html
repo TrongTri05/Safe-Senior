@@ -338,16 +338,29 @@
                 </div>
                 <div class="security-item">
                     <div class="security-left">
-                        <div class="security-icon">🛡️</div>
+                        <div class="security-icon">📞</div>
                         <div>
                             <div class="security-title">Danh sách SĐT</div>
                             <div class="security-desc">Nhận hỗ trợ</div>
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;">
-                        <button class="toggle-btn">Xem</button>
+                        <button class="toggle-btn" onclick="openContactsModal()">Xem</button>
                     </div>
                 </div>
+                <div class="security-item">
+                    <div class="security-left">
+                        <div class="security-icon">🔍</div>
+                        <div>
+                            <div class="security-title">Tìm kiếm thiết bị</div>
+                            <div class="security-desc">Thiết bị mất</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;">
+                        <button class="toggle-btn" onclick="openModal('modal-find-device')">Tìm</button>
+                    </div>
+                </div>
+
                 <div class="security-item">
                     <div class="security-left">
                         <div class="security-icon">🛡️</div>
@@ -357,7 +370,6 @@
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;">
-                        <span class="security-status status-off">CHƯA LIÊN KẾT</span>
                         <button class="toggle-btn" onclick="showToast('Chức năng đang phát triển!')">LIÊN KẾT</button>
                     </div>
                 </div>
@@ -776,6 +788,79 @@
                 onclick="saveSosContacts()">
             <span>LƯU SỐ ĐIỆN THOẠI</span>
         </button>
+    </div>
+</div>
+
+<!-- MODAL DANH SÁCH SĐT -->
+<div class="modal-overlay" id="modal-contacts">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('modal-contacts')">✕</button>
+        <div style="margin-bottom:24px;">
+            <div style="font-family:var(--font-mono);font-size:10px;
+                        letter-spacing:3px;color:var(--grey-light);margin-bottom:6px;">
+                DANH BẠ KHẨN CẤP
+            </div>
+            <div style="font-family:var(--font-display);font-size:24px;
+                        letter-spacing:2px;">DANH SÁCH SỐ ĐIỆN THOẠI</div>
+        </div>
+
+        <div id="contacts-list">
+            <div style="text-align:center;padding:32px;font-family:var(--font-mono);
+                        font-size:12px;letter-spacing:2px;color:var(--grey-light);">
+                ĐANG TẢI...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL TÌM KIẾM THIẾT BỊ -->
+<div class="modal-overlay" id="modal-find-device">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('modal-find-device')">✕</button>
+        <div style="margin-bottom:24px;">
+            <div style="font-family:var(--font-mono);font-size:10px;
+                        letter-spacing:3px;color:var(--grey-light);margin-bottom:6px;">
+                ĐỊNH VỊ
+            </div>
+            <div style="font-family:var(--font-display);font-size:24px;
+                        letter-spacing:2px;">TÌM KIẾM THIẾT BỊ</div>
+        </div>
+
+        <!-- Input -->
+        <div style="margin-bottom:16px;">
+            <div style="font-family:var(--font-mono);font-size:10px;
+                        letter-spacing:2px;color:var(--grey-light);margin-bottom:8px;">
+                DEVICE ID
+            </div>
+            <input id="find-device-input" type="text"
+                   placeholder="Nhập Device ID..."
+                   style="width:100%;padding:14px 16px;
+                          background:var(--black);
+                          border:1px solid var(--grey-border);
+                          color:var(--white);
+                          font-family:var(--font-mono);font-size:13px;
+                          letter-spacing:1px;outline:none;">
+        </div>
+
+        <button onclick="findDevice()" style="
+            width:100%;padding:14px;
+            background:var(--red);border:none;
+            font-family:var(--font-mono);font-size:11px;
+            letter-spacing:3px;text-transform:uppercase;
+            color:#fff;cursor:pointer;margin-bottom:20px;">
+            TÌM THIẾT BỊ
+        </button>
+
+        <!-- Result -->
+        <div id="find-device-result" style="display:none;">
+            <div style="border-top:1px solid var(--grey-border);padding-top:20px;">
+                <div style="font-family:var(--font-mono);font-size:10px;
+                            letter-spacing:3px;color:var(--grey-light);margin-bottom:16px;">
+                    KẾT QUẢ
+                </div>
+                <div id="find-device-content"></div>
+            </div>
+        </div>
     </div>
 </div>
 <script type="module" th:src="@{/js/profile.js}"></script>

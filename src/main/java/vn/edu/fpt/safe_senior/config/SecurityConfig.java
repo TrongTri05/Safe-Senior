@@ -29,11 +29,18 @@ public class SecurityConfig {
             "/profile",
             "/aboutUs",
             "/luckyspin",
+            "/adminHome",
             "/users/abouts",
+            "/users/feedback",
             "/favicon.ico",
             "/css/**",
             "/js/**",
             "/img/**"
+    };
+
+    private final String[] adminEndpoint = {
+
+
     };
 
 
@@ -50,6 +57,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(HttpMethod.POST,"/users").permitAll()
                         .requestMatchers(publicEndpoint).permitAll()
+                        .requestMatchers(adminEndpoint).hasAuthority("ADMIN")
                         .anyRequest().authenticated());
         httpSecurity
                 .oauth2ResourceServer(oauth2 -> oauth2

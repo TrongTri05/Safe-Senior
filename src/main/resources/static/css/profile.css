@@ -33,6 +33,37 @@ body {
     cursor: none;
 }
 
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.order-summary {
+    flex: 1;
+}
+
+.btn-cancel-order {
+    padding: 10px 16px;
+    background: none;
+    border: 1px solid var(--red);
+    color: var(--red);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-cancel-order:hover {
+    background: var(--red);
+    color: white;
+}
+
 .modal-overlay {
     display: none;
 }

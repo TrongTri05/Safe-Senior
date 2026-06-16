@@ -13,33 +13,21 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import vn.edu.fpt.safe_senior.config.PasswordEncoderConfig;
-import vn.edu.fpt.safe_senior.dto.request.AddressCreateRequest;
-import vn.edu.fpt.safe_senior.dto.request.ChangePasswordRequest;
-import vn.edu.fpt.safe_senior.dto.request.UseCreateRequest;
-import vn.edu.fpt.safe_senior.dto.request.UserUpdateRequest;
-import vn.edu.fpt.safe_senior.dto.response.AddressResponse;
-import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
-import vn.edu.fpt.safe_senior.dto.response.UserResponse;
-import vn.edu.fpt.safe_senior.dto.response.UserStatsResponse;
-import vn.edu.fpt.safe_senior.entity.Address;
-import vn.edu.fpt.safe_senior.entity.EmailVerificationToken;
-import vn.edu.fpt.safe_senior.entity.Role;
-import vn.edu.fpt.safe_senior.entity.User;
-import vn.edu.fpt.safe_senior.enums.DeviceEnum;
-import vn.edu.fpt.safe_senior.enums.OrderEnum;
+import vn.edu.fpt.safe_senior.dto.request.*;
+import vn.edu.fpt.safe_senior.dto.response.*;
+import vn.edu.fpt.safe_senior.entity.*;
 import vn.edu.fpt.safe_senior.enums.RoleEnum;
 import vn.edu.fpt.safe_senior.exception.AppException;
 import vn.edu.fpt.safe_senior.exception.ErrorCode;
 import vn.edu.fpt.safe_senior.mapper.AddressMapper;
+import vn.edu.fpt.safe_senior.mapper.UserContactMapper;
 import vn.edu.fpt.safe_senior.mapper.UserMapper;
 import vn.edu.fpt.safe_senior.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -56,8 +44,10 @@ public class UserService {
     AddressRepository addressRepository;
     AddressMapper addressMapper;
     PasswordEncoder passwordEncoder;
-    OrderRepository orderRepository;
+    UserContactRepository userContactRepository;
     DeviceRepository deviceRepository;
+    UserContactMapper userContactMapper;
+    UserFeedbackRepository userFeedbackRepository;
 
     @NonFinal
     @Value("${app.base-url}")
@@ -108,12 +98,6 @@ public class UserService {
         emailService.sendVerificationEmail(user.getEmail(), subject, content);
 
         return userMapper.toUserResponse(user);
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public List<User> getUsers() {
-        log.info("getUsers");
-        return userRepository.findAll();
     }
 
     @PreAuthorize("#username == authentication.name")
@@ -172,6 +156,85 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+    }
+
+
+    public List<UserContactResponse> getContacts() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        List<Device> devices = deviceRepository.findAllByUserId(user.getId());
+
+        return devices.stream()
+                .flatMap(device -> userContactRepository
+                        .findByDevice_DeviceId(device.getDeviceId())
+                        .stream())
+                .map(userContactMapper::toContactResponse)
+                .toList();
+    }
+
+
+    public UserFeedback feedback(FeedbackRequest feedbackRequest) {
+        UserFeedback userFeedback = userFeedbackRepository.findByEmail(feedbackRequest.getEmail())
+                .orElse(UserFeedback.builder()
+                        .email(feedbackRequest.getEmail())
+                        .build());
+        userFeedback.setDescription(feedbackRequest.getDescription());
+        String subject = "SAFE-SENIOR | Cảm ơn bạn đã gửi phản hồi";
+
+        String content = """
+                <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;
+                            border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;">
+                
+                    <div style="background:#d90429;padding:24px;text-align:center;">
+                        <h1 style="color:white;margin:0;">
+                            SAFE-SENIOR
+                        </h1>
+                    </div>
+                
+                    <div style="padding:32px;color:#333;">
+                        <h2 style="margin-top:0;">
+                            Xin chào,
+                        </h2>
+                
+                        <p style="line-height:1.8;">
+                            Chúng tôi đã nhận được phản hồi của bạn về website và sản phẩm
+                            <strong>SOS-SENIOR</strong>.
+                        </p>
+                
+                        <p style="line-height:1.8;">
+                            Đội ngũ SAFE-SENIOR chân thành cảm ơn bạn đã dành thời gian đóng góp ý kiến.
+                            Mọi phản hồi đều được chúng tôi ghi nhận và xem xét để cải thiện chất lượng
+                            sản phẩm, dịch vụ cũng như trải nghiệm người dùng trong thời gian tới.
+                        </p>
+                
+                        <div style="background:#f8f8f8;padding:16px;border-left:4px solid #d90429;
+                                    margin:24px 0;">
+                            <strong>Nội dung phản hồi của bạn:</strong>
+                            <br><br>
+                            %s
+                        </div>
+                
+                        <p style="line-height:1.8;">
+                            Nếu cần hỗ trợ thêm, vui lòng liên hệ với chúng tôi qua email
+                            <strong>support@sossenior.vn</strong>
+                            hoặc hotline
+                            <strong>1800-1088</strong>.
+                        </p>
+                
+                        <p style="margin-top:32px;">
+                            Trân trọng,<br>
+                            <strong>SAFE-SENIOR Technology</strong>
+                        </p>
+                    </div>
+                
+                    <div style="background:#111;color:#aaa;text-align:center;
+                                padding:16px;font-size:12px;">
+                        © 2026 SAFE-SENIOR Technology. All Rights Reserved.
+                    </div>
+                </div>
+                """.formatted(feedbackRequest.getDescription());
+        emailService.sendVerificationEmail(feedbackRequest.getEmail(), subject, content);
+        return userFeedbackRepository.save(userFeedback);
     }
 
 

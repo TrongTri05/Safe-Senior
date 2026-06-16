@@ -32,6 +32,10 @@ public enum ErrorCode {
     MAX_SOS_CONTACTS(1023,"The limit on the number of phone numbers requiring support has been reached.", HttpStatus.BAD_REQUEST),
     NO_SPIN_LEFT(1024,"No spin left", HttpStatus.BAD_REQUEST),
     VOUCHER_NOT_FOUND(1025,"Voucher not found", HttpStatus.NOT_FOUND),
+    ORDER_NOT_FOUND(1026,"Order not found", HttpStatus.NOT_FOUND),
+    ORDER_CANNOT_CANCEL(1027,"Order cannot be cancelled", HttpStatus.BAD_REQUEST),
+    USER_CONTACT_NOT_FOUND(1028,"User contact not found", HttpStatus.NOT_FOUND),
+    DEVICE_LOCATION_NOT_FOUND(1029,"Device location not found", HttpStatus.NOT_FOUND),
     LOGIN_ERROR(1018, "Username or Password error", HttpStatus.INTERNAL_SERVER_ERROR);
 
 

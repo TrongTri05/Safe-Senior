@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOS SENIOR — Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<!-- LOGIN -->
+<div id="login-screen">
+    <div class="login-card">
+        <div class="login-logo">SOS<span>SENIOR</span></div>
+        <div class="login-sub">ADMINISTRATOR</div>
+        <label class="login-label">TÊN ĐĂNG NHẬP</label>
+        <input class="login-input" id="l-user" type="text" placeholder="admin" autocomplete="off">
+        <label class="login-label">MẬT KHẨU</label>
+        <input class="login-input" id="l-pass" type="password" placeholder="••••••••">
+        <button class="login-btn" id="login-btn">ĐĂNG NHẬP</button>
+        <div class="login-error" id="login-err">⚠ Sai tên đăng nhập hoặc mật khẩu</div>
+    </div>
+</div>
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+<!-- APP -->
+<div id="app">
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            SOS<span>SENIOR</span>
+            <span class="sidebar-badge">ADMIN PANEL</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">TỔNG QUAN</div>
+            <button class="nav-item active" onclick="goPage('dashboard',this)">
+                <span class="nav-icon">▦</span> Dashboard
+            </button>
+
+            <div class="nav-section">QUẢN LÝ</div>
+            <button class="nav-item" onclick="goPage('users',this)">
+                <span class="nav-icon">👤</span> Người dùng
+            </button>
+            <button class="nav-item" onclick="goPage('products',this)">
+                <span class="nav-icon">📦</span> Sản phẩm
+            </button>
+            <button class="nav-item" onclick="goPage('devices',this)">
+                <span class="nav-icon">📟</span> Thiết bị
+            </button>
+            <button class="nav-item" onclick="goPage('orders',this)">
+                <span class="nav-icon">🛒</span> Đơn hàng
+                <span class="nav-badge" id="pending-badge">0</span>
+            </button>
+
+            <div class="nav-section">THỐNG KÊ</div>
+            <button class="nav-item" onclick="goPage('analytics',this)">
+                <span class="nav-icon">📊</span> Doanh thu
+            </button>
+            <button class="nav-item" onclick="goPage('vouchers',this)">
+                <span class="nav-icon">🎫</span> Voucher
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="admin-info">
+                <div class="admin-avatar" id="admin-avatar">A</div>
+                <div>
+                    <div class="admin-name" id="admin-name">Admin</div>
+                    <div class="admin-role">SUPER ADMIN</div>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="doLogout()">ĐĂNG XUẤT</button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                <div class="page-title" id="page-title">DASHBOARD</div>
+            </div>
+            <div class="topbar-right">
+                <button class="topbar-btn" onclick="refreshPage()">↻ LÀM MỚI</button>
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--grey-light)" id="clock"></span>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <!-- ── DASHBOARD ── -->
+            <div class="page active" id="page-dashboard">
+                <div class="stats-grid" id="stat-cards">
+                    <div class="stat-card red">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-label">Doanh thu tháng</div>
+                        <div class="stat-value" id="s-revenue">—</div>
+                        <div class="stat-change up" id="s-rev-change">Đang tải...</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-icon">👤</div>
+                        <div class="stat-label">Người dùng</div>
+                        <div class="stat-value" id="s-users">—</div>
+                        <div class="stat-change up" id="s-users-change">Đang tải...</div>
+                    </div>
+                    <div class="stat-card gold">
+                        <div class="stat-icon">🛒</div>
+                        <div class="stat-label">Đơn hàng</div>
+                        <div class="stat-value" id="s-orders">—</div>
+                        <div class="stat-change" id="s-orders-change">Đang tải...</div>
+                    </div>
+                    <div class="stat-card blue">
+                        <div class="stat-icon">📟</div>
+                        <div class="stat-label">Thiết bị active</div>
+                        <div class="stat-value" id="s-devices">—</div>
+                        <div class="stat-change up" id="s-dev-change">Đang tải...</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-head">
+                            <div class="chart-title">DOANH THU</div>
+                            <div class="chart-period">
+                                <button class="period-btn active" onclick="setChartPeriod('week',this)">7 ngày</button>
+                                <button class="period-btn" onclick="setChartPeriod('month',this)">30 ngày</button>
+                                <button class="period-btn" onclick="setChartPeriod('year',this)">12 tháng</button>
+                            </div>
+                        </div>
+                        <canvas id="revenue-chart" height="200"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-head">
+                            <div class="chart-title">ĐƠN HÀNG THEO TRẠNG THÁI</div>
+                        </div>
+                        <canvas id="order-status-chart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="section-head">
+                    <div class="section-title">ĐƠN HÀNG GẦN ĐÂY</div>
+                    <button class="topbar-btn" onclick="goPage('orders',document.querySelector('[onclick*=orders]'))">
+                        Xem tất cả
+                    </button>
+                </div>
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Thanh toán</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="recent-orders-body">
+                        <tr>
+                            <td colspan="7" class="tbl-empty">ĐANG TẢI...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── USERS ── -->
+            <div class="page" id="page-users">
+                <div class="section-head">
+                    <div class="section-title">NGƯỜI DÙNG</div>
+                    <div style="font-family:var(--font-mono);font-size:10px;
+                    color:var(--grey-light);letter-spacing:1px;"
+                         id="users-total-label">
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <div class="table-toolbar">
+                        <input class="search-input"
+                               placeholder="🔍  Tìm tên, email, username..."
+                               id="user-search"
+                               oninput="filterUsers()">
+                        <select class="filter-select" id="user-filter" onchange="filterUsers()">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Bị khóa</option>
+                        </select>
+                    </div>
+
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Người dùng</th>
+                            <th>Email</th>
+                            <th>Điện thoại</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="users-body">
+                        <tr><td colspan="8" class="tbl-empty">ĐANG TẢI...</td></tr>
+                        </tbody>
+                    </table>
+
+                    <div class="pagination" id="users-pagination"></div>
+                </div>
+            </div>
+
+
+            <!-- ── PRODUCTS ── -->
+            <div class="page" id="page-products">
+                <div class="section-head">
+                    <div class="section-title">SẢN PHẨM</div>
+                    <div class="section-actions">
+                        <button class="topbar-btn primary" onclick="openProductModal()">+ THÊM SẢN PHẨM</button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <div class="table-toolbar">
+                        <input class="search-input" placeholder="Tìm sản phẩm..." id="product-search"
+                               oninput="filterProducts()">
+                        <select class="filter-select" id="product-filter" onchange="filterProducts()">
+                            <option value="">Tất cả</option>
+                            <option value="ACTIVE">Đang bán</option>
+                            <option value="INACTIVE">Ngừng bán</option>
+                        </select>
+                    </div>
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Mô tả</th>
+                            <th>Giá</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="products-body">
+                        <tr>
+                            <td colspan="6" class="tbl-empty">ĐANG TẢI...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="pagination" id="products-pagination"></div>
+                </div>
+            </div>
+
+            <!-- ── DEVICES ── -->
+            <div class="page" id="page-devices">
+                <div class="section-head">
+                    <div class="section-title">THIẾT BỊ</div>
+                </div>
+                <div class="table-wrap">
+                    <div class="table-toolbar">
+                        <input class="search-input" placeholder="Tìm device ID, tên..." id="device-search"
+                               oninput="filterDevices()">
+                        <select class="filter-select" id="device-filter" onchange="filterDevices()">
+                            <option value="">Tất cả</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                            <option value="SOLD">Sold</option>
+                            <option value="OFFLINE">Offline</option>
+                        </select>
+                    </div>
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>Device ID</th>
+                            <th>Tên</th>
+                            <th>Chủ sở hữu</th>
+                            <th>Trạng thái</th>
+                            <th>Kết nối lần cuối</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="devices-body">
+                        <tr>
+                            <td colspan="6" class="tbl-empty">ĐANG TẢI...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="pagination" id="devices-pagination"></div>
+                </div>
+            </div>
+
+            <!-- ── ORDERS ── -->
+            <div class="page" id="page-orders">
+                <div class="section-head">
+                    <div class="section-title">ĐƠN HÀNG</div>
+                </div>
+                <div class="table-wrap">
+                    <div class="table-toolbar">
+                        <input class="search-input" placeholder="Tìm mã đơn, khách hàng..." id="order-search"
+                               oninput="filterOrders()">
+                        <select class="filter-select" id="order-filter" onchange="filterOrders()">
+                            <option value="">Tất cả</option>
+                            <option value="PENDING">Chờ xác nhận</option>
+                            <option value="CONFIRMED">Đã xác nhận</option>
+                            <option value="SHIPPING">Đang giao</option>
+                            <option value="DELIVERED">Đã giao</option>
+                            <option value="CANCELLED">Đã huỷ</option>
+                        </select>
+                    </div>
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Sản phẩm</th>
+                            <th>Tổng tiền</th>
+                            <th>Thanh toán</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="orders-body">
+                        <tr>
+                            <td colspan="8" class="tbl-empty">ĐANG TẢI...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="pagination" id="orders-pagination"></div>
+                </div>
+            </div>
+
+            <!-- ── ANALYTICS ── -->
+            <div class="page" id="page-analytics">
+                <div class="section-head">
+                    <div class="section-title">THỐNG KÊ DOANH THU</div>
+                </div>
+                <div class="stats-grid" style="margin-bottom:24px">
+                    <div class="stat-card red">
+                        <div class="stat-label">Tổng doanh thu</div>
+                        <div class="stat-value" id="a-total">—</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">Đơn thành công</div>
+                        <div class="stat-value" id="a-success">—</div>
+                    </div>
+                    <div class="stat-card gold">
+                        <div class="stat-label">Giá trị TB / đơn</div>
+                        <div class="stat-value" id="a-avg">—</div>
+                    </div>
+                    <div class="stat-card blue">
+                        <div class="stat-label">Tỷ lệ hoàn thành</div>
+                        <div class="stat-value" id="a-rate">—</div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="chart-card">
+                        <div class="chart-head">
+                            <div class="chart-title">DOANH THU THEO THÁNG</div>
+                            <select class="filter-select" id="year-select" onchange="loadYearChart()"
+                                    style="padding:4px 8px;font-size:11px">
+                                <option>2026</option>
+                                <option>2025</option>
+                            </select>
+                        </div>
+                        <canvas id="monthly-chart" height="220"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-head">
+                            <div class="chart-title">PHƯƠNG THỨC THANH TOÁN</div>
+                        </div>
+                        <canvas id="payment-chart" height="220"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── VOUCHERS ── -->
+            <div class="page" id="page-vouchers">
+                <div class="section-head">
+                    <div class="section-title">VOUCHER</div>
+                    <button class="topbar-btn primary" onclick="openVoucherModal()">+ TẠO VOUCHER</button>
+                </div>
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Loại</th>
+                            <th>Giảm</th>
+                            <th>Đơn tối thiểu</th>
+                            <th>Hạn dùng</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="vouchers-body">
+                        <tr>
+                            <td colspan="7" class="tbl-empty">ĐANG TẢI...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL: PRODUCT -->
+<div class="modal-overlay" id="modal-product">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-title" id="product-modal-title">THÊM SẢN PHẨM</div>
+            <button class="modal-close" onclick="closeModal('modal-product')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="pm-id">
+            <div class="form-group">
+                <label class="form-label">Tên sản phẩm</label>
+                <input class="form-input" id="pm-name" placeholder="Nhập tên sản phẩm">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mô tả</label>
+                <textarea class="form-textarea" id="pm-desc" placeholder="Mô tả sản phẩm"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Giá (VNĐ)</label>
+                    <input class="form-input" id="pm-price" type="number" placeholder="499000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Trạng thái</label>
+                    <select class="form-select" id="pm-status">
+                        <option value="ACTIVE">Đang bán</option>
+                        <option value="INACTIVE">Ngừng bán</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-product')">Huỷ</button>
+            <button class="btn btn-primary" onclick="saveProduct()">LƯU</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ORDER DETAIL -->
+<div class="modal-overlay" id="modal-order">
+    <div class="modal" style="width:640px">
+        <div class="modal-head">
+            <div class="modal-title">CHI TIẾT ĐƠN HÀNG</div>
+            <button class="modal-close" onclick="closeModal('modal-order')">✕</button>
+        </div>
+        <div class="modal-body" id="order-detail-body">
+        </div>
+        <div class="modal-footer" id="order-detail-footer"></div>
+    </div>
+</div>
+
+
+<!-- MODAL: VOUCHER -->
+<div class="modal-overlay" id="modal-voucher">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-title">TẠO VOUCHER</div>
+            <button class="modal-close" onclick="closeModal('modal-voucher')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Mã voucher</label>
+                <input class="form-input" id="vm-code" placeholder="VOUCHER10">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Loại giảm</label>
+                    <select class="form-select" id="vm-type">
+                        <option value="PERCENT">Phần trăm (%)</option>
+                        <option value="FIXED">Cố định (₫)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Giá trị giảm</label>
+                    <input class="form-input" id="vm-value" type="number" placeholder="10">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Đơn tối thiểu (₫)</label>
+                    <input class="form-input" id="vm-min" type="number" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hạn sử dụng</label>
+                    <input class="form-input" id="vm-expire" type="date">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-voucher')">Huỷ</button>
+            <button class="btn btn-primary" onclick="saveVoucher()">TẠO</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: CONFIRM -->
+<div class="modal-overlay" id="modal-confirm">
+    <div class="modal" style="width:400px">
+        <div class="modal-head">
+            <div class="modal-title" id="confirm-title">XÁC NHẬN</div>
+            <button class="modal-close" onclick="closeModal('modal-confirm')">✕</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirm-msg" style="font-size:14px;color:var(--grey-light);line-height:1.7"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-confirm')">Huỷ</button>
+            <button class="btn btn-danger" id="confirm-ok">XÁC NHẬN</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal user detail -->
+<div class="modal-overlay" id="modal-user">
+    <div class="modal">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:14px;">
+                <div id="ud-avatar" style="
+                    width:48px;height:48px;border-radius:50%;
+                    background:var(--red);
+                    display:flex;align-items:center;justify-content:center;
+                    font-family:var(--font-display);font-size:22px;
+                    flex-shrink:0;">
+                </div>
+                <div>
+                    <div id="ud-name" style="font-family:var(--font-display);
+                        font-size:20px;letter-spacing:1px;"></div>
+                    <div id="ud-username" style="font-family:var(--font-mono);
+                        font-size:10px;letter-spacing:2px;color:var(--grey-light);
+                        margin-top:3px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-body" id="user-detail-body"></div>
+        <div class="modal-footer" id="user-detail-footer"></div>
+    </div>
+</div>
+
+<script type="module" th:src="@{/js/admin.js}"></script>
+</body>
+</html>

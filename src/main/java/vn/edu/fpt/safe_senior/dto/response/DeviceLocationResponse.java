@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DeviceLocationResponse {
-    BigDecimal N;  // Latitude (Vĩ độ - Bắc)
-    BigDecimal E;  // Longitude (Kinh độ - Đông)
+    BigDecimal latitude;  // Latitude (Vĩ độ - Bắc)
+    BigDecimal longitude;  // Longitude (Kinh độ - Đông)
     LocalDateTime createdAt;
 }

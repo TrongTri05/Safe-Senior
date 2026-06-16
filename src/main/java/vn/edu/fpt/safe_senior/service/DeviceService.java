@@ -130,10 +130,19 @@ public class DeviceService {
         }
         DeviceLocation location = DeviceLocation.builder()
                 .device(device)
-                .N(BigDecimal.valueOf(request.getLatitude()))   // Vĩ độ (Bắc)
-                .E(BigDecimal.valueOf(request.getLongitude()))  // Kinh độ (Đông)
+                .latitude(BigDecimal.valueOf(request.getLatitude()))   // Vĩ độ (Bắc)
+                .longitude(BigDecimal.valueOf(request.getLongitude()))  // Kinh độ (Đông)
                 .createdAt(LocalDateTime.now())
                 .build();
         deviceLocationRepository.save(location);
+    }
+
+    public DeviceLocationResponse findByDeviceIdAndUser(String deviceId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        Device device = deviceRepository.findByDeviceIdAndUserId(deviceId, user.getId()).orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_FOUND));
+        DeviceLocation deviceLocation = deviceLocationRepository.findTopByDevice_IdOrderByCreatedAtDesc(device.getId()).orElseThrow(() -> new AppException(ErrorCode.DEVICE_LOCATION_NOT_FOUND));
+        return deviceMapper.toDeviceLocationResponse(deviceLocation);
+
     }
 }

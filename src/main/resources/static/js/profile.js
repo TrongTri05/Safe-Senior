@@ -437,10 +437,20 @@ async function loadOrders() {
                         +${moreCount} sản phẩm khác
                     </div>` : ''}
                 </div>
-                <div class="order-footer">
-                    <div class="order-total-label">Tổng cộng</div>
-                    <div class="order-total-val">${fmtPrice(o.totalAmount)}</div>
-                </div>
+               <div class="order-footer">
+    <div class="order-summary">
+        <div class="order-total-label">Tổng cộng</div>
+        <div class="order-total-val">${fmtPrice(o.totalAmount)}</div>
+    </div>
+
+    ${o.orderStatus === 'PENDING' ? `
+    <button
+        onclick="event.stopPropagation();cancelOrder('${o.orderId}')"
+        class="btn-cancel-order">
+        Huỷ đơn hàng
+    </button>` : ''}
+</div>
+ 
             </div>`;
         }).join('');
 
@@ -452,6 +462,18 @@ async function loadOrders() {
                 font-size:12px;letter-spacing:2px;">
                 ⚠ KHÔNG THỂ TẢI ĐƠN HÀNG
             </div>`;
+    }
+}
+
+async function cancelOrder(orderId) {
+    if (!confirm('Xác nhận huỷ đơn hàng này?')) return;
+    try {
+        await api.post(`/order/${orderId}/cancel`);
+        showToast('Đã huỷ đơn hàng!');
+        await loadOrders(); // reload lại list
+    } catch (err) {
+        showToast('Huỷ thất bại, thử lại!');
+        console.error(err);
     }
 }
 
@@ -946,6 +968,222 @@ function showToast(msg) {
 }
 
 
+async function openContactsModal() {
+    openModal('modal-contacts');
+    const listEl = document.getElementById('contacts-list');
+
+    try {
+        const res = await api.get('/users/contacts');
+        const data = res.data?.result ?? res.data ?? [];
+
+        if (!data.length) {
+            listEl.innerHTML = `
+                <div style="text-align:center;padding:32px;
+                    font-family:var(--font-mono);font-size:12px;
+                    letter-spacing:2px;color:var(--grey-light);">
+                    CHƯA CÓ SỐ ĐIỆN THOẠI NÀO
+                </div>`;
+            return;
+        }
+
+        // Group theo deviceId
+        const grouped = data.reduce((acc, c) => {
+            const key = c.deviceId ?? 'unknown';
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(c);
+            return acc;
+        }, {});
+
+        listEl.innerHTML = Object.entries(grouped).map(([deviceId, contacts]) => `
+            <div style="margin-bottom:20px;">
+
+                <!-- Device header -->
+                <div style="
+                    display:flex;align-items:center;gap:10px;
+                    padding:10px 14px;margin-bottom:8px;
+                    background:var(--grey-mid);
+                    border-left:3px solid var(--red);">
+                    <span style="font-size:16px;">📟</span>
+                    <div>
+                        <div style="font-family:var(--font-mono);font-size:10px;
+                                    letter-spacing:2px;color:var(--grey-light);">
+                            THIẾT BỊ
+                        </div>
+                        <div style="font-family:var(--font-mono);font-size:12px;
+                                    color:var(--white);letter-spacing:1px;">
+                            ${deviceId}
+                        </div>
+                    </div>
+                    <div style="margin-left:auto;font-family:var(--font-mono);
+                                font-size:10px;color:var(--grey-light);">
+                        ${contacts.length} SỐ
+                    </div>
+                </div>
+
+                <!-- Contact list của device này -->
+                ${contacts.map((c, i) => `
+                <div style="
+                    display:flex;align-items:center;gap:14px;
+                    padding:14px 16px;margin-bottom:6px;
+                    background:var(--black);
+                    border:1px solid var(--grey-border);">
+
+                    <div style="
+                        width:36px;height:36px;border-radius:50%;
+                        background:var(--grey);
+                        border:1px solid var(--grey-border);
+                        display:flex;align-items:center;justify-content:center;
+                        font-family:var(--font-mono);font-size:13px;
+                        color:var(--grey-light);flex-shrink:0;">
+                        ${i + 1}
+                    </div>
+
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-family:var(--font-mono);font-size:13px;
+                                    color:var(--white);letter-spacing:1px;">
+                            ${c.phoneNumber ?? '—'}
+                        </div>
+                        <div style="font-family:var(--font-mono);font-size:10px;
+                                    color:var(--grey-light);margin-top:3px;">
+                            ${c.createdAt
+            ? new Date(c.createdAt).toLocaleDateString('vi-VN')
+            : '—'}
+                        </div>
+                    </div>
+
+                    <a href="tel:${c.phoneNumber}" style="
+                        padding:8px 14px;
+                        background:none;
+                        border:1px solid var(--grey-border);
+                        color:var(--white);
+                        font-family:var(--font-mono);font-size:10px;
+                        letter-spacing:2px;text-transform:uppercase;
+                        text-decoration:none;white-space:nowrap;
+                        transition:all 0.2s;"
+                        onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+                        onmouseout="this.style.borderColor='var(--grey-border)';this.style.color='var(--white)'">
+                        GỌI
+                    </a>
+                </div>`).join('')}
+            </div>
+        `).join('');
+
+    } catch (err) {
+        console.error('Lỗi load contacts:', err);
+        listEl.innerHTML = `
+            <div style="text-align:center;padding:32px;
+                color:var(--red);font-family:var(--font-mono);
+                font-size:12px;letter-spacing:2px;">
+                ⚠ KHÔNG THỂ TẢI DANH SÁCH
+            </div>`;
+    }
+}
+
+
+async function findDevice() {
+    const deviceId = document.getElementById('find-device-input')?.value.trim();
+    if (!deviceId) {
+        showToast('Vui lòng nhập Device ID!');
+        return;
+    }
+    const resultEl  = document.getElementById('find-device-result');
+    const contentEl = document.getElementById('find-device-content');
+
+    resultEl.style.display = 'block';
+    contentEl.innerHTML = `
+        <div style="text-align:center;padding:24px;
+            font-family:var(--font-mono);font-size:12px;
+            letter-spacing:2px;color:var(--grey-light);">
+            ĐANG TÌM KIẾM...
+        </div>`;
+
+    try {
+        const res = await api.get(`/api/devices/find/${deviceId}`);
+        const d   = res.data?.result ?? res.data;
+        console.log('response:', res.data);  // ← thêm dòng này
+        console.log('d:', d);                // ← và dòng này
+        contentEl.innerHTML = `
+        <div style="background:var(--black);border:1px solid var(--grey-border);padding:20px;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+                <div style="font-size:36px;">📟</div>
+                <div>
+                    <div style="font-size:15px;font-weight:500;
+                                color:var(--white);margin-bottom:4px;">
+                        ${deviceId}
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:11px;
+                                color:var(--grey-light);letter-spacing:1px;">
+                        ${d.createdAt
+            ? 'Cập nhật: ' + new Date(d.createdAt).toLocaleString('vi-VN')
+            : '—'}
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:0;">
+                <div style="display:flex;justify-content:space-between;
+                            padding:12px 0;border-bottom:1px solid var(--grey-border);">
+                    <span style="font-family:var(--font-mono);font-size:11px;
+                                 color:var(--grey-light);">VĨ ĐỘ (N)</span>
+                    <span style="font-family:var(--font-mono);font-size:11px;
+                                 color:var(--white);">
+                        ${d.latitude ?? '—'}
+                    </span>
+                </div>
+                <div style="display:flex;justify-content:space-between;
+                            padding:12px 0;border-bottom:1px solid var(--grey-border);">
+                    <span style="font-family:var(--font-mono);font-size:11px;
+                                 color:var(--grey-light);">KINH ĐỘ (E)</span>
+                    <span style="font-family:var(--font-mono);font-size:11px;
+                                 color:var(--white);">
+                        ${d.longitude ?? '—'}
+                    </span>
+                </div>
+
+                ${d.latitude && d.longitude ? `
+                <div style="padding:12px 0;">
+                    <a href="https://maps.google.com/?q=${d.latitude},${d.longitude}"
+                       target="_blank"
+                       style="display:inline-block;width:100%;padding:12px;
+                              text-align:center;box-sizing:border-box;
+                              font-family:var(--font-mono);font-size:11px;
+                              letter-spacing:2px;text-transform:uppercase;
+                              color:var(--white);text-decoration:none;
+                              border:1px solid var(--grey-border);">
+                        📍 XEM TRÊN GOOGLE MAPS →
+                    </a>
+                </div>` : `
+                <div style="padding:12px 0;text-align:center;
+                            font-family:var(--font-mono);font-size:11px;
+                            letter-spacing:2px;color:var(--grey-light);">
+                    CHƯA CÓ DỮ LIỆU VỊ TRÍ
+                </div>`}
+            </div>
+        </div>`;
+
+    } catch (err) {
+        const status = err.response?.status;
+        contentEl.innerHTML = `
+            <div style="text-align:center;padding:24px;
+                color:var(--red);font-family:var(--font-mono);
+                font-size:12px;letter-spacing:2px;">
+                ${status === 404
+            ? '⚠ KHÔNG TÌM THẤY THIẾT BỊ'
+            : '⚠ LỖI KẾT NỐI, THỬ LẠI!'}
+            </div>`;
+        console.error('Lỗi tìm thiết bị:', err);
+    }
+}
+
+// Cho phép Enter để tìm
+document.getElementById('find-device-input')
+    ?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') findDevice();
+    });
+
+
+
+
 // ══════════════════════════
 // CHANGE PASSWORD
 // ══════════════════════════
@@ -1136,6 +1374,9 @@ window.openSetupGuide = openSetupGuide;
 window.openSosContacts  = openSosContacts;
 window.saveSosContacts  = saveSosContacts;
 window.clearSosPhone    = clearSosPhone;
+window.cancelOrder = cancelOrder;
+window.openContactsModal = openContactsModal;
+window.findDevice = findDevice;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserInfo();

@@ -1,0 +1,1238 @@
+import api from "./api.js";
+
+// ══════════════════════════
+// CONFIG & STATE
+// ══════════════════════════
+let adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+let allUsers = [], allProducts = [], allDevices = [], allOrders = [], allVouchers = [];
+let revenueChart = null, orderStatusChart = null, monthlyChart = null, paymentChart = null;
+let currentPage = {users: 1, products: 1, devices: 1, orders: 1};
+const PAGE_SIZE = 10;
+
+const ORDER_STATUS = {
+    PENDING: {label: 'Chờ xác nhận', cls: 'badge-gold'},
+    CONFIRMED: {label: 'Đã xác nhận', cls: 'badge-blue'},
+    SHIPPING: {label: 'Đang giao', cls: 'badge-blue'},
+    DELIVERED: {label: 'Đã giao', cls: 'badge-green'},
+    CANCELLED: {label: 'Đã huỷ', cls: 'badge-red'},
+};
+const PAYMENT_STATUS = {
+    PENDING: {label: 'Chưa TT', cls: 'badge-gold'},
+    PAID: {label: 'Đã TT', cls: 'badge-green'},
+    FAILED: {label: 'Thất bại', cls: 'badge-red'},
+};
+
+// ══════════════════════════
+// HELPERS
+// ══════════════════════════
+const fmt = n => Number(n || 0).toLocaleString('vi-VN') + '₫';
+const fmtDate = v => v ? new Date(v).toLocaleDateString('vi-VN') : '—';
+const fmtDateTime = v => v ? new Date(v).toLocaleString('vi-VN') : '—';
+const shortId = id => id ? '#' + id.slice(0, 8).toUpperCase() : '—';
+
+// Dùng api (axios) từ api.js — token được tự động đính kèm qua interceptor
+async function apiFetch(path, opts = {}) {
+    const method = (opts.method || 'GET').toLowerCase();
+    const body = opts.body ? JSON.parse(opts.body) : undefined;
+    let res;
+    if (method === 'get') res = await api.get(path);
+    else if (method === 'post') res = await api.post(path, body);
+    else if (method === 'put') res = await api.put(path, body);
+    else if (method === 'patch') res = await api.patch(path, body);
+    else if (method === 'delete') res = await api.delete(path);
+    return res.data;
+}
+
+function showToast(msg, err = false) {
+    const t = document.getElementById('toast');
+    t.className = 'toast' + (err ? ' error' : '');
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+}
+
+function confirm2(title, msg, cb) {
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-msg').textContent = msg;
+    const btn = document.getElementById('confirm-ok');
+    btn.onclick = () => {
+        closeModal('modal-confirm');
+        cb();
+    };
+    openModal('modal-confirm');
+}
+
+// ══════════════════════════
+// CLOCK
+// ══════════════════════════
+function updateClock() {
+    document.getElementById('clock').textContent =
+        new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+}
+
+setInterval(updateClock, 1000);
+
+// ══════════════════════════
+// AUTH
+// ══════════════════════════
+async function doLogin() {
+    const username = document.getElementById('l-user').value.trim();
+    const password = document.getElementById('l-pass').value.trim();
+    const errEl = document.getElementById('login-err');
+    errEl.style.display = 'none';
+
+    if (!username || !password) {
+        errEl.textContent = '⚠ Vui lòng nhập đầy đủ thông tin!';
+        errEl.style.display = 'block';
+        return;
+    }
+    try {
+        const res = await fetch('/auth/token', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            errEl.textContent = data?.message || '⚠ Sai tên đăng nhập hoặc mật khẩu!';
+            errEl.style.display = 'block';
+            return;
+        }
+        const tk = data?.result?.token ?? data?.token;
+        if (!tk) {
+            errEl.textContent = '⚠ Không nhận được token!';
+            errEl.style.display = 'block';
+            return;
+        }
+
+
+        const payload = JSON.parse(atob(tk.split('.')[1]));
+        console.log('JWT payload:', payload);
+
+
+        const roles = payload.roles
+            ?? payload.scope
+            ?? payload.authorities
+            ?? [];
+
+        console.log('Roles:', roles);
+
+        const isAdmin = Array.isArray(roles)
+            ? roles.some(r => {
+                const role = (typeof r === 'string' ? r : r?.authority || '').toUpperCase();
+                return role === 'ADMIN' || role === 'ROLE_ADMIN';
+            })
+            : String(roles).toUpperCase().includes('ADMIN');
+
+        if (!isAdmin) {
+            errEl.textContent = '⚠ Tài khoản không có quyền Admin!';
+            errEl.style.display = 'block';
+            console.warn('Không có quyền admin. Roles hiện tại:', roles);
+            return;
+        }
+
+        // Lưu token
+        localStorage.setItem('access_token', tk);
+        localStorage.setItem('admin_user', JSON.stringify({username, role: 'ADMIN'}));
+        adminUser = {username, role: 'ADMIN'};
+
+        // Cập nhật UI
+        document.getElementById('admin-name').textContent = username;
+        document.getElementById('admin-avatar').textContent = username[0].toUpperCase();
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app').style.display = 'flex';
+        document.getElementById('app').classList.add('visible');
+        initApp();
+
+    } catch (e) {
+        console.error('Login error:', e);
+        errEl.textContent = '⚠ Lỗi kết nối server — kiểm tra console!';
+        errEl.style.display = 'block';
+    }
+}
+
+function doLogout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('admin_user');
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('l-pass').value = '';
+}
+
+// ══════════════════════════
+// DOM READY
+// ══════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+    updateClock();
+// Gắn login button — tránh lỗi module chưa load
+    document.getElementById('login-btn')
+        ?.addEventListener('click', doLogin);
+
+    document.getElementById('l-user')
+        ?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') document.getElementById('l-pass').focus();
+        });
+
+    document.getElementById('l-pass')
+        ?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') doLogin();
+        });
+
+    // Đóng modal khi click ngoài
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.addEventListener('click', e => {
+            if (e.target === m) m.classList.remove('open');
+        });
+    });
+
+    // Enter để login
+    document.getElementById('l-pass')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doLogin();
+    });
+
+    // Auto-login nếu access_token còn hạn
+    const tk = localStorage.getItem('access_token');
+    if (tk) {
+        try {
+            const p = JSON.parse(atob(tk.split('.')[1]));
+            if (p.exp * 1000 > Date.now()) {
+                adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+                document.getElementById('admin-name').textContent = adminUser.username || 'Admin';
+                document.getElementById('admin-avatar').textContent = (adminUser.username || 'A')[0].toUpperCase();
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app').style.display = 'flex';
+                document.getElementById('app').classList.add('visible');
+                initApp();
+                return;
+            }
+        } catch (e) {
+        }
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('admin_user');
+    }
+});
+
+// ══════════════════════════
+// NAVIGATION
+// ══════════════════════════
+function goPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id)?.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const titles = {
+        dashboard: 'DASHBOARD', users: 'NGƯỜI DÙNG', products: 'SẢN PHẨM',
+        devices: 'THIẾT BỊ', orders: 'ĐƠN HÀNG', analytics: 'DOANH THU', vouchers: 'VOUCHER'
+    };
+    document.getElementById('page-title').textContent = titles[id] || id.toUpperCase();
+    closeSidebar();
+    if (id === 'users') loadUsers();
+    if (id === 'products') loadProducts();
+    if (id === 'devices') loadDevices();
+    if (id === 'orders') loadOrders();
+    if (id === 'analytics') loadAnalytics();
+    if (id === 'vouchers') loadVouchers();
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+function refreshPage() {
+    const active = document.querySelector('.page.active')?.id?.replace('page-', '');
+    if (active) goPage(active, document.querySelector('.nav-item.active'));
+}
+
+// ══════════════════════════
+// INIT
+// ══════════════════════════
+async function initApp() {
+    await loadDashboard();
+}
+
+// ══════════════════════════
+// DASHBOARD
+// ══════════════════════════
+async function loadDashboard() {
+    try {
+        const [usersRes, ordersRes, devicesRes] = await Promise.all([
+            apiFetch('/admin/users'),
+            apiFetch('/admin/orders'),
+            apiFetch('/admin/devices'),
+        ]);
+        allUsers = Array.isArray(usersRes?.result ?? usersRes) ? (usersRes?.result ?? usersRes) : [];
+        allOrders = Array.isArray(ordersRes?.result ?? ordersRes) ? (ordersRes?.result ?? ordersRes) : [];
+        allDevices = Array.isArray(devicesRes?.result ?? devicesRes) ? (devicesRes?.result ?? devicesRes) : [];
+
+        const delivered = allOrders.filter(o => o.orderStatus === 'DELIVERED');
+        const revenue = delivered.reduce((s, o) => s + Number(o.totalAmount || 0), 0);
+        const pending = allOrders.filter(o => o.orderStatus === 'PENDING').length;
+        const activeDevs = allDevices.filter(d => d.status === 'ACTIVE').length;
+
+        document.getElementById('s-revenue').textContent = fmt(revenue);
+        document.getElementById('s-rev-change').textContent = `${delivered.length} đơn hoàn thành`;
+        document.getElementById('s-users').textContent = allUsers.length;
+        document.getElementById('s-users-change').textContent = 'Tổng tài khoản';
+        document.getElementById('s-orders').textContent = allOrders.length;
+        document.getElementById('s-orders-change').textContent = `${pending} chờ xác nhận`;
+        document.getElementById('s-orders-change').className = 'stat-change ' + (pending > 0 ? 'up' : '');
+        document.getElementById('s-devices').textContent = activeDevs;
+        document.getElementById('s-dev-change').textContent = `${allDevices.length} thiết bị tổng`;
+        document.getElementById('pending-badge').textContent = pending;
+
+        renderRecentOrders(allOrders.slice(0, 6));
+        buildRevenueChart('week');
+        buildOrderStatusChart(allOrders);
+    } catch (e) {
+        console.warn('Dashboard demo mode:', e.message);
+        loadDashboardDemo();
+    }
+}
+
+function loadDashboardDemo() {
+    document.getElementById('s-revenue').textContent = fmt(48500000);
+    document.getElementById('s-rev-change').textContent = '12 đơn hoàn thành';
+    document.getElementById('s-users').textContent = '247';
+    document.getElementById('s-users-change').textContent = 'Tổng tài khoản';
+    document.getElementById('s-orders').textContent = '38';
+    document.getElementById('s-orders-change').textContent = '5 chờ xác nhận';
+    document.getElementById('s-devices').textContent = '31';
+    document.getElementById('s-dev-change').textContent = '42 thiết bị tổng';
+    document.getElementById('pending-badge').textContent = '5';
+    renderRecentOrders(demoOrders());
+    buildRevenueChart('week');
+    buildOrderStatusChart([]);
+}
+
+function demoOrders() {
+    return [
+        {
+            orderId: 'a1b2c3d4-0000',
+            orderStatus: 'PENDING',
+            paymentStatus: 'PENDING',
+            totalAmount: 499000,
+            createdAt: new Date().toISOString(),
+            user: {username: 'user01'}
+        },
+        {
+            orderId: 'b2c3d4e5-0000',
+            orderStatus: 'CONFIRMED',
+            paymentStatus: 'PAID',
+            totalAmount: 999000,
+            createdAt: new Date().toISOString(),
+            user: {username: 'user02'}
+        },
+        {
+            orderId: 'c3d4e5f6-0000',
+            orderStatus: 'DELIVERED',
+            paymentStatus: 'PAID',
+            totalAmount: 1990000,
+            createdAt: new Date().toISOString(),
+            user: {username: 'user03'}
+        },
+        {
+            orderId: 'd4e5f6g7-0000',
+            orderStatus: 'SHIPPING',
+            paymentStatus: 'PAID',
+            totalAmount: 1490000,
+            createdAt: new Date().toISOString(),
+            user: {username: 'user04'}
+        },
+        {
+            orderId: 'e5f6g7h8-0000',
+            orderStatus: 'CANCELLED',
+            paymentStatus: 'PENDING',
+            totalAmount: 890000,
+            createdAt: new Date().toISOString(),
+            user: {username: 'user05'}
+        },
+    ];
+}
+
+function renderRecentOrders(orders) {
+    const body = document.getElementById('recent-orders-body');
+    if (!orders.length) {
+        body.innerHTML = '<tr><td colspan="7" class="tbl-empty">CHƯA CÓ ĐƠN HÀNG</td></tr>';
+        return;
+    }
+    body.innerHTML = orders.map(o => {
+        const st = ORDER_STATUS[o.orderStatus] || {label: o.orderStatus, cls: 'badge-grey'};
+        const pt = PAYMENT_STATUS[o.paymentStatus] || {label: o.paymentStatus, cls: 'badge-grey'};
+        return `<tr>
+      <td><span style="font-family:var(--font-mono);font-size:11px">${shortId(o.orderId)}</span></td>
+      <td>${o.user?.username || o.user?.name || '—'}</td>
+      <td style="font-family:var(--font-mono)">${fmt(o.totalAmount)}</td>
+      <td><span class="badge ${pt.cls}">${pt.label}</span></td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light)">${fmtDate(o.createdAt)}</td>
+      <td><button class="tbl-action" onclick="viewOrder('${o.orderId}')">Chi tiết</button></td>
+    </tr>`;
+    }).join('');
+}
+
+// ── CHARTS ──
+function buildRevenueChart(period) {
+    const ctx = document.getElementById('revenue-chart').getContext('2d');
+    if (revenueChart) revenueChart.destroy();
+    const {labels, data} = genRevenueData(period, allOrders);
+    revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels, datasets: [{
+                label: 'Doanh thu', data,
+                borderColor: '#e81c1c', backgroundColor: 'rgba(232,28,28,.08)',
+                borderWidth: 2, fill: true, tension: .4,
+                pointBackgroundColor: '#e81c1c', pointRadius: 3,
+            }]
+        },
+        options: {
+            responsive: true, plugins: {
+                legend: {display: false}, tooltip: {
+                    callbacks: {label: c => '  ' + fmt(c.parsed.y)},
+                    backgroundColor: '#1a1a1a',
+                    borderColor: '#2a2a2a',
+                    borderWidth: 1,
+                    titleColor: '#888',
+                    bodyColor: '#f5f5f0',
+                }
+            }, scales: {
+                x: {
+                    grid: {color: 'rgba(255,255,255,.04)'},
+                    ticks: {color: '#666', font: {family: 'Space Mono', size: 9}}
+                },
+                y: {
+                    grid: {color: 'rgba(255,255,255,.04)'},
+                    ticks: {color: '#666', font: {family: 'Space Mono', size: 9}, callback: v => fmt(v)}
+                },
+            }
+        }
+    });
+}
+
+function genRevenueData(period, orders) {
+    const now = new Date();
+    if (period === 'week') {
+        const labels = [], data = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            labels.push(d.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit'}));
+            const day = orders.filter(o => new Date(o.createdAt).toDateString() === d.toDateString() && o.orderStatus === 'DELIVERED');
+            data.push(day.reduce((s, o) => s + Number(o.totalAmount || 0), 0) || Math.random() * 5000000 + 1000000);
+        }
+        return {labels, data};
+    }
+    if (period === 'month') {
+        const labels = [], data = [];
+        for (let i = 29; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            labels.push(i % 5 === 0 ? d.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit'}) : '');
+            data.push(Math.random() * 8000000 + 500000);
+        }
+        return {labels, data};
+    }
+    const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+    return {labels: months, data: months.map(() => Math.random() * 50000000 + 10000000)};
+}
+
+function buildOrderStatusChart(orders) {
+    const ctx = document.getElementById('order-status-chart').getContext('2d');
+    if (orderStatusChart) orderStatusChart.destroy();
+    const counts = {};
+    Object.keys(ORDER_STATUS).forEach(k => counts[k] = 0);
+    orders.forEach(o => {
+        if (counts[o.orderStatus] !== undefined) counts[o.orderStatus]++;
+    });
+    orderStatusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.values(ORDER_STATUS).map(v => v.label),
+            datasets: [{
+                data: !orders.length ? [5, 8, 6, 12, 3] : Object.values(counts),
+                backgroundColor: ['#f5c842', '#3b82f6', '#3b82f6', '#00c864', '#e81c1c'],
+                borderColor: '#1a1a1a', borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true, plugins: {
+                legend: {labels: {color: '#888', font: {family: 'Space Mono', size: 9}}},
+                tooltip: {
+                    backgroundColor: '#1a1a1a',
+                    borderColor: '#2a2a2a',
+                    borderWidth: 1,
+                    titleColor: '#888',
+                    bodyColor: '#f5f5f0'
+                },
+            }
+        }
+    });
+}
+
+function setChartPeriod(period, btn) {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    buildRevenueChart(period);
+}
+
+// ══════════════════════════
+// USERS
+// ══════════════════════════
+async function loadUsers() {
+    try {
+        const res = await apiFetch('/api/manage/user');
+        allUsers = res?.result ?? res ?? [];
+        if (!Array.isArray(allUsers)) allUsers = [];
+    } catch (e) {
+        allUsers = [];
+    }
+    renderUsers();
+}
+
+function filterUsers() {
+    currentPage.users = 1;
+    renderUsers();
+}
+
+function renderUsers() {
+    const search = document.getElementById('user-search')?.value.toLowerCase() || '';
+    const filter = document.getElementById('user-filter')?.value || '';
+
+    let filtered = allUsers.filter(u => {
+        const match = !search
+            || (u.name || '').toLowerCase().includes(search)
+            || (u.username || '').toLowerCase().includes(search)
+            || (u.email || '').toLowerCase().includes(search)
+            || (u.phone || '').includes(search);
+        const sf = !filter
+            || (filter === 'active' && u.isActive)
+            || (filter === 'inactive' && !u.isActive);
+        return match && sf;
+    });
+
+    // Label tổng
+    const lbl = document.getElementById('users-total-label');
+    if (lbl) lbl.textContent = `${filtered.length} / ${allUsers.length} người dùng`;
+
+    const total = filtered.length;
+    const page = currentPage.users;
+    const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const body = document.getElementById('users-body');
+
+    if (!paged.length) {
+        body.innerHTML = '<tr><td colspan="8" class="tbl-empty">KHÔNG CÓ DỮ LIỆU</td></tr>';
+        renderPagination('users', total, page);
+        return;
+    }
+
+    body.innerHTML = paged.map((u, i) => {
+        const idx = (page - 1) * PAGE_SIZE + i + 1;
+        const avatar = (u.name || u.username || '?')[0].toUpperCase();
+        const roles = Array.isArray(u.roles)
+            ? u.roles.join(', ')
+            : (u.roles || 'USER');
+        const isAdmin = roles.includes('ADMIN');
+
+        return `<tr style="cursor:pointer;" onclick="viewUser('${u.id}')">
+            <td style="color:var(--grey-light);font-family:var(--font-mono);
+                       font-size:11px;width:40px;">${idx}</td>
+            <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="
+                        width:34px;height:34px;border-radius:50%;
+                        background:${isAdmin ? 'var(--red)' : 'var(--grey3)'};
+                        display:flex;align-items:center;justify-content:center;
+                        font-family:var(--font-display);font-size:15px;
+                        flex-shrink:0;border:1px solid var(--grey-border);">
+                        ${avatar}
+                    </div>
+                    <div>
+                        <div style="font-size:13px;font-weight:500;">
+                            ${u.name || '—'}
+                        </div>
+                        <div style="font-family:var(--font-mono);font-size:10px;
+                                    color:var(--grey-light);margin-top:2px;">
+                            @${u.username || '—'}
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td style="color:var(--grey-light);font-size:12px;">${u.email || '—'}</td>
+            <td style="font-family:var(--font-mono);font-size:11px;">
+                ${u.phone || '—'}
+            </td>
+            <td>
+                <span class="badge ${isAdmin ? 'badge-red' : 'badge-blue'}">
+                    ${isAdmin ? 'ADMIN' : 'USER'}
+                </span>
+            </td>
+            <td>
+                <span class="badge ${u.isActive ? 'badge-green' : 'badge-red'}">
+                    ${u.isActive ? 'Hoạt động' : 'Bị khóa'}
+                </span>
+            </td>
+            <td style="font-family:var(--font-mono);font-size:11px;
+                       color:var(--grey-light);">
+                ${fmtDate(u.createdAt)}
+            </td>
+            <td onclick="event.stopPropagation()">
+                <button class="tbl-action ${u.isActive ? 'danger' : 'success'}"
+                        onclick="toggleUser('${u.id}', ${u.isActive})">
+                    ${u.isActive ? 'Khóa' : 'Mở'}
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    renderPagination('users', total, page);
+}
+
+function viewUser(id) {
+    const u = allUsers.find(x => x.id === id);
+    if (!u) return;
+
+    const avatar = (u.name || u.username || '?')[0].toUpperCase();
+    const isAdmin = Array.isArray(u.roles)
+        ? u.roles.includes('ADMIN')
+        : String(u.roles || '').includes('ADMIN');
+    const roles = Array.isArray(u.roles) ? u.roles.join(', ') : (u.roles || 'USER');
+
+    // Header avatar + tên
+    document.getElementById('ud-avatar').textContent = avatar;
+    document.getElementById('ud-name').textContent = u.name || u.username || '—';
+    document.getElementById('ud-username').textContent = `@${u.username || '—'}  •  ${roles}`;
+
+    // Body — info grid
+    const fields = [
+        ['ID', u.id],
+        ['Username', u.username],
+        ['Họ và tên', u.name],
+        ['Email', u.email],
+        ['Số điện thoại', u.phone],
+        ['Ngày sinh', fmtDate(u.dob)],
+        ['Giới tính', u.gender],
+        ['Vai trò', roles],
+        ['Trạng thái', u.isActive ? '✓ Đang hoạt động' : '✕ Bị khóa'],
+        ['Ngày tạo', fmtDateTime(u.createdAt)],
+    ];
+
+    document.getElementById('user-detail-body').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            ${fields.map(([k, v]) => `
+            <div style="background:var(--black);padding:12px 14px;
+                        border:1px solid var(--grey-border);">
+                <div style="font-family:var(--font-mono);font-size:9px;
+                            letter-spacing:2px;text-transform:uppercase;
+                            color:var(--grey-light);margin-bottom:5px;">${k}</div>
+                <div style="font-size:13px;
+                    color:${k === 'Trạng thái'
+        ? (u.isActive ? 'var(--green)' : 'var(--red)')
+        : 'var(--white)'};">
+                    ${v || '—'}
+                </div>
+            </div>`).join('')}
+        </div>`;
+
+    // Footer buttons
+    document.getElementById('user-detail-footer').innerHTML = `
+        <button class="btn btn-secondary"
+                onclick="closeModal('modal-user')">
+            Đóng
+        </button>
+        <button class="btn ${u.isActive ? 'btn-danger' : 'btn-success'}"
+                onclick="toggleUser('${u.id}', ${u.isActive}); closeModal('modal-user')">
+            ${u.isActive ? '🔒 Khóa tài khoản' : '🔓 Mở khóa tài khoản'}
+        </button>`;
+
+    openModal('modal-user');
+}
+
+async function toggleUser(id, isActive) {
+    const action = isActive ? 'deactivate' : 'activate';
+    const label = isActive ? 'khóa' : 'mở khóa';
+
+    confirm2('Xác nhận', `Bạn muốn ${label} tài khoản này?`, async () => {
+        try {
+            await apiFetch(`/api/manage/user/${id}/${action}`, {method: 'PATCH'});
+            showToast(`Đã ${label} tài khoản thành công!`);
+        } catch (e) {
+            showToast(`Đã ${label} tài khoản (demo)!`);
+        }
+        // Cập nhật local state
+        const u = allUsers.find(x => x.id === id);
+        if (u) u.isActive = !isActive;
+        renderUsers();
+    });
+}
+
+// ══════════════════════════
+// PRODUCTS
+// ══════════════════════════
+async function loadProducts() {
+    try {
+        const res = await apiFetch('/products');
+        allProducts = res?.result ?? res ?? [];
+        if (!Array.isArray(allProducts)) allProducts = [];
+    } catch (e) {
+        allProducts = [];
+    }
+    renderProducts();
+}
+
+function filterProducts() {
+    currentPage.products = 1;
+    renderProducts();
+}
+
+function renderProducts() {
+    const search = document.getElementById('product-search')?.value.toLowerCase() || '';
+    const filter = document.getElementById('product-filter')?.value || '';
+    let filtered = allProducts.filter(p => {
+        const match = !search || (p.name || '').toLowerCase().includes(search) || (p.description || '').toLowerCase().includes(search);
+        return match && (!filter || p.status === filter);
+    });
+    const total = filtered.length, page = currentPage.products;
+    const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const body = document.getElementById('products-body');
+    if (!paged.length) {
+        body.innerHTML = '<tr><td colspan="6" class="tbl-empty">KHÔNG CÓ SẢN PHẨM</td></tr>';
+        return;
+    }
+    body.innerHTML = paged.map((p, i) => `<tr>
+    <td style="color:var(--grey-light);font-family:var(--font-mono);font-size:11px">${(page - 1) * PAGE_SIZE + i + 1}</td>
+    <td><strong>${p.name || '—'}</strong></td>
+    <td style="color:var(--grey-light);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.description || '—'}</td>
+    <td style="font-family:var(--font-mono)">${fmt(p.price)}</td>
+    <td><span class="badge ${p.status === 'ACTIVE' ? 'badge-green' : 'badge-grey'}">${p.status === 'ACTIVE' ? 'Đang bán' : 'Ngừng bán'}</span></td>
+    <td>
+      <button class="tbl-action" onclick="editProduct('${p.id}')">Sửa</button>
+      <button class="tbl-action danger" onclick="deleteProduct('${p.id}')">Xoá</button>
+    </td>
+  </tr>`).join('');
+    renderPagination('products', total, page);
+}
+
+function openProductModal() {
+    document.getElementById('product-modal-title').textContent = 'THÊM SẢN PHẨM';
+    ['pm-id', 'pm-name', 'pm-desc', 'pm-price'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('pm-status').value = 'ACTIVE';
+    openModal('modal-product');
+}
+
+function editProduct(id) {
+    const p = allProducts.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('product-modal-title').textContent = 'SỬA SẢN PHẨM';
+    document.getElementById('pm-id').value = p.id;
+    document.getElementById('pm-name').value = p.name || '';
+    document.getElementById('pm-desc').value = p.description || '';
+    document.getElementById('pm-price').value = p.price || '';
+    document.getElementById('pm-status').value = p.status || 'ACTIVE';
+    openModal('modal-product');
+}
+
+async function saveProduct() {
+    const id = document.getElementById('pm-id').value;
+    const body = {
+        name: document.getElementById('pm-name').value,
+        description: document.getElementById('pm-desc').value,
+        price: Number(document.getElementById('pm-price').value),
+        status: document.getElementById('pm-status').value,
+    };
+    if (!body.name || !body.price) {
+        showToast('Vui lòng điền đầy đủ thông tin', true);
+        return;
+    }
+    try {
+        if (id) await apiFetch(`/admin/products/${id}`, {method: 'PUT', body: JSON.stringify(body)});
+        else await apiFetch('/admin/products', {method: 'POST', body: JSON.stringify(body)});
+        showToast(id ? 'Đã cập nhật sản phẩm' : 'Đã thêm sản phẩm');
+        closeModal('modal-product');
+        await loadProducts();
+    } catch (e) {
+        if (id) {
+            const p = allProducts.find(x => x.id === id);
+            if (p) Object.assign(p, body);
+        } else allProducts.push({id: 'demo-' + Date.now(), ...body});
+        renderProducts();
+        showToast(id ? 'Đã cập nhật (demo)' : 'Đã thêm (demo)');
+        closeModal('modal-product');
+    }
+}
+
+function deleteProduct(id) {
+    confirm2('Xoá sản phẩm', 'Bạn chắc chắn muốn xoá sản phẩm này?', async () => {
+        try {
+            await apiFetch(`/admin/products/${id}`, {method: 'DELETE'});
+            showToast('Đã xoá sản phẩm');
+        } catch (e) {
+            showToast('Đã xoá (demo)');
+        }
+        allProducts = allProducts.filter(p => p.id !== id);
+        renderProducts();
+    });
+}
+
+// ══════════════════════════
+// DEVICES
+// ══════════════════════════
+async function loadDevices() {
+    try {
+        const res = await apiFetch('/admin/devices');
+        allDevices = res?.result ?? res ?? [];
+        if (!Array.isArray(allDevices)) allDevices = [];
+    } catch (e) {
+        allDevices = [];
+    }
+    renderDevices();
+}
+
+function filterDevices() {
+    currentPage.devices = 1;
+    renderDevices();
+}
+
+function renderDevices() {
+    const search = document.getElementById('device-search')?.value.toLowerCase() || '';
+    const filter = document.getElementById('device-filter')?.value || '';
+    let filtered = allDevices.filter(d => {
+        const match = !search || (d.deviceId || '').toLowerCase().includes(search) || (d.name || '').toLowerCase().includes(search);
+        return match && (!filter || d.status === filter);
+    });
+    const total = filtered.length, page = currentPage.devices;
+    const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const body = document.getElementById('devices-body');
+    const statusMap = {
+        ACTIVE: 'badge-green',
+        INACTIVE: 'badge-grey',
+        SOLD: 'badge-gold',
+        OFFLINE: 'badge-red',
+        BLOCKED: 'badge-red'
+    };
+    const statusLabel = {ACTIVE: 'Active', INACTIVE: 'Inactive', SOLD: 'Sold', OFFLINE: 'Offline', BLOCKED: 'Blocked'};
+    if (!paged.length) {
+        body.innerHTML = '<tr><td colspan="6" class="tbl-empty">KHÔNG CÓ THIẾT BỊ</td></tr>';
+        return;
+    }
+    body.innerHTML = paged.map(d => `<tr>
+    <td style="font-family:var(--font-mono);font-size:12px">${d.deviceId || '—'}</td>
+    <td>${d.name || '—'}</td>
+    <td style="color:var(--grey-light);font-size:12px">${d.user?.username || d.userId || 'Chưa có chủ'}</td>
+    <td><span class="badge ${statusMap[d.status] || 'badge-grey'}">${statusLabel[d.status] || d.status}</span></td>
+    <td style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light)">${fmtDateTime(d.lastConnectedAt)}</td>
+    <td><button class="tbl-action" onclick="viewDeviceDetail('${d.id || d.deviceId}')">Chi tiết</button></td>
+  </tr>`).join('');
+    renderPagination('devices', total, page);
+}
+
+function viewDeviceDetail(id) {
+    const d = allDevices.find(x => (x.id === id || x.deviceId === id));
+    if (!d) return;
+    showToast(`Device: ${d.deviceId} — ${d.status}`);
+}
+
+// ══════════════════════════
+// ORDERS
+// ══════════════════════════
+async function loadOrders() {
+    try {
+        const res = await apiFetch('/admin/orders');
+        allOrders = res?.result ?? res ?? [];
+        if (!Array.isArray(allOrders)) allOrders = [];
+    } catch (e) {
+        allOrders = demoOrders();
+    }
+    renderOrders();
+}
+
+function filterOrders() {
+    currentPage.orders = 1;
+    renderOrders();
+}
+
+function renderOrders() {
+    const search = document.getElementById('order-search')?.value.toLowerCase() || '';
+    const filter = document.getElementById('order-filter')?.value || '';
+    let filtered = allOrders.filter(o => {
+        const match = !search || shortId(o.orderId).toLowerCase().includes(search)
+            || (o.user?.username || '').toLowerCase().includes(search);
+        return match && (!filter || o.orderStatus === filter);
+    });
+    const total = filtered.length, page = currentPage.orders;
+    const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const body = document.getElementById('orders-body');
+    if (!paged.length) {
+        body.innerHTML = '<tr><td colspan="8" class="tbl-empty">KHÔNG CÓ ĐƠN HÀNG</td></tr>';
+        return;
+    }
+    body.innerHTML = paged.map(o => {
+        const st = ORDER_STATUS[o.orderStatus] || {label: o.orderStatus, cls: 'badge-grey'};
+        const pt = PAYMENT_STATUS[o.paymentStatus] || {label: o.paymentStatus, cls: 'badge-grey'};
+        return `<tr>
+      <td style="font-family:var(--font-mono);font-size:11px">${shortId(o.orderId)}</td>
+      <td>${o.user?.username || o.user?.name || '—'}</td>
+      <td style="color:var(--grey-light);font-size:12px">${o.items?.length || 0} sản phẩm</td>
+      <td style="font-family:var(--font-mono)">${fmt(o.totalAmount)}</td>
+      <td><span class="badge ${pt.cls}">${pt.label}</span></td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light)">${fmtDate(o.createdAt)}</td>
+      <td>
+        <button class="tbl-action" onclick="viewOrder('${o.orderId}')">Chi tiết</button>
+        ${o.orderStatus === 'PENDING' ? `<button class="tbl-action success" onclick="confirmOrder('${o.orderId}')">Duyệt</button>` : ''}
+        ${o.orderStatus === 'PENDING' ? `<button class="tbl-action danger" onclick="cancelOrderAdmin('${o.orderId}')">Huỷ</button>` : ''}
+      </td>
+    </tr>`;
+    }).join('');
+    renderPagination('orders', total, page);
+}
+
+function viewOrder(id) {
+    const o = allOrders.find(x => x.orderId === id);
+    if (!o) return;
+    const steps = ['PENDING', 'CONFIRMED', 'SHIPPING', 'DELIVERED'];
+    const curIdx = steps.indexOf(o.orderStatus);
+    const isCancelled = o.orderStatus === 'CANCELLED';
+    const st = ORDER_STATUS[o.orderStatus] || {label: o.orderStatus, cls: 'badge-grey'};
+    const pt = PAYMENT_STATUS[o.paymentStatus] || {label: o.paymentStatus, cls: 'badge-grey'};
+
+    document.getElementById('order-detail-body').innerHTML = `
+    ${isCancelled ? `<div style="padding:12px 16px;background:rgba(232,28,28,.08);border:1px solid rgba(232,28,28,.2);margin-bottom:20px;font-family:var(--font-mono);font-size:11px;color:var(--red)">ĐƠN HÀNG ĐÃ BỊ HUỶ</div>` : `
+    <div class="order-timeline" style="margin-bottom:24px">
+      ${steps.map((s, i) => {
+        const done = i < curIdx, active = i === curIdx;
+        const labels = ['Chờ xác nhận', 'Đã xác nhận', 'Đang giao', 'Đã giao'];
+        const icons = ['⏳', '✓', '🚚', '📦'];
+        return `<div class="timeline-step ${done ? 'done' : ''} ${active ? 'active' : ''}">
+          <div class="timeline-dot">${icons[i]}</div>
+          <div class="timeline-label">${labels[i]}</div>
+        </div>`;
+    }).join('')}
+    </div>`}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:var(--black);padding:12px;border:1px solid var(--grey-border)">
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--grey-light);margin-bottom:4px">MÃ ĐƠN</div>
+        <div style="font-family:var(--font-mono);font-size:12px">${shortId(o.orderId)}</div>
+      </div>
+      <div style="background:var(--black);padding:12px;border:1px solid var(--grey-border)">
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--grey-light);margin-bottom:4px">KHÁCH HÀNG</div>
+        <div style="font-size:13px">${o.user?.username || o.user?.name || '—'}</div>
+      </div>
+      <div style="background:var(--black);padding:12px;border:1px solid var(--grey-border)">
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--grey-light);margin-bottom:4px">THANH TOÁN</div>
+        <span class="badge ${pt.cls}">${pt.label}</span>
+      </div>
+      <div style="background:var(--black);padding:12px;border:1px solid var(--grey-border)">
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--grey-light);margin-bottom:4px">TRẠNG THÁI</div>
+        <span class="badge ${st.cls}">${st.label}</span>
+      </div>
+    </div>
+    ${o.items?.length ? `
+    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--grey-light);margin-bottom:10px">SẢN PHẨM</div>
+    ${o.items.map(item => `
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:10px 12px;border:1px solid var(--grey-border);margin-bottom:6px;background:var(--black)">
+        <div>
+          <div style="font-size:13px">${item.product?.name || 'Sản phẩm'}</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light);margin-top:2px">
+            ${fmt(item.unitPrice)} × ${item.quantity}
+            ${item.deviceId ? `<span style="margin-left:8px;color:var(--blue)">Device: ${item.deviceId}</span>` : ''}
+          </div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:13px">${fmt(item.subtotal)}</div>
+      </div>`).join('')}` : ''}
+    <div style="border-top:1px solid var(--grey-border);padding-top:12px;margin-top:12px;
+                display:flex;justify-content:space-between;align-items:center">
+      <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--grey-light)">TỔNG CỘNG</span>
+      <span style="font-family:var(--font-display);font-size:24px;color:var(--red)">${fmt(o.totalAmount)}</span>
+    </div>`;
+
+    const footer = document.getElementById('order-detail-footer');
+    const btns = [];
+    if (o.orderStatus === 'PENDING') {
+        btns.push(`<button class="btn btn-success" onclick="confirmOrder('${o.orderId}');closeModal('modal-order')">✓ XÁC NHẬN</button>`);
+        btns.push(`<button class="btn btn-danger" onclick="cancelOrderAdmin('${o.orderId}');closeModal('modal-order')">✕ HUỶ ĐƠN</button>`);
+    }
+    if (o.orderStatus === 'CONFIRMED')
+        btns.push(`<button class="btn btn-primary" onclick="updateOrderStatus('${o.orderId}','SHIPPING');closeModal('modal-order')">🚚 GỬI HÀNG</button>`);
+    if (o.orderStatus === 'SHIPPING')
+        btns.push(`<button class="btn btn-success" onclick="updateOrderStatus('${o.orderId}','DELIVERED');closeModal('modal-order')">📦 ĐÃ GIAO</button>`);
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="closeModal('modal-order')">Đóng</button>${btns.join('')}`;
+    openModal('modal-order');
+}
+
+async function confirmOrder(id) {
+    try {
+        await apiFetch(`/admin/orders/${id}/confirm`, {method: 'PATCH'});
+        showToast('Đã xác nhận đơn hàng');
+    } catch (e) {
+        showToast('Đã xác nhận (demo)');
+    }
+    const o = allOrders.find(x => x.orderId === id);
+    if (o) o.orderStatus = 'CONFIRMED';
+    renderOrders();
+    document.getElementById('pending-badge').textContent = allOrders.filter(x => x.orderStatus === 'PENDING').length;
+}
+
+async function cancelOrderAdmin(id) {
+    confirm2('Huỷ đơn hàng', 'Xác nhận huỷ đơn hàng này?', async () => {
+        try {
+            await apiFetch(`/order/${id}/cancel`, {method: 'POST'});
+            showToast('Đã huỷ đơn hàng');
+        } catch (e) {
+            showToast('Đã huỷ (demo)');
+        }
+        const o = allOrders.find(x => x.orderId === id);
+        if (o) o.orderStatus = 'CANCELLED';
+        renderOrders();
+    });
+}
+
+async function updateOrderStatus(id, status) {
+    try {
+        await apiFetch(`/admin/orders/${id}/status`, {method: 'PATCH', body: JSON.stringify({status})});
+        showToast('Đã cập nhật trạng thái');
+    } catch (e) {
+        showToast('Đã cập nhật (demo)');
+    }
+    const o = allOrders.find(x => x.orderId === id);
+    if (o) o.orderStatus = status;
+    renderOrders();
+}
+
+// ══════════════════════════
+// ANALYTICS
+// ══════════════════════════
+async function loadAnalytics() {
+    const delivered = allOrders.filter(o => o.orderStatus === 'DELIVERED');
+    const total = delivered.reduce((s, o) => s + Number(o.totalAmount || 0), 0);
+    const avg = delivered.length ? total / delivered.length : 0;
+    const rate = allOrders.length ? (delivered.length / allOrders.length * 100) : 0;
+    document.getElementById('a-total').textContent = fmt(total || 98500000);
+    document.getElementById('a-success').textContent = delivered.length || 38;
+    document.getElementById('a-avg').textContent = fmt(avg || 2592105);
+    document.getElementById('a-rate').textContent = (rate || 76).toFixed(1) + '%';
+    buildMonthlyChart();
+    buildPaymentChart();
+}
+
+function buildMonthlyChart() {
+    const ctx = document.getElementById('monthly-chart').getContext('2d');
+    if (monthlyChart) monthlyChart.destroy();
+    const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+    monthlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: months, datasets: [{
+                label: 'Doanh thu',
+                data: months.map(() => Math.random() * 50000000 + 5000000),
+                backgroundColor: 'rgba(232,28,28,.7)', borderColor: '#e81c1c', borderWidth: 1,
+            }]
+        },
+        options: {
+            responsive: true, plugins: {
+                legend: {display: false}, tooltip: {
+                    callbacks: {label: c => '  ' + fmt(c.parsed.y)},
+                    backgroundColor: '#1a1a1a',
+                    borderColor: '#2a2a2a',
+                    borderWidth: 1,
+                    titleColor: '#888',
+                    bodyColor: '#f5f5f0',
+                }
+            }, scales: {
+                x: {
+                    grid: {color: 'rgba(255,255,255,.04)'},
+                    ticks: {color: '#666', font: {family: 'Space Mono', size: 9}}
+                },
+                y: {
+                    grid: {color: 'rgba(255,255,255,.04)'},
+                    ticks: {color: '#666', font: {family: 'Space Mono', size: 9}, callback: v => fmt(v)}
+                },
+            }
+        }
+    });
+}
+
+function buildPaymentChart() {
+    const ctx = document.getElementById('payment-chart').getContext('2d');
+    if (paymentChart) paymentChart.destroy();
+    const cod = allOrders.filter(o => o.paymentMethod === 'COD').length || 22;
+    const bank = allOrders.filter(o => o.paymentMethod === 'BANKING').length || 16;
+    paymentChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['COD', 'Chuyển khoản'],
+            datasets: [{
+                data: [cod, bank],
+                backgroundColor: ['#e81c1c', '#3b82f6'],
+                borderColor: '#1a1a1a',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true, plugins: {
+                legend: {labels: {color: '#888', font: {family: 'Space Mono', size: 10}}},
+                tooltip: {
+                    backgroundColor: '#1a1a1a',
+                    borderColor: '#2a2a2a',
+                    borderWidth: 1,
+                    titleColor: '#888',
+                    bodyColor: '#f5f5f0'
+                },
+            }
+        }
+    });
+}
+
+function loadYearChart() {
+    buildMonthlyChart();
+}
+
+// ══════════════════════════
+// VOUCHERS
+// ══════════════════════════
+async function loadVouchers() {
+    try {
+        const res = await apiFetch('/admin/vouchers');
+        allVouchers = res?.result ?? res ?? [];
+        if (!Array.isArray(allVouchers)) allVouchers = [];
+    } catch (e) {
+        allVouchers = [];
+    }
+    renderVouchers();
+}
+
+function renderVouchers() {
+    const body = document.getElementById('vouchers-body');
+    if (!allVouchers.length) {
+        body.innerHTML = '<tr><td colspan="7" class="tbl-empty">CHƯA CÓ VOUCHER</td></tr>';
+        return;
+    }
+    body.innerHTML = allVouchers.map(v => {
+        const expired = v.expiredAt && new Date(v.expiredAt) < new Date();
+        return `<tr>
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--gold)">${v.code}</td>
+      <td><span class="badge badge-blue">${v.discountType === 'PERCENT' ? '%' : 'Cố định'}</span></td>
+      <td style="font-family:var(--font-mono)">${v.discountType === 'PERCENT' ? v.discountValue + '%' : fmt(v.discountValue)}</td>
+      <td style="font-family:var(--font-mono)">${fmt(v.minOrderValue)}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light)">${fmtDate(v.expiredAt) || 'Không hết hạn'}</td>
+      <td><span class="badge ${v.isActive && !expired ? 'badge-green' : 'badge-red'}">${v.isActive && !expired ? 'Hoạt động' : 'Hết hạn'}</span></td>
+      <td><button class="tbl-action danger" onclick="deleteVoucher('${v.id}')">Xoá</button></td>
+    </tr>`;
+    }).join('');
+}
+
+function openVoucherModal() {
+    ['vm-code', 'vm-value', 'vm-min'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('vm-type').value = 'PERCENT';
+    document.getElementById('vm-expire').value = '';
+    openModal('modal-voucher');
+}
+
+async function saveVoucher() {
+    const body = {
+        code: document.getElementById('vm-code').value,
+        discountType: document.getElementById('vm-type').value,
+        discountValue: Number(document.getElementById('vm-value').value),
+        minOrderValue: Number(document.getElementById('vm-min').value) || 0,
+        expiredAt: document.getElementById('vm-expire').value || null,
+        isActive: true,
+    };
+    if (!body.code || !body.discountValue) {
+        showToast('Điền đầy đủ thông tin', true);
+        return;
+    }
+    try {
+        await apiFetch('/admin/vouchers', {method: 'POST', body: JSON.stringify(body)});
+        showToast('Đã tạo voucher');
+        await loadVouchers();
+    } catch (e) {
+        allVouchers.push({id: 'demo-' + Date.now(), ...body});
+        renderVouchers();
+        showToast('Đã tạo (demo)');
+    }
+    closeModal('modal-voucher');
+}
+
+function deleteVoucher(id) {
+    confirm2('Xoá voucher', 'Xác nhận xoá voucher này?', async () => {
+        try {
+            await apiFetch(`/admin/vouchers/${id}`, {method: 'DELETE'});
+            showToast('Đã xoá');
+        } catch (e) {
+            showToast('Đã xoá (demo)');
+        }
+        allVouchers = allVouchers.filter(v => v.id !== id);
+        renderVouchers();
+    });
+}
+
+// ══════════════════════════
+// PAGINATION
+// ══════════════════════════
+function renderPagination(key, total, current) {
+    const el = document.getElementById(key + '-pagination');
+    if (!el) return;
+    const pages = Math.ceil(total / PAGE_SIZE);
+    if (pages <= 1) {
+        el.innerHTML = '';
+        return;
+    }
+    let html = '';
+    for (let i = 1; i <= Math.min(pages, 7); i++)
+        html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="gotoPage('${key}',${i})">${i}</button>`;
+    el.innerHTML = html + `<span class="page-info">${total} kết quả</span>`;
+}
+
+function gotoPage(key, page) {
+    currentPage[key] = page;
+    if (key === 'users') renderUsers();
+    if (key === 'products') renderProducts();
+    if (key === 'devices') renderDevices();
+    if (key === 'orders') renderOrders();
+}
+
+// ══════════════════════════
+// EXPOSE TO WINDOW
+// ══════════════════════════
+window.doLogin = doLogin;
+window.doLogout = doLogout;
+window.goPage = goPage;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.saveProduct = saveProduct;
+window.editProduct = editProduct;
+window.deleteProduct = deleteProduct;
+window.openProductModal = openProductModal;
+window.viewUser = viewUser;
+window.toggleUser = toggleUser;
+window.viewOrder = viewOrder;
+window.confirmOrder = confirmOrder;
+window.cancelOrderAdmin = cancelOrderAdmin;
+window.updateOrderStatus = updateOrderStatus;
+window.filterUsers = filterUsers;
+window.filterProducts = filterProducts;
+window.filterDevices = filterDevices;
+window.filterOrders = filterOrders;
+window.gotoPage = gotoPage;
+window.setChartPeriod = setChartPeriod;
+window.saveVoucher = saveVoucher;
+window.openVoucherModal = openVoucherModal;
+window.deleteVoucher = deleteVoucher;
+window.loadYearChart = loadYearChart;
+window.refreshPage = refreshPage;
+window.toggleSidebar = toggleSidebar;
+window.viewDeviceDetail = viewDeviceDetail;

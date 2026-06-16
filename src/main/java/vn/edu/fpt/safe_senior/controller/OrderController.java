@@ -3,9 +3,9 @@ package vn.edu.fpt.safe_senior.controller;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.OrderResponse;
 import vn.edu.fpt.safe_senior.service.OrderService;
 
@@ -20,5 +20,15 @@ public class OrderController {
     @GetMapping("/user-orders")
     public List<OrderResponse> getUserOrders() {
         return orderService.getOrderUser();
+    }
+
+    @PostMapping("/{orderId}/cancel")
+    public ApiResponse<Void> cancelOrder(@PathVariable String orderId) {
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+        orderService.cancelOrder(orderId, username);
+        return ApiResponse.<Void>builder()
+                .message("Order cancelled successfully")
+                .build();
     }
 }
