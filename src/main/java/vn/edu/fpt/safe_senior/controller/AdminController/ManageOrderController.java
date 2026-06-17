@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
-import vn.edu.fpt.safe_senior.dto.response.ApiResponse;
 import vn.edu.fpt.safe_senior.dto.response.OrderResponse;
 import vn.edu.fpt.safe_senior.service.OrderService;
 
@@ -15,7 +14,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RestController
 @RequestMapping("/api/orders")
-public class AdOrderController {
+public class ManageOrderController {
     OrderService orderService;
 
     @GetMapping

@@ -206,7 +206,9 @@
                         </tr>
                         </thead>
                         <tbody id="users-body">
-                        <tr><td colspan="8" class="tbl-empty">ĐANG TẢI...</td></tr>
+                        <tr>
+                            <td colspan="8" class="tbl-empty">ĐANG TẢI...</td>
+                        </tr>
                         </tbody>
                     </table>
 
@@ -219,37 +221,52 @@
             <div class="page" id="page-products">
                 <div class="section-head">
                     <div class="section-title">SẢN PHẨM</div>
+                    <div style="font-family:var(--font-mono);font-size:10px;
+                    color:var(--grey-light);letter-spacing:1px;"
+                         id="products-total-label"></div>
                     <div class="section-actions">
                         <button class="topbar-btn primary" onclick="openProductModal()">+ THÊM SẢN PHẨM</button>
                     </div>
                 </div>
+
                 <div class="table-wrap">
                     <div class="table-toolbar">
-                        <input class="search-input" placeholder="Tìm sản phẩm..." id="product-search"
+                        <input class="search-input"
+                               placeholder="🔍 Tìm tên, mô tả sản phẩm..."
+                               id="product-search"
                                oninput="filterProducts()">
-                        <select class="filter-select" id="product-filter" onchange="filterProducts()">
-                            <option value="">Tất cả</option>
-                            <option value="ACTIVE">Đang bán</option>
-                            <option value="INACTIVE">Ngừng bán</option>
+
+                        <select id="product-status-filter"
+                                class="search-input"
+                                style="max-width:180px"
+                                onchange="filterProducts()">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                            <option value="SOLD">SOLD</option>
                         </select>
                     </div>
+
                     <table class="tbl">
                         <thead>
                         <tr>
                             <th>#</th>
-                            <th>Tên sản phẩm</th>
+                            <th>Sản phẩm</th>
                             <th>Mô tả</th>
                             <th>Giá</th>
                             <th>Trạng thái</th>
-                            <th></th>
+                            <th>Ngày tạo</th>
+                            <th>Cập nhật</th>
+                            <th>Thao tác</th>
                         </tr>
                         </thead>
                         <tbody id="products-body">
                         <tr>
-                            <td colspan="6" class="tbl-empty">ĐANG TẢI...</td>
+                            <td colspan="7" class="tbl-empty">ĐANG TẢI...</td>
                         </tr>
                         </tbody>
                     </table>
+
                     <div class="pagination" id="products-pagination"></div>
                 </div>
             </div>
@@ -258,36 +275,45 @@
             <div class="page" id="page-devices">
                 <div class="section-head">
                     <div class="section-title">THIẾT BỊ</div>
+                    <div style="font-family:var(--font-mono);font-size:10px;
+                    color:var(--grey-light);letter-spacing:1px;"
+                         id="devices-total-label"></div>
                 </div>
+
                 <div class="table-wrap">
                     <div class="table-toolbar">
-                        <input class="search-input" placeholder="Tìm device ID, tên..." id="device-search"
+                        <input class="search-input"
+                               placeholder="🔍  Tìm device ID, tên..."
+                               id="device-search"
                                oninput="filterDevices()">
                         <select class="filter-select" id="device-filter" onchange="filterDevices()">
-                            <option value="">Tất cả</option>
+                            <option value="">Tất cả trạng thái</option>
                             <option value="ACTIVE">Active</option>
                             <option value="INACTIVE">Inactive</option>
                             <option value="SOLD">Sold</option>
                             <option value="OFFLINE">Offline</option>
                         </select>
                     </div>
+
                     <table class="tbl">
                         <thead>
                         <tr>
                             <th>Device ID</th>
-                            <th>Tên</th>
+                            <th>Tên thiết bị</th>
                             <th>Chủ sở hữu</th>
                             <th>Trạng thái</th>
+                            <th>Cấu hình lúc</th>
                             <th>Kết nối lần cuối</th>
-                            <th></th>
+                            <th>Thao tác</th>
                         </tr>
                         </thead>
                         <tbody id="devices-body">
                         <tr>
-                            <td colspan="6" class="tbl-empty">ĐANG TẢI...</td>
+                            <td colspan="7" class="tbl-empty">ĐANG TẢI...</td>
                         </tr>
                         </tbody>
                     </table>
+
                     <div class="pagination" id="devices-pagination"></div>
                 </div>
             </div>
@@ -409,44 +435,6 @@
     </div><!-- /main -->
 </div><!-- /app -->
 
-<!-- MODAL: PRODUCT -->
-<div class="modal-overlay" id="modal-product">
-    <div class="modal">
-        <div class="modal-head">
-            <div class="modal-title" id="product-modal-title">THÊM SẢN PHẨM</div>
-            <button class="modal-close" onclick="closeModal('modal-product')">✕</button>
-        </div>
-        <div class="modal-body">
-            <input type="hidden" id="pm-id">
-            <div class="form-group">
-                <label class="form-label">Tên sản phẩm</label>
-                <input class="form-input" id="pm-name" placeholder="Nhập tên sản phẩm">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Mô tả</label>
-                <textarea class="form-textarea" id="pm-desc" placeholder="Mô tả sản phẩm"></textarea>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Giá (VNĐ)</label>
-                    <input class="form-input" id="pm-price" type="number" placeholder="499000">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Trạng thái</label>
-                    <select class="form-select" id="pm-status">
-                        <option value="ACTIVE">Đang bán</option>
-                        <option value="INACTIVE">Ngừng bán</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('modal-product')">Huỷ</button>
-            <button class="btn btn-primary" onclick="saveProduct()">LƯU</button>
-        </div>
-    </div>
-</div>
-
 <!-- MODAL: ORDER DETAIL -->
 <div class="modal-overlay" id="modal-order">
     <div class="modal" style="width:640px">
@@ -547,6 +535,117 @@
     </div>
 </div>
 
+<!-- Modal product -->
+<div class="modal-overlay" id="modal-product">
+    <div class="modal">
+        <div class="modal-header">
+            <div id="product-modal-title"
+                 style="font-family:var(--font-display);font-size:20px;letter-spacing:1px;">
+                THÊM SẢN PHẨM
+            </div>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="pm-id">
+            <div style="display:flex;flex-direction:column;gap:14px;">
+                <div>
+                    <label class="form-label">Tên sản phẩm *</label>
+                    <input class="form-control" id="pm-name"
+                           type="text" placeholder="Safe Senior Pro...">
+                </div>
+                <div>
+                    <label class="form-label">Mô tả</label>
+                    <textarea class="form-control" id="pm-desc"
+                              rows="3"
+                              placeholder="Mô tả sản phẩm..."></textarea>
+                </div>
+                <div>
+                    <label class="form-label">Giá bán (₫) *</label>
+                    <input class="form-control" id="pm-price"
+                           type="number" placeholder="499000">
+                </div>
+                <div>
+                    <label class="form-label">Trạng thái *</label>
+                    <select class="form-control" id="pm-status">
+                        <option value="ACTIVE">Đang bán</option>
+                        <option value="INACTIVE">Ngừng bán</option>
+                    </select>
+                </div>
+                <div id="device-section"
+                     style="margin-top:8px;padding-top:16px;border-top:1px solid var(--grey-border);">
+                    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:3px;
+                color:var(--grey-light);margin-bottom:12px;">THÔNG TIN THIẾT BỊ</div>
+                    <div style="display:flex;flex-direction:column;gap:14px;">
+                        <div>
+                            <label class="form-label">Device ID *</label>
+                            <input class="form-control" id="pm-device-id"
+                                   type="text" placeholder="ESP_001...">
+                        </div>
+                        <div>
+                            <label class="form-label">Tên thiết bị *</label>
+                            <input class="form-control" id="pm-device-name"
+                                   type="text" placeholder="Safe Senior Basic Device...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary"
+                    onclick="closeModal('modal-product')">HỦY
+            </button>
+            <button class="btn btn-primary"
+                    onclick="saveProduct()">LƯU SẢN PHẨM
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal confirm xóa -->
+<div class="modal-overlay" id="modal-confirm-product">
+    <div class="modal" style="max-width:380px;">
+        <div class="modal-header">
+            <div style="font-family:var(--font-display);font-size:20px;">XÁC NHẬN XÓA</div>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:13px;color:var(--grey-light);line-height:1.7;">
+                Bạn chắc chắn muốn xóa sản phẩm
+                <strong id="confirm-prod-name" style="color:var(--white);"></strong>?
+                <br>Hành động này không thể hoàn tác.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary"
+                    onclick="closeModal('modal-confirm-product')">HỦY
+            </button>
+            <button class="btn btn-danger"
+                    id="confirm-delete-prod-btn">XÓA
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal device detail -->
+<div class="modal-overlay" id="modal-device">
+    <div class="modal">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:14px;">
+                <div id="dev-status-dot" style="
+                    width:10px;height:10px;border-radius:50%;
+                    flex-shrink:0;"></div>
+                <div>
+                    <div id="dev-modal-id"
+                         style="font-family:var(--font-mono);font-size:16px;
+                                letter-spacing:2px;color:var(--white);"></div>
+                    <div id="dev-modal-name"
+                         style="font-size:12px;color:var(--grey-light);
+                                margin-top:3px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-body" id="device-detail-body"></div>
+        <div class="modal-footer" id="device-detail-footer"></div>
+    </div>
+</div>
 <script type="module" th:src="@{/js/admin.js}"></script>
 </body>
 </html>

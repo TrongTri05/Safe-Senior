@@ -1,23 +1,18 @@
-package vn.edu.fpt.safe_senior.dto.response;
+package vn.edu.fpt.safe_senior.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductResponse {
-    String id;
+public class ProductUpdateRequest {
     String name;
     String description;
-    String status;
     BigDecimal price;
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
+    String status;
 }

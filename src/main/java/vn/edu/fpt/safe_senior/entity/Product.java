@@ -34,4 +34,9 @@ public class Product {
     Device device;
     @OneToMany(mappedBy = "product")
     List<OrderItem> orderItems;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
 }

@@ -236,10 +236,4 @@ public class UserService {
         emailService.sendVerificationEmail(feedbackRequest.getEmail(), subject, content);
         return userFeedbackRepository.save(userFeedback);
     }
-
-
-    @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(String id) {
-        userRepository.deleteById(id);
-    }
 }

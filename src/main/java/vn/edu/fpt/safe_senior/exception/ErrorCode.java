@@ -36,6 +36,9 @@ public enum ErrorCode {
     ORDER_CANNOT_CANCEL(1027,"Order cannot be cancelled", HttpStatus.BAD_REQUEST),
     USER_CONTACT_NOT_FOUND(1028,"User contact not found", HttpStatus.NOT_FOUND),
     DEVICE_LOCATION_NOT_FOUND(1029,"Device location not found", HttpStatus.NOT_FOUND),
+    PRODUCT_NOT_UPDATE(1030,"Sản phẩm đã bán không thể cập nhật.", HttpStatus.BAD_REQUEST),
+    PRODUCT_EXISTED(1031,"Product existed", HttpStatus.BAD_REQUEST),
+    DEVICE_EXISTED(1032,"Device existed", HttpStatus.BAD_REQUEST),
     LOGIN_ERROR(1018, "Username or Password error", HttpStatus.INTERNAL_SERVER_ERROR);
 
 

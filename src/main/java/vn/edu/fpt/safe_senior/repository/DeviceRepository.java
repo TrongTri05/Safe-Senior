@@ -18,4 +18,6 @@ public interface DeviceRepository extends JpaRepository<Device, String> {
 
     Optional<Device> findByDeviceIdAndUserId(String deviceId, String userId);
 
+    boolean existsByDeviceId(String deviceId);
+
 }

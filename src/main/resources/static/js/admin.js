@@ -1,4 +1,4 @@
-import api from "./api.js";
+import api from "./api-admin.js";
 
 // ══════════════════════════
 // CONFIG & STATE
@@ -140,7 +140,7 @@ async function doLogin() {
         }
 
         // Lưu token
-        localStorage.setItem('access_token', tk);
+        localStorage.setItem('admin_access_token', tk);
         localStorage.setItem('admin_user', JSON.stringify({username, role: 'ADMIN'}));
         adminUser = {username, role: 'ADMIN'};
 
@@ -160,8 +160,9 @@ async function doLogin() {
 }
 
 function doLogout() {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem('admin_access_token');
     localStorage.removeItem('admin_user');
+    // Không đụng vào access_token, userId, username của user web
     document.getElementById('app').style.display = 'none';
     document.getElementById('login-screen').classList.remove('hidden');
     document.getElementById('l-pass').value = '';
@@ -199,7 +200,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     // Auto-login nếu access_token còn hạn
-    const tk = localStorage.getItem('access_token');
+    const tk = localStorage.getItem('admin_access_token');
     if (tk) {
         try {
             const p = JSON.parse(atob(tk.split('.')[1]));
@@ -215,7 +216,7 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         } catch (e) {
         }
-        localStorage.removeItem('access_token');
+        localStorage.removeItem('admin_access_token');
         localStorage.removeItem('admin_user');
     }
 });
@@ -683,12 +684,17 @@ async function toggleUser(id, isActive) {
 // PRODUCTS
 // ══════════════════════════
 async function loadProducts() {
+    const body = document.getElementById('products-body');
+    body.innerHTML = '<tr><td colspan="7" class="tbl-empty">ĐANG TẢI...</td></tr>';
+
     try {
-        const res = await apiFetch('/products');
+        const res = await apiFetch('/api/product');
         allProducts = res?.result ?? res ?? [];
         if (!Array.isArray(allProducts)) allProducts = [];
     } catch (e) {
         allProducts = [];
+        body.innerHTML = '<tr><td colspan="7" class="tbl-empty" style="color:var(--red);">⚠ KHÔNG THỂ TẢI SẢN PHẨM</td></tr>';
+        return;
     }
     renderProducts();
 }
@@ -699,37 +705,113 @@ function filterProducts() {
 }
 
 function renderProducts() {
+    const status = document.getElementById('product-status-filter')?.value || '';
     const search = document.getElementById('product-search')?.value.toLowerCase() || '';
-    const filter = document.getElementById('product-filter')?.value || '';
+
     let filtered = allProducts.filter(p => {
-        const match = !search || (p.name || '').toLowerCase().includes(search) || (p.description || '').toLowerCase().includes(search);
-        return match && (!filter || p.status === filter);
+        const matchSearch =
+            !search ||
+            (p.name || '').toLowerCase().includes(search) ||
+            (p.description || '').toLowerCase().includes(search);
+        const matchStatus =
+            !status ||
+            p.status === status;
+        return matchSearch && matchStatus;
     });
-    const total = filtered.length, page = currentPage.products;
+
+    // Label tổng
+    const lbl = document.getElementById('products-total-label');
+    if (lbl) lbl.textContent = `${filtered.length} / ${allProducts.length} sản phẩm`;
+
+    const total = filtered.length;
+    const page = currentPage.products;
     const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     const body = document.getElementById('products-body');
+
     if (!paged.length) {
-        body.innerHTML = '<tr><td colspan="6" class="tbl-empty">KHÔNG CÓ SẢN PHẨM</td></tr>';
+        body.innerHTML = '<tr><td colspan="8" class="tbl-empty">KHÔNG CÓ SẢN PHẨM</td></tr>';
+        renderPagination('products', total, page);
         return;
     }
-    body.innerHTML = paged.map((p, i) => `<tr>
-    <td style="color:var(--grey-light);font-family:var(--font-mono);font-size:11px">${(page - 1) * PAGE_SIZE + i + 1}</td>
-    <td><strong>${p.name || '—'}</strong></td>
-    <td style="color:var(--grey-light);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.description || '—'}</td>
-    <td style="font-family:var(--font-mono)">${fmt(p.price)}</td>
-    <td><span class="badge ${p.status === 'ACTIVE' ? 'badge-green' : 'badge-grey'}">${p.status === 'ACTIVE' ? 'Đang bán' : 'Ngừng bán'}</span></td>
-    <td>
-      <button class="tbl-action" onclick="editProduct('${p.id}')">Sửa</button>
-      <button class="tbl-action danger" onclick="deleteProduct('${p.id}')">Xoá</button>
-    </td>
-  </tr>`).join('');
+
+    body.innerHTML = paged.map((p, i) => {
+        const idx = (page - 1) * PAGE_SIZE + i + 1;
+        const price = Number(p.price || 0);
+
+        return `<tr>
+            <td style="color:var(--grey-light);font-family:var(--font-mono);
+                       font-size:11px;width:40px;">${idx}</td>
+            <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="
+                        width:36px;height:36px;
+                        background:var(--grey3);
+                        border:1px solid var(--grey-border);
+                        display:flex;align-items:center;
+                        justify-content:center;font-size:16px;
+                        flex-shrink:0;">📟</div>
+                    <div>
+                        <div style="font-size:13px;font-weight:500;">
+                            ${p.name || '—'}
+                        </div>
+                        <div style="font-family:var(--font-mono);font-size:10px;
+                                    color:var(--grey-light);margin-top:2px;">
+                            ID: ${p.id ? p.id.slice(0, 8) : '—'}
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td style="color:var(--grey-light);font-size:12px;
+                       max-width:220px;overflow:hidden;
+                       text-overflow:ellipsis;white-space:nowrap;">
+                ${p.description || '—'}
+            </td>
+            <td style="font-family:var(--font-mono);font-size:13px;
+                       color:var(--white);">
+                ${fmt(price)}
+            </td>
+            <td>
+    <span style="
+        padding:4px 8px;
+        border-radius:4px;
+        font-size:11px;
+        font-family:var(--font-mono);
+        font-weight:600;
+        ${p.status === 'ACTIVE'
+            ? 'background:rgba(0,255,120,.12);color:#00ff88;border:1px solid rgba(0,255,120,.25);'
+            : 'background:rgba(255,0,0,.12);color:#ff5c5c;border:1px solid rgba(255,0,0,.25);'}
+    ">
+        ${p.status || 'UNKNOWN'}
+    </span>
+</td>
+            <td style="font-family:var(--font-mono);font-size:11px;
+                       color:var(--grey-light);">
+                ${fmtDate(p.createdAt)}
+            </td>
+            <td style="font-family:var(--font-mono);font-size:11px;
+                       color:var(--grey-light);">
+                ${fmtDate(p.updatedAt)}
+            </td>
+            <td>
+                <button class="tbl-action" onclick="editProduct('${p.id}')">Sửa</button>         
+            </td>
+        </tr>`;
+    }).join('');
+
     renderPagination('products', total, page);
 }
 
 function openProductModal() {
     document.getElementById('product-modal-title').textContent = 'THÊM SẢN PHẨM';
-    ['pm-id', 'pm-name', 'pm-desc', 'pm-price'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('pm-id').value = '';
+    document.getElementById('pm-name').value = '';
+    document.getElementById('pm-desc').value = '';
+    document.getElementById('pm-price').value = '';
     document.getElementById('pm-status').value = 'ACTIVE';
+    document.getElementById('pm-device-id').value = '';
+    document.getElementById('pm-device-name').value = '';
+    document.getElementById('device-section').style.display = 'block';
+
     openModal('modal-product');
 }
 
@@ -742,61 +824,116 @@ function editProduct(id) {
     document.getElementById('pm-desc').value = p.description || '';
     document.getElementById('pm-price').value = p.price || '';
     document.getElementById('pm-status').value = p.status || 'ACTIVE';
+    // Ẩn section device khi SỬA
+    document.getElementById('device-section').style.display = 'none';
+
     openModal('modal-product');
 }
 
 async function saveProduct() {
     const id = document.getElementById('pm-id').value;
-    const body = {
-        name: document.getElementById('pm-name').value,
-        description: document.getElementById('pm-desc').value,
-        price: Number(document.getElementById('pm-price').value),
-        status: document.getElementById('pm-status').value,
-    };
-    if (!body.name || !body.price) {
-        showToast('Vui lòng điền đầy đủ thông tin', true);
+    const name = document.getElementById('pm-name').value.trim();
+    const desc = document.getElementById('pm-desc').value.trim();
+    const price = Number(document.getElementById('pm-price').value);
+    const status = document.getElementById('pm-status').value;
+
+    if (!name || !price) {
+        showToast('Vui lòng nhập tên và giá sản phẩm!', true);
         return;
     }
+
+    let body;
+
+    if (!id) {
+        // ── THÊM MỚI — cần device
+        const deviceId = document.getElementById('pm-device-id').value.trim();
+        const deviceName = document.getElementById('pm-device-name').value.trim();
+
+        if (!deviceId || !deviceName) {
+            showToast('Vui lòng nhập thông tin thiết bị!', true);
+            return;
+        }
+
+        body = {
+            name, description: desc, price, status,
+            device: {deviceId, name: deviceName}
+        };
+    } else {
+        // ── SỬA — không có device
+        body = {name, description: desc, price, status};
+    }
+
     try {
-        if (id) await apiFetch(`/admin/products/${id}`, {method: 'PUT', body: JSON.stringify(body)});
-        else await apiFetch('/admin/products', {method: 'POST', body: JSON.stringify(body)});
-        showToast(id ? 'Đã cập nhật sản phẩm' : 'Đã thêm sản phẩm');
-        closeModal('modal-product');
-        await loadProducts();
-    } catch (e) {
         if (id) {
+            await apiFetch(`/api/product/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(body)
+            });
             const p = allProducts.find(x => x.id === id);
             if (p) Object.assign(p, body);
-        } else allProducts.push({id: 'demo-' + Date.now(), ...body});
-        renderProducts();
-        showToast(id ? 'Đã cập nhật (demo)' : 'Đã thêm (demo)');
-        closeModal('modal-product');
+            showToast('Đã cập nhật sản phẩm!');
+        } else {
+            const res = await apiFetch('/api/product', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            const newProd = res?.result ?? res;
+            if (newProd) allProducts.unshift(newProd);
+            showToast('Đã thêm sản phẩm mới!');
+        }
+    } catch (e) {
+        const errMsg = e.response?.data?.message
+            ?? e.response?.data?.result
+            ?? e.message
+            ?? (id ? 'Cập nhật thất bại!' : 'Thêm sản phẩm thất bại!');
+        showToast(errMsg, true);
+        console.error(e);
     }
+
+    closeModal('modal-product');
+    renderProducts();
 }
 
-function deleteProduct(id) {
-    confirm2('Xoá sản phẩm', 'Bạn chắc chắn muốn xoá sản phẩm này?', async () => {
+function deleteProduct(id, name) {
+    // Hiện modal confirm riêng
+    document.getElementById('confirm-prod-name').textContent = name;
+    document.getElementById('confirm-delete-prod-btn').onclick = async () => {
+        closeModal('modal-confirm-product');
         try {
-            await apiFetch(`/admin/products/${id}`, {method: 'DELETE'});
-            showToast('Đã xoá sản phẩm');
+            await apiFetch(`/api/product/${id}`, {method: 'DELETE'});
+            showToast('Đã xóa sản phẩm!');
         } catch (e) {
-            showToast('Đã xoá (demo)');
+            showToast('Đã xóa (demo)!');
         }
         allProducts = allProducts.filter(p => p.id !== id);
         renderProducts();
-    });
+    };
+    openModal('modal-confirm-product');
 }
 
 // ══════════════════════════
 // DEVICES
 // ══════════════════════════
+const DEV_STATUS = {
+    ACTIVE:   { label: 'Active',    cls: 'badge-green', color: '#00c864', dot: '#00c864' },
+    INACTIVE: { label: 'Inactive',  cls: 'badge-grey',  color: '#666',    dot: '#444'    },
+    SOLD:     { label: 'Sold',      cls: 'badge-gold',  color: '#f5c842', dot: '#f5c842' },
+    OFFLINE:  { label: 'Offline',   cls: 'badge-red',   color: '#e81c1c', dot: '#e81c1c' },
+    BLOCKED:  { label: 'Blocked',   cls: 'badge-red',   color: '#e81c1c', dot: '#e81c1c' },
+};
+
 async function loadDevices() {
+    const body = document.getElementById('devices-body');
+    body.innerHTML = '<tr><td colspan="7" class="tbl-empty">ĐANG TẢI...</td></tr>';
+
     try {
-        const res = await apiFetch('/admin/devices');
+        const res  = await apiFetch('/api/device');
         allDevices = res?.result ?? res ?? [];
         if (!Array.isArray(allDevices)) allDevices = [];
-    } catch (e) {
+    } catch(e) {
         allDevices = [];
+        body.innerHTML = '<tr><td colspan="7" class="tbl-empty" style="color:var(--red);">⚠ KHÔNG THỂ TẢI THIẾT BỊ</td></tr>';
+        return;
     }
     renderDevices();
 }
@@ -809,40 +946,119 @@ function filterDevices() {
 function renderDevices() {
     const search = document.getElementById('device-search')?.value.toLowerCase() || '';
     const filter = document.getElementById('device-filter')?.value || '';
+
     let filtered = allDevices.filter(d => {
-        const match = !search || (d.deviceId || '').toLowerCase().includes(search) || (d.name || '').toLowerCase().includes(search);
-        return match && (!filter || d.status === filter);
+        const match = !search
+            || (d.deviceId || '').toLowerCase().includes(search)
+            || (d.name     || '').toLowerCase().includes(search)
+            || (d.userId   || '').toLowerCase().includes(search);
+        const sf = !filter || d.status === filter;
+        return match && sf;
     });
-    const total = filtered.length, page = currentPage.devices;
+
+    // Label tổng + đếm online
+    const onlineCount = allDevices.filter(d => d.status === 'ACTIVE').length;
+    const lbl = document.getElementById('devices-total-label');
+    if (lbl) lbl.textContent =
+        `${filtered.length} / ${allDevices.length} thiết bị  •  ${onlineCount} online`;
+
+    const total = filtered.length;
+    const page  = currentPage.devices;
     const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-    const body = document.getElementById('devices-body');
-    const statusMap = {
-        ACTIVE: 'badge-green',
-        INACTIVE: 'badge-grey',
-        SOLD: 'badge-gold',
-        OFFLINE: 'badge-red',
-        BLOCKED: 'badge-red'
-    };
-    const statusLabel = {ACTIVE: 'Active', INACTIVE: 'Inactive', SOLD: 'Sold', OFFLINE: 'Offline', BLOCKED: 'Blocked'};
+    const body  = document.getElementById('devices-body');
+
     if (!paged.length) {
-        body.innerHTML = '<tr><td colspan="6" class="tbl-empty">KHÔNG CÓ THIẾT BỊ</td></tr>';
+        body.innerHTML = '<tr><td colspan="7" class="tbl-empty">KHÔNG CÓ THIẾT BỊ</td></tr>';
+        renderPagination('devices', total, page);
         return;
     }
-    body.innerHTML = paged.map(d => `<tr>
-    <td style="font-family:var(--font-mono);font-size:12px">${d.deviceId || '—'}</td>
-    <td>${d.name || '—'}</td>
-    <td style="color:var(--grey-light);font-size:12px">${d.user?.username || d.userId || 'Chưa có chủ'}</td>
-    <td><span class="badge ${statusMap[d.status] || 'badge-grey'}">${statusLabel[d.status] || d.status}</span></td>
-    <td style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light)">${fmtDateTime(d.lastConnectedAt)}</td>
-    <td><button class="tbl-action" onclick="viewDeviceDetail('${d.id || d.deviceId}')">Chi tiết</button></td>
-  </tr>`).join('');
+
+    body.innerHTML = paged.map(d => {
+        const st       = DEV_STATUS[d.status] || { label: d.status || '—', cls: 'badge-grey', dot: '#444' };
+        const hasOwner = !!d.userId;
+        return `<tr style="cursor:pointer;" onclick="viewDeviceDetail('${d.deviceId}')">
+            <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:8px;height:8px;border-radius:50%;
+                                background:${st.dot};flex-shrink:0;
+                                ${d.status==='ACTIVE'?'box-shadow:0 0 6px '+st.dot+';':''}">
+                    </div>
+                    <span style="font-family:var(--font-mono);font-size:12px;
+                                 color:var(--white);">${d.deviceId || '—'}</span>
+                </div>
+            </td>
+            <td style="font-size:13px;">${d.name || '—'}</td>
+            <td>
+                ${hasOwner
+            ? `<span style="font-family:var(--font-mono);font-size:11px;
+                                   color:var(--blue);">${d.userId.slice(0,8).toUpperCase()}</span>`
+            : `<span style="font-size:12px;color:var(--grey-light);">Chưa có chủ</span>`
+        }
+            </td>
+            <td>
+                <span class="badge ${st.cls}">${st.label}</span>
+            </td>
+            <td style="font-family:var(--font-mono);font-size:11px;
+                       color:var(--grey-light);">
+                ${fmtDateTime(d.configuredAt)}
+            </td>
+            <td style="font-family:var(--font-mono);font-size:11px;
+                       color:var(--grey-light);">
+                ${fmtDateTime(d.lastConnectedAt)}
+            </td>
+            <td onclick="event.stopPropagation()">
+                <button class="tbl-action"
+                        onclick="viewDeviceDetail('${d.deviceId}')">
+                    Chi tiết
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+
     renderPagination('devices', total, page);
 }
 
-function viewDeviceDetail(id) {
-    const d = allDevices.find(x => (x.id === id || x.deviceId === id));
+function viewDeviceDetail(deviceId) {
+    const d = allDevices.find(x => x.deviceId === deviceId);
     if (!d) return;
-    showToast(`Device: ${d.deviceId} — ${d.status}`);
+
+    const st = DEV_STATUS[d.status] || { label: d.status || '—', cls: 'badge-grey', dot: '#444' };
+
+    // Header
+    document.getElementById('dev-status-dot').style.background  = st.dot;
+    document.getElementById('dev-status-dot').style.boxShadow   =
+        d.status === 'ACTIVE' ? `0 0 8px ${st.dot}` : 'none';
+    document.getElementById('dev-modal-id').textContent   = d.deviceId || '—';
+    document.getElementById('dev-modal-name').textContent = d.name     || '—';
+
+    const fields = [
+        ['Device ID',       d.deviceId],
+        ['Tên thiết bị',    d.name],
+        ['Chủ sở hữu (ID)', d.userId || 'Chưa có chủ'],
+        ['Trạng thái',      `<span class="badge ${st.cls}">${st.label}</span>`],
+        ['Cấu hình lúc',    fmtDateTime(d.configuredAt)],
+        ['Kết nối lần cuối',fmtDateTime(d.lastConnectedAt)],
+        ['Ngày tạo',        fmtDateTime(d.created)],
+    ];
+
+    document.getElementById('device-detail-body').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            ${fields.map(([k, v]) => `
+            <div style="background:var(--black);padding:12px 14px;
+                        border:1px solid var(--grey-border);">
+                <div style="font-family:var(--font-mono);font-size:9px;
+                            letter-spacing:2px;text-transform:uppercase;
+                            color:var(--grey-light);margin-bottom:5px;">${k}</div>
+                <div style="font-size:13px;">${v || '—'}</div>
+            </div>`).join('')}
+        </div>`;
+
+    // Footer
+    document.getElementById('device-detail-footer').innerHTML = `
+        <button class="btn btn-secondary"
+                onclick="closeModal('modal-device')">Đóng</button>`;
+
+    openModal('modal-device');
 }
 
 // ══════════════════════════

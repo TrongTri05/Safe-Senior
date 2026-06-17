@@ -74,7 +74,7 @@ public class ProductService {
                     .orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_FOUND));
             device.setUser(user);
             devicesToUpdate.add(device);
-            product.setStatus(ProductEnum.INACTIVE.name());
+            product.setStatus(ProductEnum.SOLD.name());
             productsToUpdate.add(product);
         }
 

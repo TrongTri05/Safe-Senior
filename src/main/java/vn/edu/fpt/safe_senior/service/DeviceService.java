@@ -41,21 +41,6 @@ public class DeviceService {
     UserContactRepository userContactRepository;
     DeviceLocationRepository deviceLocationRepository;
 
-    public DeviceRegisterResponse register(DeviceRegisterRequest request) {
-        String deviceId = request.getDeviceId();
-        Device device = deviceRepository.findByDeviceId(deviceId).orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_AVAILABLE));
-
-
-        User user = device.getUser();
-        if (user == null || !user.getIsActive()) {
-            throw new AppException(ErrorCode.USER_ERROR);
-        }
-        device.setStatus(DeviceEnum.ACTIVE.name());
-        device.setConfiguredAt(LocalDateTime.now());
-        device.setLastConnectedAt(LocalDateTime.now());
-        deviceRepository.save(device);
-        return new DeviceRegisterResponse(deviceId);
-    }
 
     public void disconnect(DeviceDisconnectRequest request) {
         Device device = deviceRepository.findByDeviceId(request.getDeviceId()).orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_AVAILABLE));
@@ -87,7 +72,6 @@ public class DeviceService {
         }
         device.setStatus(DeviceEnum.ACTIVE.name());
         device.setConfiguredAt(LocalDateTime.now());
-        device.setLastConnectedAt(LocalDateTime.now());
         deviceRepository.save(device);
         return "ACTIVE";
     }

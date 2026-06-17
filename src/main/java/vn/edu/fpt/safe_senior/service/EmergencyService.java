@@ -14,6 +14,7 @@ import vn.edu.fpt.safe_senior.exception.AppException;
 import vn.edu.fpt.safe_senior.exception.ErrorCode;
 import vn.edu.fpt.safe_senior.repository.DeviceRepository;
 import vn.edu.fpt.safe_senior.repository.EmergencyLogRepository;
+import vn.edu.fpt.safe_senior.repository.UserContactRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
 public class EmergencyService {
     DeviceRepository deviceRepository;
     EmergencyLogRepository emergencyLogRepository;
+    UserContactRepository userContactRepository;
 
     public void handleEmergency(String deviceId) {
         Device device = deviceRepository.findByDeviceId(deviceId).orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_AVAILABLE));
@@ -36,7 +38,8 @@ public class EmergencyService {
         if (user == null || !user.getIsActive()) {
             throw new AppException(ErrorCode.USER_ERROR);
         }
-
+        device.setLastConnectedAt(LocalDateTime.now());
+        deviceRepository.save(device);
         EmergencyLog logEntity = EmergencyLog.builder()
                 .device(device)
                 .user(user)
@@ -46,11 +49,12 @@ public class EmergencyService {
                 .build();
         emergencyLogRepository.save(logEntity);
 
-//        List<UserContact> contacts = user.getContacts();
+        List<UserContact> contacts = userContactRepository.findAllByDeviceId(device.getId());
 
-//        for (UserContact contact : contacts)
-//            log.info("SEND SOS TO: {}", contact.getPhoneNumber());
-        log.info("EMERGENCY SUCCESS: {}", deviceId);
+        for (UserContact contact : contacts) {
+            log.info("CẢNH BÁO: NGƯỜI DÙNG {} ĐANG CẦN HỖ TRỢ {}", user.getName(), contact.getPhoneNumber());
+            log.info("THIẾT BỊ CẢNH BÁO: {}", deviceId);
+        }
     }
 
 }

@@ -70,6 +70,10 @@ unsigned long firstClickTime = 0;
 unsigned long lastWiFiReconnectAttempt = 0;
 unsigned long lastWiFiLostBlink        = 0;
 
+// ================= EMERGENCY STATE =================
+bool           emergencyActive    = false;
+unsigned long  emergencyStartTime = 0;
+
 // ================= TIME CONFIG =================
 
 const unsigned long HOLD_TIME          = 3000;
@@ -125,6 +129,8 @@ void handleButton();
 void resetClickWindow();
 void handleTripleClick();
 void emergencyAction();
+void handleEmergency();
+void stopEmergency();
 
 void handleGPS();
 void sendLocationToServer(double lat, double lng);
@@ -236,6 +242,7 @@ void loop() {
   handleWiFiReconnect();
   handleWiFiLostBlink();
   handleGPS();
+  handleEmergency();  // Check emergency timeout and blink
 }
 
 // ================= GPS HANDLER =================
@@ -458,6 +465,38 @@ void resetClickWindow() {
   firstClickTime = 0;
 }
 
+// ================= EMERGENCY HANDLER (NON-BLOCKING) =================
+
+void handleEmergency() {
+  if (!emergencyActive) return;
+
+  unsigned long now = millis();
+  unsigned long elapsedTime = now - emergencyStartTime;
+
+  // Blink LED and Buzzer (100ms on, 100ms off pattern = fast blink)
+  if ((elapsedTime / 100) % 2 == 0) {
+    digitalWrite(LED_PIN,    HIGH);
+    digitalWrite(BUZZER_PIN, HIGH);
+  } else {
+    digitalWrite(LED_PIN,    LOW);
+    digitalWrite(BUZZER_PIN, LOW);
+  }
+
+  // Stop emergency after ALERT_TIME (10 seconds)
+  if (elapsedTime >= ALERT_TIME) {
+    stopEmergency();
+  }
+}
+
+void stopEmergency() {
+  emergencyActive = false;
+  emergencyStartTime = 0;
+  digitalWrite(LED_PIN,    LOW);
+  digitalWrite(BUZZER_PIN, LOW);
+  Serial.println("[EMERGENCY] Dung canh bao khan cap");
+}
+
+
 void handleButton() {
   unsigned long now     = millis();
   bool          rawState = digitalRead(BUTTON_PIN);
@@ -519,6 +558,14 @@ void handleButton() {
 void handleTripleClick() {
   unsigned long now = millis();
 
+  // If emergency is active, ANY click will stop it
+  if (emergencyActive) {
+    Serial.println("[EMERGENCY STOP] Nhan nut, dung canh bao");
+    stopEmergency();
+    resetClickWindow();
+    return;
+  }
+
   if (clickCount == 0) {
     clickCount     = 1;
     firstClickTime = now;
@@ -558,23 +605,14 @@ void emergencyAction() {
   clickCount     = 0;
   firstClickTime = 0;
 
+  // Set emergency active flag (non-blocking)
+  emergencyActive    = true;
+  emergencyStartTime = millis();
+
+  // Send emergency request in background task
   startEmergencyRequest();
 
-  unsigned long alertStart = millis();
-  while (millis() - alertStart < ALERT_TIME) {
-    digitalWrite(LED_PIN,    HIGH);
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(100);
-    digitalWrite(LED_PIN,    LOW);
-    digitalWrite(BUZZER_PIN, LOW);
-    delay(100);
-  }
-
-  digitalWrite(LED_PIN,    LOW);
-  digitalWrite(BUZZER_PIN, LOW);
-
-  Serial.println("EMERGENCY ACTION DONE");
-  Serial.println("Thiet bi tiep tuc hoat dong binh thuong");
+  Serial.println("Canh bao khan cap bat dau. Bam nut 1 lan de dung.");
 }
 
 // ================= CONFIG SAVE / LOAD =================

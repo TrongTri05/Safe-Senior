@@ -3,21 +3,19 @@ package vn.edu.fpt.safe_senior.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductResponse {
-    String id;
+public class AdminDeviceResponse {
+    String deviceId;
+    String userId;
     String name;
-    String description;
     String status;
-    BigDecimal price;
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
+    LocalDateTime created;
+    LocalDateTime configuredAt;
+    LocalDateTime lastConnectedAt;
 }
