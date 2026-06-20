@@ -313,7 +313,7 @@ function loadDashboardDemo() {
     document.getElementById('s-orders-change').textContent = '5 chờ xác nhận';
     document.getElementById('s-devices').textContent = '31';
     document.getElementById('s-dev-change').textContent = '42 thiết bị tổng';
-    document.getElementById('pending-badge').textContent = '5';
+    document.getElementById('pending-badge').textContent = '5+';
     renderRecentOrders(demoOrders());
     buildRevenueChart('week');
     buildOrderStatusChart([]);

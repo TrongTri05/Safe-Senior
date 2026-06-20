@@ -706,22 +706,75 @@ function showOrderDetail(orderId) {
         
 ${o.paymentMethod === 'BANKING'
     && o.paymentStatus === 'PENDING'
-    && o.orderStatus !== 'CANCELLED'
-    && o.orderStatus !== 'DELIVERED' ? `
-<button onclick="openQrModal('${o.orderId}')" style="
-    width:100%;margin-top:16px;padding:14px;
-    background:var(--red);border:none;
-    font-family:var(--font-mono);font-size:11px;
-    letter-spacing:3px;text-transform:uppercase;
-    color:#fff;cursor:pointer;">
-    THANH TOÁN NGAY
-</button>` : ''}
+    && o.orderStatus === 'PENDING' ? `
+<div style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+    <button onclick="openQrModal('${o.orderId}')" style="
+        flex:1;padding:14px;
+        background:var(--red);border:none;
+        font-family:var(--font-mono);font-size:11px;
+        letter-spacing:3px;text-transform:uppercase;
+        color:#fff;cursor:pointer;">
+        THANH TOÁN NGAY
+    </button>
+    <div id="countdown-${o.orderId}" style="
+        font-family:var(--font-mono);font-size:13px;
+        color:var(--red);padding:14px 12px;
+        border:1px solid rgba(232,28,28,0.3);
+        white-space:nowrap;">
+        ⏱ --:--
+    </div>
+</div>` : ''}
         </div>`;
+
+    // Khởi động đếm ngược nếu có
+    if (o.paymentMethod === 'BANKING' && o.paymentStatus === 'PENDING' && o.orderStatus === 'PENDING') {
+        startCountdown(o.orderId, o.createdAt);
+    }
 
     document.getElementById('btn-back-orders').onclick = () => {
         document.getElementById('order-detail').style.display = 'none';
         document.getElementById('orders-list').style.display = '';
     };
+}
+
+function getRemainingSeconds(createdAt) {
+    const deadline = new Date(createdAt).getTime() + 15 * 60 * 1000;
+    const remaining = Math.floor((deadline - Date.now()) / 1000);
+    return remaining > 0 ? remaining : 0;
+}
+
+function fmtCountdown(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+let countdownInterval = null;
+
+function startCountdown(orderId, createdAt) {
+    clearInterval(countdownInterval);
+    const el = document.getElementById(`countdown-${orderId}`);
+    if (!el) return;
+
+    countdownInterval = setInterval(() => {
+        const remaining = getRemainingSeconds(createdAt);
+        const elNow = document.getElementById(`countdown-${orderId}`);
+        if (!elNow) {
+            clearInterval(countdownInterval);
+            return;
+        }
+
+        if (remaining <= 0) {
+            elNow.textContent = '⏱ 00:00 - Đã hết hạn';
+            clearInterval(countdownInterval);
+            // Reload lại sau vài giây để lấy trạng thái CANCELLED mới từ BE
+            setTimeout(() => {
+                loadOrders();
+            }, 2000);
+            return;
+        }
+        elNow.textContent = '⏱ ' + fmtCountdown(remaining);
+    }, 1000);
 }
 
 
@@ -742,15 +795,15 @@ function getDeviceEmoji(name) {
 function getDeviceStatusInfo(status) {
     switch (status) {
         case 'ACTIVE':
-            return { label: 'Đang hoạt động', color: '#00c864', cardClass: 'online' };
+            return {label: 'Đang hoạt động', color: '#00c864', cardClass: 'online'};
         case 'OFFLINE':
-            return { label: 'Ngoại tuyến', color: 'var(--grey-light)', cardClass: '' };
+            return {label: 'Ngoại tuyến', color: 'var(--grey-light)', cardClass: ''};
         case 'BLOCKED':
-            return { label: 'Đã khoá', color: 'var(--red)', cardClass: '' };
+            return {label: 'Đã khoá', color: 'var(--red)', cardClass: ''};
         case 'INACTIVE':
-            return { label: 'Không hoạt động', color: 'var(--grey-light)', cardClass: '' };
+            return {label: 'Không hoạt động', color: 'var(--grey-light)', cardClass: ''};
         default:
-            return { label: status, color: 'var(--grey-light)', cardClass: '' };
+            return {label: status, color: 'var(--grey-light)', cardClass: ''};
     }
 }
 
@@ -903,7 +956,7 @@ async function openSosContacts(deviceId) {
 
     // Load số hiện tại từ DB
     try {
-        const res  = await api.get(`/api/user-devices/${deviceId}/sos-contacts`);
+        const res = await api.get(`/api/user-devices/${deviceId}/sos-contacts`);
         const data = res.data?.result ?? [];          // result là List<SosContactResponse>
 
         data.forEach((contact, idx) => {
@@ -933,25 +986,25 @@ async function saveSosContacts() {
     const phoneRegex = /^(0|\+84)[0-9]{8,10}$/;
     for (const p of phones) {
         if (!phoneRegex.test(p)) {
-            errEl.textContent   = `Số điện thoại "${p}" không hợp lệ!`;
+            errEl.textContent = `Số điện thoại "${p}" không hợp lệ!`;
             errEl.style.display = 'block';
             return;
         }
     }
 
     if (phones.length === 0) {
-        errEl.textContent   = 'Vui lòng nhập ít nhất 1 số điện thoại!';
+        errEl.textContent = 'Vui lòng nhập ít nhất 1 số điện thoại!';
         errEl.style.display = 'block';
         return;
     }
 
     try {
-        await api.put(`/api/user-devices/${currentSosDeviceId}/sos-contacts`, { phones });
+        await api.put(`/api/user-devices/${currentSosDeviceId}/sos-contacts`, {phones});
         closeModal('modal-sos-contacts');
         showToast(`Đã lưu ${phones.length} số SOS cho ${currentSosDeviceId}!`);
     } catch (err) {
         const msg = err.response?.data?.message ?? 'Lưu thất bại, thử lại!';
-        errEl.textContent   = msg;
+        errEl.textContent = msg;
         errEl.style.display = 'block';
     }
 }
@@ -960,7 +1013,6 @@ function clearSosPhone(slot) {
     const inp = document.getElementById(`sos-phone-${slot}`);
     if (inp) inp.value = '';
 }
-
 
 
 // ══════════════════════════
@@ -1119,7 +1171,7 @@ async function findDevice() {
         showToast('Vui lòng nhập Device ID!');
         return;
     }
-    const resultEl  = document.getElementById('find-device-result');
+    const resultEl = document.getElementById('find-device-result');
     const contentEl = document.getElementById('find-device-content');
 
     resultEl.style.display = 'block';
@@ -1132,7 +1184,7 @@ async function findDevice() {
 
     try {
         const res = await api.get(`/api/devices/find/${deviceId}`);
-        const d   = res.data?.result ?? res.data;
+        const d = res.data?.result ?? res.data;
         console.log('response:', res.data);  // ← thêm dòng này
         console.log('d:', d);                // ← và dòng này
         contentEl.innerHTML = `
@@ -1225,19 +1277,22 @@ async function loadVouchers() {
     if (!grid) return;
 
     // Skeleton loading
-    grid.innerHTML = [1,2,3].map(i => `
+    grid.innerHTML = [1, 2, 3].map(i => `
         <div style="height:140px;background:var(--grey);
-                    opacity:${0.4 - i*0.1};
+                    opacity:${0.4 - i * 0.1};
                     border:1px solid var(--grey-border);"></div>
     `).join('');
 
     try {
         const userId = localStorage.getItem('userId');
-        if (!userId) { renderVouchers([]); return; }
-        const res    = await api.get(`/users/${userId}/vouchers`);
+        if (!userId) {
+            renderVouchers([]);
+            return;
+        }
+        const res = await api.get(`/users/${userId}/vouchers`);
         vouchersCache = res.data?.result ?? res.data ?? [];
         if (!Array.isArray(vouchersCache)) vouchersCache = [];
-    } catch(err) {
+    } catch (err) {
         console.error('Lỗi load voucher:', err);
         vouchersCache = [];
     }
@@ -1260,13 +1315,13 @@ function filterVouchers() {
 }
 
 function renderVouchers(list) {
-    const grid    = document.getElementById('vouchers-grid');
+    const grid = document.getElementById('vouchers-grid');
     const countEl = document.getElementById('voucher-count-label');
     if (!grid) return;
 
     const available = vouchersCache.filter(v => v.status === 'AVAILABLE').length;
-    const used      = vouchersCache.filter(v => v.status === 'USED').length;
-    const expired   = vouchersCache.filter(v => v.status === 'EXPIRED').length;
+    const used = vouchersCache.filter(v => v.status === 'USED').length;
+    const expired = vouchersCache.filter(v => v.status === 'EXPIRED').length;
 
     if (countEl) {
         countEl.textContent = `${available} khả dụng  •  ${used} đã dùng  •  ${expired} hết hạn`;
@@ -1282,17 +1337,17 @@ function renderVouchers(list) {
     }
 
     grid.innerHTML = list.map(uv => {
-        const v        = uv.voucher ?? uv;
-        const code     = v.code        || uv.code     || '—';
-        const dtype    = v.discountType || uv.discountType || 'PERCENT';
-        const dval     = Number(v.discountValue || uv.discountValue || 0);
+        const v = uv.voucher ?? uv;
+        const code = v.code || uv.code || '—';
+        const dtype = v.discountType || uv.discountType || 'PERCENT';
+        const dval = Number(v.discountValue || uv.discountValue || 0);
         const minOrder = Number(v.minOrderValue || uv.minOrderValue || 0);
-        const maxDisc  = Number(v.maxDiscount   || uv.maxDiscount   || 0);
-        const expiredAt= v.expiredAt   || uv.expiredAt;
-        const status   = uv.status     || 'AVAILABLE';
-        const usedAt   = uv.usedAt;
-        const source   = uv.source;
-        const isUsed    = status === 'USED';
+        const maxDisc = Number(v.maxDiscount || uv.maxDiscount || 0);
+        const expiredAt = v.expiredAt || uv.expiredAt;
+        const status = uv.status || 'AVAILABLE';
+        const usedAt = uv.usedAt;
+        const source = uv.source;
+        const isUsed = status === 'USED';
         const isExpired = status === 'EXPIRED';  // ✅ dùng status BE trả, không tự tính lại
 
         const discDisplay = dtype === 'PERCENT' ? `${dval}%` : fmtShort(dval);
@@ -1315,7 +1370,7 @@ function renderVouchers(list) {
         return `
         <div class="${cardCls}" style="min-height:140px;">
             <div class="voucher-left">
-                <div class="voucher-discount" style="${isUsed||isExpired ? 'color:var(--grey-light)' : ''}">
+                <div class="voucher-discount" style="${isUsed || isExpired ? 'color:var(--grey-light)' : ''}">
                     ${discDisplay}
                 </div>
                 <div class="voucher-discount-type">
@@ -1323,7 +1378,7 @@ function renderVouchers(list) {
                 </div>
             </div>
             <div class="voucher-right">
-                <div class="voucher-code" style="${isUsed||isExpired ? 'color:var(--grey-light)' : ''}">
+                <div class="voucher-code" style="${isUsed || isExpired ? 'color:var(--grey-light)' : ''}">
                     ${code}
                 </div>
                 <div class="voucher-desc">${desc}</div>
@@ -1347,19 +1402,20 @@ function renderVouchers(list) {
 function fmtShort(n) {
     const num = Number(n || 0);
     if (num >= 1000000) return (num / 1000000).toFixed(0) + 'M₫';
-    if (num >= 1000)    return (num / 1000).toFixed(0)    + 'K₫';
+    if (num >= 1000) return (num / 1000).toFixed(0) + 'K₫';
     return num.toLocaleString('vi-VN') + '₫';
 }
 
 // Format nguồn voucher
 function fmtSource(source) {
     const map = {
-        SPIN:      '🎡 Vòng quay',
-        ADMIN:     '⚙ Quản trị',
+        SPIN: '🎡 Vòng quay',
+        ADMIN: '⚙ Quản trị',
         PROMOTION: '🎁 Khuyến mãi',
     };
     return map[source] || source || '—';
 }
+
 // Expose
 window.filterVouchers = filterVouchers;
 
@@ -1511,9 +1567,31 @@ function openQrModal(orderId) {
             Đơn hàng sẽ được xác nhận sau khi<br>
             chúng tôi nhận được thanh toán.
         </div>
+        <!--Nút demo — XOÁ TRƯỚC KHI DEPLOY THẬT -->
+    <button onclick="simulatePaymentSuccess('${o.orderId}')" style="
+        width:100%;margin-top:16px;padding:10px;
+        background:none;border:1px dashed var(--grey-light);
+        font-family:var(--font-mono);font-size:10px;
+        letter-spacing:2px;text-transform:uppercase;
+        color:var(--grey-light);cursor:pointer;">
+        🧪 [DEMO THANH TOÁN]
+    </button>
     </div>`;
 
     modal.classList.add('open');
+}
+
+async function simulatePaymentSuccess(orderId) {
+    try {
+        await api.post(`/order/${orderId}/simulate-payment`);
+        showToast('Thanh toán thành công!');
+        document.getElementById('modal-qr').classList.remove('open');
+        await loadOrders();
+        filterOrders();
+    } catch (err) {
+        showToast('Lỗi giả lập thanh toán!');
+        console.error(err);
+    }
 }
 
 // ══════════════════════════
@@ -1525,7 +1603,9 @@ function openSetupGuide(deviceId) {
         document.getElementById('setup-device-id'),
         document.getElementById('setup-device-id-field')
     ];
-    idEls.forEach(el => { if (el) el.textContent = deviceId ?? '—'; });
+    idEls.forEach(el => {
+        if (el) el.textContent = deviceId ?? '—';
+    });
     openModal('modal-setup-guide');
 }
 
@@ -1550,13 +1630,14 @@ window.logoutAllDevices = logoutAllDevices;
 window.openQrModal = openQrModal;
 window.loadDevices = loadDevices;
 window.openSetupGuide = openSetupGuide;
-window.openSosContacts  = openSosContacts;
-window.saveSosContacts  = saveSosContacts;
-window.clearSosPhone    = clearSosPhone;
+window.openSosContacts = openSosContacts;
+window.saveSosContacts = saveSosContacts;
+window.clearSosPhone = clearSosPhone;
 window.cancelOrder = cancelOrder;
 window.openContactsModal = openContactsModal;
 window.findDevice = findDevice;
 window.filterOrders = filterOrders;
+window.simulatePaymentSuccess = simulatePaymentSuccess;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserInfo();

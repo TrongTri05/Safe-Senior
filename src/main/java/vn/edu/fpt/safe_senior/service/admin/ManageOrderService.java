@@ -8,10 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.safe_senior.dto.response.OrderResponse;
 import vn.edu.fpt.safe_senior.entity.*;
-import vn.edu.fpt.safe_senior.enums.DeviceEnum;
-import vn.edu.fpt.safe_senior.enums.OrderEnum;
-import vn.edu.fpt.safe_senior.enums.ProductEnum;
-import vn.edu.fpt.safe_senior.enums.VoucherStatus;
+import vn.edu.fpt.safe_senior.enums.*;
 import vn.edu.fpt.safe_senior.exception.AppException;
 import vn.edu.fpt.safe_senior.exception.ErrorCode;
 import vn.edu.fpt.safe_senior.mapper.OrderMapper;
@@ -55,6 +52,12 @@ public class ManageOrderService {
             throw new AppException(ErrorCode.ORDER_CANNOT_CONFIRM);
         }
 
+        if (order.getPaymentMethod().equals(PaymentEnum.BANKING.name())
+                && !order.getPaymentStatus().equals(PaymentEnum.PAID.name())) {
+            throw new AppException(ErrorCode.ORDER_NOT_PAID);
+        }
+
+
         User user = order.getUser();
         BigDecimal discount = order.getTotalAmount();
 
@@ -86,7 +89,7 @@ public class ManageOrderService {
                 || order.getOrderStatus().equals(OrderEnum.DELIVERED.name())) {
             throw new AppException(ErrorCode.ORDER_CANNOT_CANCEL);
         }
-        // Rollback OrderItem
+
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
         for (OrderItem item : items) {
             Product product = item.getProduct();
@@ -100,7 +103,7 @@ public class ManageOrderService {
             });
         }
 
-        // Rollback voucher
+
         userVoucherRepository.findByOrder_Id(orderId).ifPresent(userVoucher -> {
             userVoucher.setStatus(VoucherStatus.AVAILABLE.name());
             userVoucher.setUsedAt(null);

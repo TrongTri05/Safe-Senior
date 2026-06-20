@@ -13,10 +13,7 @@ import vn.edu.fpt.safe_senior.entity.Order;
 import vn.edu.fpt.safe_senior.entity.OrderItem;
 import vn.edu.fpt.safe_senior.entity.Product;
 import vn.edu.fpt.safe_senior.entity.User;
-import vn.edu.fpt.safe_senior.enums.DeviceEnum;
-import vn.edu.fpt.safe_senior.enums.OrderEnum;
-import vn.edu.fpt.safe_senior.enums.ProductEnum;
-import vn.edu.fpt.safe_senior.enums.VoucherStatus;
+import vn.edu.fpt.safe_senior.enums.*;
 import vn.edu.fpt.safe_senior.exception.AppException;
 import vn.edu.fpt.safe_senior.exception.ErrorCode;
 import vn.edu.fpt.safe_senior.mapper.OrderMapper;
@@ -74,7 +71,6 @@ public class OrderService {
         if (!order.getOrderStatus().equals(OrderEnum.PENDING.name()))
             throw new AppException(ErrorCode.ORDER_CANNOT_CANCEL);
 
-        // Rollback OrderItem
         List<OrderItem> items = orderItemRepository
                 .findByOrderId(orderId);
         for (OrderItem item : items) {
@@ -89,7 +85,6 @@ public class OrderService {
                     });
         }
 
-        //Rollback voucher
         userVoucherRepository.findByOrder_Id(orderId).ifPresent(userVoucher -> {
             userVoucher.setStatus(VoucherStatus.AVAILABLE.name());
             userVoucher.setUsedAt(null);
@@ -97,8 +92,27 @@ public class OrderService {
             userVoucherRepository.save(userVoucher);
         });
 
-        // Cập nhật order
         order.setOrderStatus(OrderEnum.CANCELLED.name());
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    public void simulatePaymentSuccess(String orderId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        if (!order.getPaymentMethod().equals(PaymentEnum.BANKING.name())) {
+            throw new AppException(ErrorCode.INVALID_PAYMENT_METHOD);
+        }
+
+        order.setPaymentStatus(PaymentEnum.PAID.name());
         orderRepository.save(order);
     }
 }

@@ -48,6 +48,8 @@ public enum ErrorCode {
     VOUCHER_ALREADY_USED(1039,"Voucher already used", HttpStatus.BAD_REQUEST),
     ORDER_NOT_ENOUGH_FOR_VOUCHER(1040,"Đơn hàng chưa đạt giá trị tối thiểu để áp dụng voucher", HttpStatus.BAD_REQUEST),
     ORDER_CANNOT_CONFIRM(1041,"Order cannot confirm", HttpStatus.BAD_REQUEST),
+    INVALID_PAYMENT_METHOD(1042,"Error payment method", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_PAID(1043,"Không thể xác nhận. Đơn hàng chưa được thanh toán.", HttpStatus.BAD_REQUEST),
     LOGIN_ERROR(1018, "Username or Password error", HttpStatus.INTERNAL_SERVER_ERROR);
 
 

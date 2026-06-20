@@ -31,4 +31,12 @@ public class OrderController {
                 .message("Order cancelled successfully")
                 .build();
     }
+
+    @PostMapping("/{id}/simulate-payment")
+    public ApiResponse<Void> simulatePayment(@PathVariable String id) {
+        orderService.simulatePaymentSuccess(id);
+        return ApiResponse.<Void>builder()
+                .message("Payment simulated successfully")
+                .build();
+    }
 }

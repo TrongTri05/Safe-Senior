@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.safe_senior.entity.Order;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,4 +15,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     List<Order> findByOrderStatus(String status);
 
     List<Order> findAllByUser_IdOrderByCreatedAtDesc(String userId);
+
+    List<Order> findByOrderStatusAndPaymentMethodAndPaymentStatusAndCreatedAtBefore(
+            String orderStatus, String paymentMethod, String paymentStatus, LocalDateTime threshold);
 }
