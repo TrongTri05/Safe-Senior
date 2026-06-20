@@ -23,7 +23,6 @@ public class ManageUserService {
     UserRepository userRepository;
     UserMapper userMapper;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
@@ -31,14 +30,14 @@ public class ManageUserService {
                 .toList();
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+
     public User deactivateUser(@PathVariable String id) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         user.setIsActive(false);
         return userRepository.save(user);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+
     public User activateUser(@PathVariable String id) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         user.setIsActive(true);

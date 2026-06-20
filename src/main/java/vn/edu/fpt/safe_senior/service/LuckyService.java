@@ -63,8 +63,8 @@ public class LuckyService {
             userVoucherRepository.save(UserVoucher.builder()
                     .user(user)
                     .voucher(voucher)
-                    .status(VoucherStatus.AVAILABLE)
-                    .source(VoucherSource.SPIN)
+                    .status(VoucherStatus.AVAILABLE.name())
+                    .source(VoucherSource.SPIN.name())
                     .build());
         }
         spinHistoryRepository.save(SpinHistory.builder()

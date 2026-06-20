@@ -4,9 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
-import vn.edu.fpt.safe_senior.enums.DiscountType;
+import vn.edu.fpt.safe_senior.enums.VoucherType;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -27,9 +28,8 @@ public class Voucher {
     @Column(nullable = false, unique = true, length = 50)
     String code;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "discount_type", nullable = false)
-    DiscountType discountType;
+    String discountType;
 
     @Column(name = "discount_value", nullable = false, precision = 10, scale = 2)
     BigDecimal discountValue;
@@ -44,7 +44,7 @@ public class Voucher {
     Boolean isActive;
 
     @Column(name = "expired_at")
-    LocalDateTime expiredAt;
+    LocalDate expiredAt;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

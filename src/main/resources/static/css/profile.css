@@ -33,6 +33,140 @@ body {
     cursor: none;
 }
 
+/* ── VOUCHER CARD ── */
+.voucher-card {
+    background: var(--black);
+    border: 1px solid var(--grey-border);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+}
+.voucher-card:hover { border-color: var(--grey-mid); }
+.voucher-card.unused { border-color: rgba(232,28,28,0.3); }
+.voucher-card.unused:hover { border-color: var(--red); }
+.voucher-card.expired { opacity: 0.5; }
+
+/* Đường gạch nối giữa 2 phần */
+.voucher-card::before {
+    content: '';
+    position: absolute;
+    left: 110px;
+    top: 0; bottom: 0;
+    width: 1px;
+    border-left: 2px dashed var(--grey-border);
+}
+.voucher-card.unused::before { border-left-color: rgba(232,28,28,0.25); }
+
+/* Bán nguyệt trái phải */
+.voucher-card::after {
+    content: '';
+    position: absolute;
+    left: 98px; top: 50%;
+    transform: translateY(-50%);
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--grey);
+    border: 1px solid var(--grey-border);
+    z-index: 1;
+}
+
+.voucher-left {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 110px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4px;
+}
+.voucher-discount {
+    font-family: var(--font-display);
+    font-size: 32px;
+    line-height: 1;
+    color: var(--red);
+}
+.voucher-discount-type {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey-light);
+}
+.voucher-right {
+    margin-left: 126px;
+    padding: 18px 18px 18px 0;
+    display: flex; flex-direction: column;
+    justify-content: center; gap: 6px;
+}
+.voucher-code {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    letter-spacing: 3px;
+    color: var(--red);
+    font-weight: 700;
+}
+.voucher-desc {
+    font-size: 12px;
+    color: var(--grey-light);
+    line-height: 1.6;
+}
+.voucher-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--grey-border);
+}
+.voucher-expire {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--grey-light);
+}
+.voucher-status-badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+}
+.voucher-used-info {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--grey-light);
+    margin-top: 4px;
+}
+
+/* Used overlay */
+.voucher-card.used::after {
+    content: 'ĐÃ DÙNG';
+    position: absolute;
+    top: 50%; right: 16px;
+    transform: translateY(-50%) rotate(-15deg);
+    font-family: var(--font-display);
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,.06);
+    pointer-events: none;
+    z-index: 2;
+    border: 2px solid rgba(255,255,255,.06);
+    padding: 4px 10px;
+    white-space: nowrap;
+}
+
+/* Empty state */
+.voucher-empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--grey-light);
+}
+.voucher-empty-icon { font-size: 48px; margin-bottom: 16px; opacity: .3; }
+
 .order-footer {
     display: flex;
     justify-content: space-between;

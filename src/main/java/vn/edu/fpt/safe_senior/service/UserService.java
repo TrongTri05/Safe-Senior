@@ -23,6 +23,7 @@ import vn.edu.fpt.safe_senior.exception.ErrorCode;
 import vn.edu.fpt.safe_senior.mapper.AddressMapper;
 import vn.edu.fpt.safe_senior.mapper.UserContactMapper;
 import vn.edu.fpt.safe_senior.mapper.UserMapper;
+import vn.edu.fpt.safe_senior.mapper.VoucherMapper;
 import vn.edu.fpt.safe_senior.repository.*;
 
 import java.time.LocalDateTime;
@@ -48,6 +49,9 @@ public class UserService {
     DeviceRepository deviceRepository;
     UserContactMapper userContactMapper;
     UserFeedbackRepository userFeedbackRepository;
+    VoucherRepository voucherRepository;
+    UserVoucherRepository userVoucherRepository;
+    VoucherMapper voucherMapper;
 
     @NonFinal
     @Value("${app.base-url}")
@@ -235,5 +239,17 @@ public class UserService {
                 """.formatted(feedbackRequest.getDescription());
         emailService.sendVerificationEmail(feedbackRequest.getEmail(), subject, content);
         return userFeedbackRepository.save(userFeedback);
+    }
+
+
+    public List<VoucherUserResponse> getUserVouchers(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        List<VoucherUserResponse> responses =
+                userVoucherRepository.findByUser_Id(user.getId())
+                        .stream()
+                        .map(voucherMapper::toVoucherUserResponse)
+                        .toList();
+        return responses;
     }
 }

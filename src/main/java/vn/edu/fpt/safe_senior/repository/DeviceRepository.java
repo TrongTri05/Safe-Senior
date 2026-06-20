@@ -20,4 +20,5 @@ public interface DeviceRepository extends JpaRepository<Device, String> {
 
     boolean existsByDeviceId(String deviceId);
 
+    Optional<Device> findByProduct(Product product);
 }

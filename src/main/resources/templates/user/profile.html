@@ -71,7 +71,7 @@
 
 
 <!-- MAIN -->
- <div class="profile-wrap">
+<div class="profile-wrap">
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="profile-card">
@@ -111,6 +111,9 @@
             </button>
             <button class="sidebar-nav-item" onclick="switchTab('orders', this)">
                 <span class="nav-dot"></span> Đơn hàng
+            </button>
+            <button class="sidebar-nav-item" onclick="switchTab('vouchers', this)">
+                <span class="nav-dot"></span> Voucher
             </button>
             <button class="sidebar-nav-item" onclick="switchTab('devices', this)">
                 <span class="nav-dot"></span> Thiết bị SOS
@@ -226,26 +229,103 @@
                     <div class="section-block-tag">Lịch sử mua sắm</div>
                     <div class="section-block-title">ĐƠN HÀNG CỦA TÔI</div>
                 </div>
-                <div style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light);"
-                     id="orders-count-label"></div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <select id="order-filter"
+                            onchange="filterOrders()"
+                            style="
+                padding:10px 14px;
+                background:var(--grey);
+                border:1px solid var(--grey-border);
+                color:var(--white);
+                font-family:var(--font-mono);
+                font-size:10px;
+                letter-spacing:2px;
+                text-transform:uppercase;
+                cursor:pointer;
+                outline:none;
+                appearance:none;
+                min-width:180px;">
+                        <option value="all">Tất cả đơn hàng</option>
+                        <option value="PENDING">Chờ xác nhận</option>
+                        <option value="CONFIRMED">Đã xác nhận</option>
+                        <option value="SHIPPING">Đang giao</option>
+                        <option value="DELIVERED">Đã giao</option>
+                        <option value="CANCELLED">Đã huỷ</option>
+                    </select>
+                    <div style="font-family:var(--font-mono);font-size:11px;color:var(--grey-light);"
+                         id="orders-count-label"></div>
+                </div>
             </div>
             <!-- LIST VIEW -->
             <div class="orders-list" id="orders-list">
                 <div style="text-align:center;padding:40px;font-family:var(--font-mono);
-                    font-size:12px;letter-spacing:2px;color:var(--grey-light);">
+            font-size:12px;letter-spacing:2px;color:var(--grey-light);">
                     ĐANG TẢI...
                 </div>
             </div>
             <!-- DETAIL VIEW -->
             <div id="order-detail" style="display:none;">
                 <button id="btn-back-orders" style="
-            font-family:var(--font-mono);font-size:11px;letter-spacing:2px;
-            text-transform:uppercase;background:none;border:none;
-            color:var(--grey-light);cursor:pointer;
-            display:flex;align-items:center;gap:8px;padding:0;margin-bottom:24px;">
+    font-family:var(--font-mono);font-size:11px;letter-spacing:2px;
+    text-transform:uppercase;background:none;border:none;
+    color:var(--grey-light);cursor:pointer;
+    display:flex;align-items:center;gap:8px;padding:0;margin-bottom:24px;">
                     ← QUAY LẠI
                 </button>
                 <div id="order-detail-content"></div>
+            </div>
+        </div>
+
+        <!-- TAB: VOUCHER -->
+        <div class="section-block" id="tab-vouchers">
+            <div class="section-block-header">
+                <div>
+                    <div class="section-block-tag">Ưu đãi</div>
+                    <div class="section-block-title">VOUCHER CỦA TÔI</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <!-- Dropdown filter -->
+                    <select id="voucher-filter"
+                            onchange="filterVouchers()"
+                            style="
+                        padding:10px 14px;
+                        background:var(--grey);
+                        border:1px solid var(--grey-border);
+                        color:var(--white);
+                        font-family:var(--font-mono);
+                        font-size:10px;
+                        letter-spacing:2px;
+                        text-transform:uppercase;
+                        cursor:pointer;
+                        outline:none;
+                        appearance:none;
+                        min-width:180px;
+                        transition:border-color var(--transition);">
+                        <option value="all">Tất cả voucher</option>
+                        <option value="available">Chưa sử dụng</option>
+                        <option value="used">Đã sử dụng</option>
+                        <option value="expired">Hết hạn</option>
+                    </select>
+                    <!-- Count label -->
+                    <div id="voucher-count-label"
+                         style="font-family:var(--font-mono);font-size:10px;
+                        letter-spacing:2px;color:var(--grey-light);">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voucher grid -->
+            <div id="vouchers-grid"
+                 style="padding:28px;display:grid;
+                grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+                gap:16px;">
+                <!-- Loading skeleton -->
+                <div style="height:140px;background:var(--grey);opacity:.4;
+                    border:1px solid var(--grey-border);"></div>
+                <div style="height:140px;background:var(--grey);opacity:.3;
+                    border:1px solid var(--grey-border);"></div>
+                <div style="height:140px;background:var(--grey);opacity:.2;
+                    border:1px solid var(--grey-border);"></div>
             </div>
         </div>
 
@@ -469,7 +549,7 @@
     </div>
 </div>
 <!-- MODAL HƯỚNG DẪN SETUP THIẾT BỊ -->
- <div class="modal-overlay" id="modal-setup-guide">
+<div class="modal-overlay" id="modal-setup-guide">
     <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
         <button class="modal-close" onclick="closeModal('modal-setup-guide')">✕</button>
 
@@ -479,7 +559,8 @@
                 border:2px solid var(--red);
                 display:flex;align-items:center;justify-content:center;
                 font-family:var(--font-display);font-size:22px;color:var(--red);
-                flex-shrink:0;">?</div>
+                flex-shrink:0;">?
+            </div>
             <div>
                 <div class="modal-title" style="font-size:26px;margin-bottom:2px;">
                     HƯỚNG DẪN SETUP
@@ -508,14 +589,15 @@
                     background:var(--red);color:var(--white);
                     font-family:var(--font-display);font-size:16px;
                     display:flex;align-items:center;justify-content:center;
-                    flex-shrink:0;">1</div>
+                    flex-shrink:0;">1
+                </div>
                 <div style="padding-top:4px;">
                     <div style="font-family:var(--font-mono);font-size:11px;
                         letter-spacing:2px;color:var(--white);margin-bottom:6px;">
                         KHỞI ĐỘNG THIẾT BỊ
                     </div>
                     <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">
-                        Nhấn giữ nút trên thiết bị <strong style="color:var(--white);">5 giây</strong>
+                        Nhấn nút trên thiết bị <strong style="color:var(--white);">5 lần</strong>
                         cho đến khi đèn LED chuyển sang trạng thái
                         <strong style="color:var(--red);">nhấp nháy</strong>.
                     </div>
@@ -531,7 +613,8 @@
                     background:var(--red);color:var(--white);
                     font-family:var(--font-display);font-size:16px;
                     display:flex;align-items:center;justify-content:center;
-                    flex-shrink:0;">2</div>
+                    flex-shrink:0;">2
+                </div>
                 <div style="padding-top:4px;">
                     <div style="font-family:var(--font-mono);font-size:11px;
                         letter-spacing:2px;color:var(--white);margin-bottom:6px;">
@@ -566,7 +649,8 @@
                     background:var(--red);color:var(--white);
                     font-family:var(--font-display);font-size:16px;
                     display:flex;align-items:center;justify-content:center;
-                    flex-shrink:0;">3</div>
+                    flex-shrink:0;">3
+                </div>
                 <div style="padding-top:4px;flex:1;">
                     <div style="font-family:var(--font-mono);font-size:11px;
                         letter-spacing:2px;color:var(--white);margin-bottom:10px;">
@@ -624,7 +708,8 @@
                     background:var(--red);color:var(--white);
                     font-family:var(--font-display);font-size:16px;
                     display:flex;align-items:center;justify-content:center;
-                    flex-shrink:0;">4</div>
+                    flex-shrink:0;">4
+                </div>
                 <div style="padding-top:4px;">
                     <div style="font-family:var(--font-mono);font-size:11px;
                         letter-spacing:2px;color:var(--white);margin-bottom:6px;">
@@ -638,6 +723,7 @@
                             padding:3px 12px;background:var(--red);color:var(--white);">
                             SAVE
                         </span>
+                         chờ thiết bị load kết nối khoảng 10 giây.
                     </div>
                 </div>
             </div>
@@ -651,7 +737,8 @@
                     background:var(--red);color:var(--white);
                     font-family:var(--font-display);font-size:16px;
                     display:flex;align-items:center;justify-content:center;
-                    flex-shrink:0;">5</div>
+                    flex-shrink:0;">5
+                </div>
                 <div style="padding-top:4px;">
                     <div style="font-family:var(--font-mono);font-size:11px;
                         letter-spacing:2px;color:var(--white);margin-bottom:6px;">
@@ -660,7 +747,8 @@
                     <div style="font-size:13px;color:var(--grey-light);line-height:1.7;">
                         Sau khi Save thành công, đèn LED sẽ
                         <strong style="color:#00c864;">sáng liên tục</strong>
-                        và không còn nhấp nháy. Bước tiếp ở giao diện website -> Profile -> Thiết bị SOS quý khách vui lòng thêm ít nhất 1 SĐT để nhận cảnh báo khi dùng thiết bị.
+                        và không còn nhấp nháy. Bước tiếp ở giao diện website -> Profile -> Thiết bị SOS quý khách vui
+                        lòng thêm ít nhất 1 SĐT để nhận cảnh báo khi dùng thiết bị.
                         <br>
                         <span style="
                             display:inline-flex;align-items:center;gap:6px;
@@ -689,7 +777,8 @@
                 width:40px;height:40px;border-radius:50%;
                 background:var(--red-glow);border:1.5px solid var(--red);
                 display:flex;align-items:center;justify-content:center;
-                font-size:18px;flex-shrink:0;">🆘</div>
+                font-size:18px;flex-shrink:0;">🆘
+            </div>
             <div>
                 <div class="modal-title" style="font-size:24px;margin-bottom:2px;">
                     SỐ ĐIỆN THOẠI KHẨN CẤP
@@ -722,7 +811,8 @@
                     background:var(--red);color:var(--white);
                     font-family:var(--font-display);font-size:14px;
                     display:flex;align-items:center;justify-content:center;
-                    flex-shrink:0;">1</div>
+                    flex-shrink:0;">1
+                </div>
                 <input class="field-input" type="tel" id="sos-phone-1"
                        placeholder="Số điện thoại ưu tiên 1"
                        style="flex:1;margin:0;">
@@ -730,7 +820,8 @@
                     background:none;border:none;color:var(--grey-light);
                     font-size:18px;cursor:pointer;padding:4px;
                     transition:color 0.3s;line-height:1;"
-                        title="Xóa">✕</button>
+                        title="Xóa">✕
+                </button>
             </div>
 
             <!-- Slot 2 -->
@@ -743,7 +834,8 @@
                     background:var(--grey-mid);color:var(--white);
                     font-family:var(--font-display);font-size:14px;
                     display:flex;align-items:center;justify-content:center;
-                    flex-shrink:0;">2</div>
+                    flex-shrink:0;">2
+                </div>
                 <input class="field-input" type="tel" id="sos-phone-2"
                        placeholder="Số điện thoại ưu tiên 2"
                        style="flex:1;margin:0;">
@@ -751,7 +843,8 @@
                     background:none;border:none;color:var(--grey-light);
                     font-size:18px;cursor:pointer;padding:4px;
                     transition:color 0.3s;line-height:1;"
-                        title="Xóa">✕</button>
+                        title="Xóa">✕
+                </button>
             </div>
 
             <!-- Slot 3 -->
@@ -764,7 +857,8 @@
                     background:var(--grey-mid);color:var(--white);
                     font-family:var(--font-display);font-size:14px;
                     display:flex;align-items:center;justify-content:center;
-                    flex-shrink:0;">3</div>
+                    flex-shrink:0;">3
+                </div>
                 <input class="field-input" type="tel" id="sos-phone-3"
                        placeholder="Số điện thoại ưu tiên 3"
                        style="flex:1;margin:0;">
@@ -772,7 +866,8 @@
                     background:none;border:none;color:var(--grey-light);
                     font-size:18px;cursor:pointer;padding:4px;
                     transition:color 0.3s;line-height:1;"
-                        title="Xóa">✕</button>
+                        title="Xóa">✕
+                </button>
             </div>
         </div>
 
@@ -801,7 +896,8 @@
                 DANH BẠ KHẨN CẤP
             </div>
             <div style="font-family:var(--font-display);font-size:24px;
-                        letter-spacing:2px;">DANH SÁCH SỐ ĐIỆN THOẠI</div>
+                        letter-spacing:2px;">DANH SÁCH SỐ ĐIỆN THOẠI
+            </div>
         </div>
 
         <div id="contacts-list">
@@ -823,7 +919,8 @@
                 ĐỊNH VỊ
             </div>
             <div style="font-family:var(--font-display);font-size:24px;
-                        letter-spacing:2px;">TÌM KIẾM THIẾT BỊ</div>
+                        letter-spacing:2px;">TÌM KIẾM THIẾT BỊ
+            </div>
         </div>
 
         <!-- Input -->

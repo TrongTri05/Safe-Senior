@@ -91,7 +91,6 @@
         </div>
 
         <div class="content">
-
             <!-- ── DASHBOARD ── -->
             <div class="page active" id="page-dashboard">
                 <div class="stats-grid" id="stat-cards">
@@ -325,7 +324,7 @@
                 </div>
                 <div class="table-wrap">
                     <div class="table-toolbar">
-                        <input class="search-input" placeholder="Tìm mã đơn, khách hàng..." id="order-search"
+                        <input class="search-input" placeholder="Tìm mã đơn, khách hàng, email..." id="order-search"
                                oninput="filterOrders()">
                         <select class="filter-select" id="order-filter" onchange="filterOrders()">
                             <option value="">Tất cả</option>
@@ -342,8 +341,11 @@
                             <th>Mã đơn</th>
                             <th>Khách hàng</th>
                             <th>Sản phẩm</th>
+                            <th>Tạm tính</th>
+                            <th>Voucher</th>
                             <th>Tổng tiền</th>
-                            <th>Thanh toán</th>
+                            <th>PT Thanh toán</th>
+                            <th>TT Thanh toán</th>
                             <th>Trạng thái</th>
                             <th>Ngày</th>
                             <th></th>
@@ -351,7 +353,7 @@
                         </thead>
                         <tbody id="orders-body">
                         <tr>
-                            <td colspan="8" class="tbl-empty">ĐANG TẢI...</td>
+                            <td colspan="9" class="tbl-empty">ĐANG TẢI...</td>
                         </tr>
                         </tbody>
                     </table>
@@ -388,8 +390,8 @@
                             <div class="chart-title">DOANH THU THEO THÁNG</div>
                             <select class="filter-select" id="year-select" onchange="loadYearChart()"
                                     style="padding:4px 8px;font-size:11px">
-                                <option>2026</option>
-                                <option>2025</option>
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
                             </select>
                         </div>
                         <canvas id="monthly-chart" height="220"></canvas>
@@ -416,18 +418,68 @@
                             <th>Mã</th>
                             <th>Loại</th>
                             <th>Giảm</th>
+                            <th>Giảm tối đa</th>
                             <th>Đơn tối thiểu</th>
                             <th>Hạn dùng</th>
                             <th>Trạng thái</th>
+                            <th>Thao tác</th>
                             <th></th>
                         </tr>
                         </thead>
                         <tbody id="vouchers-body">
                         <tr>
-                            <td colspan="7" class="tbl-empty">ĐANG TẢI...</td>
+                            <td colspan="8" class="tbl-empty">ĐANG TẢI...</td>
                         </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+            <!-- MODAL: VOUCHER -->
+            <div class="modal-overlay" id="modal-voucher">
+                <div class="modal">
+                    <div class="modal-head">
+                        <div class="modal-title">TẠO VOUCHER</div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label">Mã voucher</label>
+                            <input class="form-input" id="vm-code" placeholder="VOUCHER10" style="text-transform:uppercase">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Loại giảm</label>
+                                <select class="form-select" id="vm-type" onchange="toggleMaxDiscountField()">
+                                    <option value="PERCENT">Phần trăm (%)</option>
+                                    <option value="FIXED">Cố định (₫)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Giá trị giảm</label>
+                                <input class="form-input" id="vm-value" type="number" placeholder="10">
+                            </div>
+                        </div>
+
+                        <!-- Chỉ hiện khi loại giảm là PERCENT -->
+                        <div class="form-group" id="vm-max-discount-wrap">
+                            <label class="form-label">Giảm tối đa (₫)</label>
+                            <input class="form-input" id="vm-max" type="number" placeholder="Để trống = không giới hạn">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Đơn tối thiểu (₫)</label>
+                                <input class="form-input" id="vm-min" type="number" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Hạn sử dụng</label>
+                                <input class="form-input" id="vm-expire" type="date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal('modal-voucher')">Huỷ</button>
+                        <button class="btn btn-primary" onclick="saveVoucher()">TẠO VOUCHER</button>
+                    </div>
                 </div>
             </div>
 
@@ -448,49 +500,6 @@
     </div>
 </div>
 
-
-<!-- MODAL: VOUCHER -->
-<div class="modal-overlay" id="modal-voucher">
-    <div class="modal">
-        <div class="modal-head">
-            <div class="modal-title">TẠO VOUCHER</div>
-            <button class="modal-close" onclick="closeModal('modal-voucher')">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label class="form-label">Mã voucher</label>
-                <input class="form-input" id="vm-code" placeholder="VOUCHER10">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Loại giảm</label>
-                    <select class="form-select" id="vm-type">
-                        <option value="PERCENT">Phần trăm (%)</option>
-                        <option value="FIXED">Cố định (₫)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Giá trị giảm</label>
-                    <input class="form-input" id="vm-value" type="number" placeholder="10">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Đơn tối thiểu (₫)</label>
-                    <input class="form-input" id="vm-min" type="number" placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Hạn sử dụng</label>
-                    <input class="form-input" id="vm-expire" type="date">
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('modal-voucher')">Huỷ</button>
-            <button class="btn btn-primary" onclick="saveVoucher()">TẠO</button>
-        </div>
-    </div>
-</div>
 
 <!-- MODAL: CONFIRM -->
 <div class="modal-overlay" id="modal-confirm">

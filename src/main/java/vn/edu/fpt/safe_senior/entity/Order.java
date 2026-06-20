@@ -59,6 +59,8 @@ public class Order {
     @Column(name = "updated_at")
     LocalDateTime updatedAt;
 
+    @Column(name = "discount_amount", precision = 18, scale = 2)
+    BigDecimal discountAmount;
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();

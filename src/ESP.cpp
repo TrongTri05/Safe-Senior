@@ -123,6 +123,7 @@ String setupMessage   = "";
 void sendEmergency();
 void startEmergencyRequest();
 bool sendEmergencyToBaseUrl(String baseUrl);
+bool verifyDeviceIdWithServer(String baseUrl, String deviceId);
 void handleWiFiReconnect();
 void handleWiFiLostBlink();
 void handleButton();
@@ -1068,6 +1069,32 @@ void processSetupRequest() {
     return;
   }
 
+  setupMessage = "Dang kiem tra Device ID...";
+
+  // Verify deviceId with server BEFORE saving
+  bool deviceIdValid = false;
+
+  if (USE_LOCAL_SERVER) {
+    String localBase = "http://";
+    localBase += serverIP.toString();
+    localBase += ":";
+    localBase += SERVER_PORT;
+    deviceIdValid = verifyDeviceIdWithServer(localBase, pendingDeviceId);
+  }
+
+  if (!deviceIdValid && USE_NGROK_SERVER) {
+    deviceIdValid = verifyDeviceIdWithServer(String(NGROK_SERVER_BASE_URL), pendingDeviceId);
+  }
+
+  if (!deviceIdValid) {
+    setupStatus   = "DEVICE_ID_ERROR";
+    setupMessage  = "Device ID khong hop le hoac khong ton tai trong he thong.";
+    setupDone     = true;
+    setupChecking = false;
+    Serial.println("[SETUP] Device ID verification failed!");
+    return;
+  }
+
   saveWiFiOnly(pendingSSID, pendingPASS);
   saveDeviceIdOnly(pendingDeviceId);
 
@@ -1075,6 +1102,7 @@ void processSetupRequest() {
   setupMessage  = "WiFi da luu. Device ID da luu.";
   setupDone     = true;
   setupChecking = false;
+  Serial.println("[SETUP] Configuration saved successfully!");
 }
 
 void showSuccessAndRestart(String title, String detail) {
@@ -1151,6 +1179,69 @@ bool sendEmergencyToBaseUrl(String baseUrl) {
 
   http.end();
   return ok;
+}
+
+bool verifyDeviceIdWithServer(String baseUrl, String deviceId) {
+  HTTPClient       http;
+  WiFiClientSecure secureClient;
+
+  // POST /api/register - Verify device exists and is valid
+  String url = baseUrl + "/api/register";
+
+  Serial.print("[VERIFY] Device URL: ");
+  Serial.println(url);
+
+  // Build JSON body
+  String body = "{\"deviceId\":\"";
+  body += deviceId;
+  body += "\"}";
+
+  Serial.print("[VERIFY] Sending: ");
+  Serial.println(body);
+
+  bool beginOK = false;
+
+  if (url.startsWith("https://")) {
+    secureClient.setInsecure();
+    beginOK = http.begin(secureClient, url);
+  } else {
+    beginOK = http.begin(url);
+  }
+
+  if (!beginOK) {
+    Serial.println("[VERIFY] HTTP begin failed");
+    return false;
+  }
+
+  http.setTimeout(5000);
+  http.addHeader("Content-Type", "application/json");
+
+  int code = http.POST(body);
+
+  Serial.print("[VERIFY] HTTP Response Code: ");
+  Serial.println(code);
+
+  bool isValid = false;
+
+  if (code >= 200 && code < 300) {
+    String response = http.getString();
+    Serial.print("[VERIFY] Response: ");
+    Serial.println(response);
+
+    // Check if response contains "ACTIVE"
+    if (response.indexOf("ACTIVE") != -1) {
+      isValid = true;
+      Serial.println("[VERIFY] Device ID is VALID and ACTIVE");
+    } else {
+      Serial.println("[VERIFY] Device ID is INACTIVE");
+    }
+  } else {
+    Serial.print("[VERIFY] Error: ");
+    Serial.println(http.errorToString(code));
+  }
+
+  http.end();
+  return isValid;
 }
 
 void sendEmergency() {

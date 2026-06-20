@@ -18,7 +18,6 @@ public class ManageDeviceService {
     DeviceRepository deviceRepository;
     DeviceMapper deviceMapper;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     public List<AdminDeviceResponse> getAllDevices() {
         return deviceRepository.findAll().stream()
                 .map(deviceMapper::toAdminDevice)

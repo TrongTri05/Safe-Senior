@@ -19,7 +19,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserVoucher {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
@@ -32,13 +31,11 @@ public class UserVoucher {
     @JoinColumn(name = "voucher_id", nullable = false)
     Voucher voucher;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    VoucherStatus status;
+    String status;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    VoucherSource source;
+    String source;
 
     @CreationTimestamp
     @Column(name = "received_at", nullable = false, updatable = false)

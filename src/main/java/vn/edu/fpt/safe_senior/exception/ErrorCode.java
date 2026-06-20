@@ -39,6 +39,15 @@ public enum ErrorCode {
     PRODUCT_NOT_UPDATE(1030,"Sản phẩm đã bán không thể cập nhật.", HttpStatus.BAD_REQUEST),
     PRODUCT_EXISTED(1031,"Product existed", HttpStatus.BAD_REQUEST),
     DEVICE_EXISTED(1032,"Device existed", HttpStatus.BAD_REQUEST),
+    VOUCHER_EXISTED(1033,"Voucher existed", HttpStatus.BAD_REQUEST),
+    INVALID_DISCOUNT_VALUE(1034,"Invalid discount value", HttpStatus.BAD_REQUEST),
+    INVALID_DISCOUNT_TYPE(1035,"Invalid discount type", HttpStatus.BAD_REQUEST),
+    INVALID_EXPIRED_DATE(1036,"Invalid expired date", HttpStatus.BAD_REQUEST),
+    VOUCHER_EXPIRED(1037,"Voucher expired", HttpStatus.BAD_REQUEST),
+    VOUCHER_NOT_OWNED(1038,"Voucher not owned", HttpStatus.BAD_REQUEST),
+    VOUCHER_ALREADY_USED(1039,"Voucher already used", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_ENOUGH_FOR_VOUCHER(1040,"Đơn hàng chưa đạt giá trị tối thiểu để áp dụng voucher", HttpStatus.BAD_REQUEST),
+    ORDER_CANNOT_CONFIRM(1041,"Order cannot confirm", HttpStatus.BAD_REQUEST),
     LOGIN_ERROR(1018, "Username or Password error", HttpStatus.INTERNAL_SERVER_ERROR);
 
 

@@ -11,6 +11,7 @@ import vn.edu.fpt.safe_senior.entity.OrderItem;
 public interface OrderMapper {
     @Mapping(target = "orderId", source = "id")
     @Mapping(target = "user", source = "user")
+    @Mapping(source = "discountAmount", target = "discountAmount")
     OrderResponse toOrderResponse(Order order);
 
     @Mapping(target = "deviceId", source = "product.device.deviceId")

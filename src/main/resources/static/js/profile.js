@@ -320,6 +320,7 @@ function switchTab(id, btn) {
     if (id === 'address') loadAddresses();
     if (id === 'orders') loadOrders();
     if (id === 'devices') loadDevices();
+    if (id === 'vouchers') loadVouchers();
 }
 
 
@@ -391,69 +392,12 @@ function fmtOrderDate(val) {
 
 async function loadOrders() {
     const listEl = document.getElementById('orders-list');
-    const countEl = document.getElementById('orders-count-label');
     if (!listEl) return;
     try {
         const res = await api.get('/order/user-orders');
         const data = res.data?.result ?? res.data ?? [];
         ordersCache = data;
-        if (countEl) countEl.textContent = `${data.length} đơn hàng`;
-        if (!data.length) {
-            listEl.innerHTML = `
-                <div style="text-align:center;padding:40px;
-                    font-family:var(--font-mono);font-size:12px;
-                    letter-spacing:2px;color:var(--grey-light);">
-                    CHƯA CÓ ĐƠN HÀNG
-                </div>`;
-            return;
-        }
-        listEl.innerHTML = data.map(o => {
-            const st = ORDER_STATUS_LABEL[o.orderStatus] ?? {text: o.orderStatus, cls: ''};
-            const firstItem = o.items?.[0];
-            const moreCount = (o.items?.length ?? 0) - 1;
-            return `
-            <div class="order-card" onclick="showOrderDetail('${o.orderId}')" 
-                 style="cursor:pointer;">
-                <div class="order-header">
-                    <div>
-                        <div class="order-id">#${o.orderId.slice(0, 8).toUpperCase()}</div>
-                        <div class="order-date">${fmtOrderDate(o.createdAt)}</div>
-                    </div>
-                    <div class="order-status ${st.cls}">${st.text}</div>
-                </div>
-                <div class="order-items">
-                    ${firstItem ? `
-                    <div class="order-item">
-                        <div class="order-item-emoji">📦</div>
-                        <div class="order-item-info">
-                            <div class="order-item-name">${firstItem.product?.name ?? '—'}</div>
-                            <div class="order-item-sub">SL: ${firstItem.quantity}</div>
-                        </div>
-                        <div class="order-item-price">${fmtPrice(firstItem.subtotal)}</div>
-                    </div>` : ''}
-                    ${moreCount > 0 ? `
-                    <div style="font-family:var(--font-mono);font-size:11px;
-                                color:var(--grey-light);padding:8px 0;">
-                        +${moreCount} sản phẩm khác
-                    </div>` : ''}
-                </div>
-               <div class="order-footer">
-    <div class="order-summary">
-        <div class="order-total-label">Tổng cộng</div>
-        <div class="order-total-val">${fmtPrice(o.totalAmount)}</div>
-    </div>
-
-    ${o.orderStatus === 'PENDING' ? `
-    <button
-        onclick="event.stopPropagation();cancelOrder('${o.orderId}')"
-        class="btn-cancel-order">
-        Huỷ đơn hàng
-    </button>` : ''}
-</div>
- 
-            </div>`;
-        }).join('');
-
+        renderOrdersList(ordersCache);
     } catch (err) {
         console.error('Lỗi load orders:', err);
         listEl.innerHTML = `
@@ -465,12 +409,86 @@ async function loadOrders() {
     }
 }
 
+function filterOrders() {
+    const filter = document.getElementById('order-filter')?.value || 'all';
+    const list = filter === 'all'
+        ? ordersCache
+        : ordersCache.filter(o => o.orderStatus === filter);
+    renderOrdersList(list);
+}
+
+function renderOrdersList(data) {
+    const listEl = document.getElementById('orders-list');
+    const countEl = document.getElementById('orders-count-label');
+    if (!listEl) return;
+
+    if (countEl) countEl.textContent = `${data.length} / ${ordersCache.length} đơn hàng`;
+
+    if (!data.length) {
+        listEl.innerHTML = `
+            <div style="text-align:center;padding:40px;
+                font-family:var(--font-mono);font-size:12px;
+                letter-spacing:2px;color:var(--grey-light);">
+                KHÔNG CÓ ĐƠN HÀNG NÀO
+            </div>`;
+        return;
+    }
+
+    listEl.innerHTML = data.map(o => {
+        const st = ORDER_STATUS_LABEL[o.orderStatus] ?? {text: o.orderStatus, cls: ''};
+        const firstItem = o.items?.[0];
+        const moreCount = (o.items?.length ?? 0) - 1;
+        return `
+        <div class="order-card" onclick="showOrderDetail('${o.orderId}')" 
+             style="cursor:pointer;">
+            <div class="order-header">
+                <div>
+                    <div class="order-id">#${o.orderId.slice(0, 8).toUpperCase()}</div>
+                    <div class="order-date">${fmtOrderDate(o.createdAt)}</div>
+                </div>
+                <div class="order-status ${st.cls}">${st.text}</div>
+            </div>
+            <div class="order-items">
+                ${firstItem ? `
+                <div class="order-item">
+                    <div class="order-item-emoji">📦</div>
+                    <div class="order-item-info">
+                        <div class="order-item-name">${firstItem.product?.name ?? '—'}</div>
+                        <div class="order-item-sub">SL: ${firstItem.quantity}</div>
+                    </div>
+                    <div class="order-item-price">${fmtPrice(firstItem.subtotal)}</div>
+                </div>` : ''}
+                ${moreCount > 0 ? `
+                <div style="font-family:var(--font-mono);font-size:11px;
+                            color:var(--grey-light);padding:8px 0;">
+                    +${moreCount} sản phẩm khác
+                </div>` : ''}
+            </div>
+           <div class="order-footer">
+<div class="order-summary">
+    <div class="order-total-label">Tổng cộng</div>
+    <div class="order-total-val">${fmtPrice(o.totalAmount)}</div>
+</div>
+
+${o.orderStatus === 'PENDING' ? `
+<button
+    onclick="event.stopPropagation();cancelOrder('${o.orderId}')"
+    class="btn-cancel-order">
+    Huỷ đơn hàng
+</button>` : ''}
+</div>
+
+        </div>`;
+    }).join('');
+}
+
 async function cancelOrder(orderId) {
     if (!confirm('Xác nhận huỷ đơn hàng này?')) return;
     try {
         await api.post(`/order/${orderId}/cancel`);
         showToast('Đã huỷ đơn hàng!');
-        await loadOrders(); // reload lại list
+        await loadOrders();
+        filterOrders();
     } catch (err) {
         showToast('Huỷ thất bại, thử lại!');
         console.error(err);
@@ -482,7 +500,7 @@ function showOrderDetail(orderId) {
     if (!o) return;
 
     document.getElementById('orders-list').style.display = 'none';
-    document.getElementById('order-detail').style.display = 'block';
+    document.getElementById('order-detail').style.display = '';
 
     const st = ORDER_STATUS_LABEL[o.orderStatus] ?? {text: o.orderStatus, cls: ''};
 
@@ -646,6 +664,20 @@ function showOrderDetail(orderId) {
                     ${payIcon} ${o.paymentMethod}
                 </span>
             </div>
+            ${o.voucherCode ? `
+<div style="display:flex;justify-content:space-between;
+    align-items:center;padding:10px 0;
+    border-bottom:1px solid var(--grey-border);">
+    <span style="font-size:13px;color:var(--grey-light);">
+        Voucher áp dụng
+    </span>
+    <span style="font-family:var(--font-mono);font-size:11px;
+        letter-spacing:1px;display:flex;align-items:center;gap:6px;
+        color:var(--green);">
+        🎫 ${o.voucherCode}
+        ${o.discountAmount ? `(−${fmtPrice(o.discountAmount)})` : ''}
+    </span>
+</div>` : ''}
             <div style="display:flex;justify-content:space-between;
                 align-items:center;padding:10px 0;
                 border-bottom:1px solid var(--grey-border);">
@@ -672,7 +704,10 @@ function showOrderDetail(orderId) {
                 </span>            
             </div>
         
-${o.paymentMethod === 'BANKING' && o.paymentStatus === 'PENDING' ? `
+${o.paymentMethod === 'BANKING'
+    && o.paymentStatus === 'PENDING'
+    && o.orderStatus !== 'CANCELLED'
+    && o.orderStatus !== 'DELIVERED' ? `
 <button onclick="openQrModal('${o.orderId}')" style="
     width:100%;margin-top:16px;padding:14px;
     background:var(--red);border:none;
@@ -685,7 +720,7 @@ ${o.paymentMethod === 'BANKING' && o.paymentStatus === 'PENDING' ? `
 
     document.getElementById('btn-back-orders').onclick = () => {
         document.getElementById('order-detail').style.display = 'none';
-        document.getElementById('orders-list').style.display = 'block';
+        document.getElementById('orders-list').style.display = '';
     };
 }
 
@@ -708,8 +743,6 @@ function getDeviceStatusInfo(status) {
     switch (status) {
         case 'ACTIVE':
             return { label: 'Đang hoạt động', color: '#00c864', cardClass: 'online' };
-        case 'SOLD':
-            return { label: 'Chưa kích hoạt', color: 'var(--grey-light)', cardClass: '' };
         case 'OFFLINE':
             return { label: 'Ngoại tuyến', color: 'var(--grey-light)', cardClass: '' };
         case 'BLOCKED':
@@ -735,8 +768,9 @@ async function loadDevices() {
     try {
         const res = await api.get('/api/user-devices');
         const data = res.data?.result ?? res.data ?? [];
+        const visibleDevices = data.filter(d => d.status !== 'SOLD');
 
-        const onlineCount = data.filter(d => d.status === 'ACTIVE').length;
+        const onlineCount = visibleDevices.filter(d => d.status === 'ACTIVE').length;
         if (label) {
             label.textContent = onlineCount > 0
                 ? `${onlineCount} thiết bị online`
@@ -744,7 +778,7 @@ async function loadDevices() {
             label.style.color = onlineCount > 0 ? '#00c864' : 'var(--grey-light)';
         }
 
-        if (!data.length) {
+        if (!visibleDevices.length) {
             grid.innerHTML = `
                 <div style="text-align:center;padding:40px;
                     font-family:var(--font-mono);font-size:12px;
@@ -754,86 +788,85 @@ async function loadDevices() {
             return;
         }
 
-        grid.innerHTML = data.map(d => {
+        grid.innerHTML = visibleDevices.map(d => {
             const st = getDeviceStatusInfo(d.status);
             const emoji = getDeviceEmoji(d.name);
-            const isSold = d.status === 'SOLD';
+            const isOffline = d.status === 'OFFLINE';
 
             return `
-            <div class="device-card ${st.cardClass}">
-              <!-- Nút + ở góc trên phải, cạnh chấm online -->
-    <button onclick="openSosContacts('${d.deviceId}')" style="
-        position:absolute;top:12px;right:${st.cardClass === 'online' ? '36px' : '12px'};
-        width:24px;height:24px;border-radius:50%;
-        background:none;
-        border:1.5px solid var(--grey-border);
-        color:var(--grey-light);font-size:16px;line-height:1;
-        display:flex;align-items:center;justify-content:center;
-        cursor:pointer;transition:all 0.3s;z-index:2;"
-        title="Cài đặt số điện thoại khẩn cấp"
-        onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
-        onmouseout="this.style.borderColor='var(--grey-border)';this.style.color='var(--grey-light)'">
-        +
-    </button>
-                <div class="device-emoji">${emoji}</div>
-                <div class="device-name">${d.name ?? '—'}</div>
-                <div class="device-model" style="font-family:var(--font-mono);
-                    font-size:11px;color:var(--grey-light);margin-bottom:12px;">
-                    ID: ${d.deviceId ?? '—'}
-                </div>
+    <div class="device-card ${st.cardClass}">
+      <button onclick="openSosContacts('${d.deviceId}')" style="
+          position:absolute;top:12px;right:${st.cardClass === 'online' ? '36px' : '12px'};
+          width:24px;height:24px;border-radius:50%;
+          background:none;
+          border:1.5px solid var(--grey-border);
+          color:var(--grey-light);font-size:16px;line-height:1;
+          display:flex;align-items:center;justify-content:center;
+          cursor:pointer;transition:all 0.3s;z-index:2;"
+          title="Cài đặt số điện thoại khẩn cấp"
+          onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+          onmouseout="this.style.borderColor='var(--grey-border)';this.style.color='var(--grey-light)'">
+          +
+      </button>
+        <div class="device-emoji">${emoji}</div>
+        <div class="device-name">${d.name ?? '—'}</div>
+        <div class="device-model" style="font-family:var(--font-mono);
+            font-size:11px;color:var(--grey-light);margin-bottom:12px;">
+            ID: ${d.deviceId ?? '—'}
+        </div>
 
-                <div class="device-stat">
-                    <span class="device-stat-icon">📡</span>
-                    Trạng thái:
-                    <strong style="color:${st.color};margin-left:4px;">
-                        ${st.label}
-                    </strong>
-                </div>
+        <div class="device-stat">
+            <span class="device-stat-icon">📡</span>
+            Trạng thái:
+            <strong style="color:${st.color};margin-left:4px;">
+                ${st.label}
+            </strong>
+        </div>
 
-               ${isSold ? `
-            <div style="margin-top:16px;padding:14px;
-    border:1px dashed var(--grey-border);
-    font-family:var(--font-mono);font-size:10px;
-    letter-spacing:2px;color:var(--grey-light);
-    text-align:center;line-height:2.2;">
-    THIẾT BỊ CHƯA ĐƯỢC KÍCH HOẠT<br>
-    <span style="color:var(--white);font-size:11px;">
-        Vui lòng setup thiết bị để bắt đầu sử dụng
-    </span>
-    <br>
-    <button onclick="openSetupGuide('${d.deviceId}')" style="
-        display:inline-flex;align-items:center;gap:8px;
-        margin-top:10px;padding:8px 18px;
-        background:none;
-        border:1px solid var(--grey-border);
-        color:var(--grey-light);
-        font-family:var(--font-mono);font-size:10px;
-        letter-spacing:2px;text-transform:uppercase;
-        cursor:pointer;transition:all 0.3s;">
-        <div style="
-            width:20px;height:20px;border-radius:50%;
-            border:1.5px solid var(--grey-light);
-            display:flex;align-items:center;justify-content:center;
-            font-size:12px;font-family:var(--font-display);">?</div>
-        HƯỚNG DẪN SETUP
-    </button>
-</div>` : `
-                <div class="device-stat">
-                    <span class="device-stat-icon">🕐</span>
-                    Kết nối lần cuối:
-                    <strong style="margin-left:4px;">
-                        ${fmtDateTime(d.lastConnectedAt)}
-                    </strong>
-                </div>
-                <div class="device-stat">
-                    <span class="device-stat-icon">⚙️</span>
-                    Cấu hình lúc:
-                    <strong style="margin-left:4px;">
-                        ${fmtDateTime(d.configuredAt)}
-                    </strong>
-                </div>
-                `}
-            </div>`;
+        ${isOffline ? `
+        <div style="margin-top:16px;padding:14px;
+            border:1px dashed var(--grey-border);
+            font-family:var(--font-mono);font-size:10px;
+            letter-spacing:2px;color:var(--grey-light);
+            text-align:center;line-height:2.2;">
+            THIẾT BỊ CHƯA ĐƯỢC KÍCH HOẠT<br>
+            <span style="color:var(--white);font-size:11px;">
+                Vui lòng setup thiết bị để bắt đầu sử dụng
+            </span>
+            <br>
+            <button onclick="openSetupGuide('${d.deviceId}')" style="
+                display:inline-flex;align-items:center;gap:8px;
+                margin-top:10px;padding:8px 18px;
+                background:none;
+                border:1px solid var(--grey-border);
+                color:var(--grey-light);
+                font-family:var(--font-mono);font-size:10px;
+                letter-spacing:2px;text-transform:uppercase;
+                cursor:pointer;transition:all 0.3s;">
+                <div style="
+                    width:20px;height:20px;border-radius:50%;
+                    border:1.5px solid var(--grey-light);
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:12px;font-family:var(--font-display);">?</div>
+                HƯỚNG DẪN SETUP
+            </button>
+        </div>` : `
+        <div class="device-stat">
+            <span class="device-stat-icon">🕐</span>
+            Kết nối lần cuối:
+            <strong style="margin-left:4px;">
+                ${fmtDateTime(d.lastConnectedAt)}
+            </strong>
+        </div>
+        <div class="device-stat">
+            <span class="device-stat-icon">⚙️</span>
+            Cấu hình lúc:
+            <strong style="margin-left:4px;">
+                ${fmtDateTime(d.configuredAt)}
+            </strong>
+        </div>
+        `}
+    </div>`;
         }).join('');
 
     } catch (err) {
@@ -1182,7 +1215,153 @@ document.getElementById('find-device-input')
     });
 
 
+// ══════════════════════════
+// VOUCHERS
+// ══════════════════════════
+let vouchersCache = [];
 
+async function loadVouchers() {
+    const grid = document.getElementById('vouchers-grid');
+    if (!grid) return;
+
+    // Skeleton loading
+    grid.innerHTML = [1,2,3].map(i => `
+        <div style="height:140px;background:var(--grey);
+                    opacity:${0.4 - i*0.1};
+                    border:1px solid var(--grey-border);"></div>
+    `).join('');
+
+    try {
+        const userId = localStorage.getItem('userId');
+        if (!userId) { renderVouchers([]); return; }
+        const res    = await api.get(`/users/${userId}/vouchers`);
+        vouchersCache = res.data?.result ?? res.data ?? [];
+        if (!Array.isArray(vouchersCache)) vouchersCache = [];
+    } catch(err) {
+        console.error('Lỗi load voucher:', err);
+        vouchersCache = [];
+    }
+
+    renderVouchers(vouchersCache);
+}
+
+function filterVouchers() {
+    const filter = document.getElementById('voucher-filter')?.value || 'all';
+    let list = vouchersCache;
+
+    if (filter === 'available') {
+        list = vouchersCache.filter(v => v.status === 'AVAILABLE');
+    } else if (filter === 'used') {
+        list = vouchersCache.filter(v => v.status === 'USED');
+    } else if (filter === 'expired') {
+        list = vouchersCache.filter(v => v.status === 'EXPIRED');
+    }
+    renderVouchers(list);
+}
+
+function renderVouchers(list) {
+    const grid    = document.getElementById('vouchers-grid');
+    const countEl = document.getElementById('voucher-count-label');
+    if (!grid) return;
+
+    const available = vouchersCache.filter(v => v.status === 'AVAILABLE').length;
+    const used      = vouchersCache.filter(v => v.status === 'USED').length;
+    const expired   = vouchersCache.filter(v => v.status === 'EXPIRED').length;
+
+    if (countEl) {
+        countEl.textContent = `${available} khả dụng  •  ${used} đã dùng  •  ${expired} hết hạn`;
+    }
+
+    if (!list.length) {
+        grid.innerHTML = `
+            <div class="voucher-empty">
+                <div class="voucher-empty-icon">🎫</div>
+                CHƯA CÓ VOUCHER
+            </div>`;
+        return;
+    }
+
+    grid.innerHTML = list.map(uv => {
+        const v        = uv.voucher ?? uv;
+        const code     = v.code        || uv.code     || '—';
+        const dtype    = v.discountType || uv.discountType || 'PERCENT';
+        const dval     = Number(v.discountValue || uv.discountValue || 0);
+        const minOrder = Number(v.minOrderValue || uv.minOrderValue || 0);
+        const maxDisc  = Number(v.maxDiscount   || uv.maxDiscount   || 0);
+        const expiredAt= v.expiredAt   || uv.expiredAt;
+        const status   = uv.status     || 'AVAILABLE';
+        const usedAt   = uv.usedAt;
+        const source   = uv.source;
+        const isUsed    = status === 'USED';
+        const isExpired = status === 'EXPIRED';  // ✅ dùng status BE trả, không tự tính lại
+
+        const discDisplay = dtype === 'PERCENT' ? `${dval}%` : fmtShort(dval);
+        const desc = dtype === 'PERCENT'
+            ? `Giảm ${dval}%${maxDisc > 0 ? `, tối đa ${fmtShort(maxDisc)}` : ''}`
+            : `Giảm ${fmtShort(dval)}`;
+        const minDesc = minOrder > 0 ? `Đơn tối thiểu ${fmtShort(minOrder)}` : 'Không giới hạn đơn tối thiểu';
+
+        const cardCls = [
+            'voucher-card',
+            isUsed ? 'used' : isExpired ? 'expired' : 'unused',
+        ].join(' ').trim();
+
+        const statusBadge = isUsed
+            ? `<span class="voucher-status-badge" style="background:rgba(255,255,255,.05);color:var(--grey-light);border:1px solid var(--grey-border);">ĐÃ DÙNG</span>`
+            : isExpired
+                ? `<span class="voucher-status-badge" style="background:rgba(232,28,28,.08);color:var(--red);border:1px solid rgba(232,28,28,.2);">HẾT HẠN</span>`
+                : `<span class="voucher-status-badge" style="background:rgba(0,200,100,.08);color:var(--green);border:1px solid rgba(0,200,100,.2);">KHẢ DỤNG</span>`;
+
+        return `
+        <div class="${cardCls}" style="min-height:140px;">
+            <div class="voucher-left">
+                <div class="voucher-discount" style="${isUsed||isExpired ? 'color:var(--grey-light)' : ''}">
+                    ${discDisplay}
+                </div>
+                <div class="voucher-discount-type">
+                    ${dtype === 'PERCENT' ? 'Giảm giá' : 'Cố định'}
+                </div>
+            </div>
+            <div class="voucher-right">
+                <div class="voucher-code" style="${isUsed||isExpired ? 'color:var(--grey-light)' : ''}">
+                    ${code}
+                </div>
+                <div class="voucher-desc">${desc}</div>
+                <div class="voucher-desc">${minDesc}</div>
+                ${source ? `<div class="voucher-desc" style="color:var(--grey-light);">Nguồn: ${fmtSource(source)}</div>` : ''}
+                <div class="voucher-footer">
+                    <div>
+                        <div class="voucher-expire">
+                            ${expiredAt ? `HẾT HẠN: ${new Date(expiredAt).toLocaleDateString('vi-VN')}` : 'KHÔNG HẾT HẠN'}
+                        </div>
+                        ${isUsed && usedAt ? `<div class="voucher-used-info">Đã dùng: ${new Date(usedAt).toLocaleDateString('vi-VN')}</div>` : ''}
+                    </div>
+                    ${statusBadge}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// Format ngắn gọn số tiền
+function fmtShort(n) {
+    const num = Number(n || 0);
+    if (num >= 1000000) return (num / 1000000).toFixed(0) + 'M₫';
+    if (num >= 1000)    return (num / 1000).toFixed(0)    + 'K₫';
+    return num.toLocaleString('vi-VN') + '₫';
+}
+
+// Format nguồn voucher
+function fmtSource(source) {
+    const map = {
+        SPIN:      '🎡 Vòng quay',
+        ADMIN:     '⚙ Quản trị',
+        PROMOTION: '🎁 Khuyến mãi',
+    };
+    return map[source] || source || '—';
+}
+// Expose
+window.filterVouchers = filterVouchers;
 
 // ══════════════════════════
 // CHANGE PASSWORD
@@ -1377,6 +1556,7 @@ window.clearSosPhone    = clearSosPhone;
 window.cancelOrder = cancelOrder;
 window.openContactsModal = openContactsModal;
 window.findDevice = findDevice;
+window.filterOrders = filterOrders;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserInfo();

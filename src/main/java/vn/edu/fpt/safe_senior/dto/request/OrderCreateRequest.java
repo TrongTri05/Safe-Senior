@@ -19,6 +19,7 @@ public class OrderCreateRequest {
     @NotBlank(message = "Payment method is required")
     String paymentMethod;
     String note;
+    String voucherCode;
     @NotEmpty(message = "Order must have at least one item")
     List<OrderItemRequest> items;
 }

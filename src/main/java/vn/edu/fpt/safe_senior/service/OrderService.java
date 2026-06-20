@@ -16,6 +16,7 @@ import vn.edu.fpt.safe_senior.entity.User;
 import vn.edu.fpt.safe_senior.enums.DeviceEnum;
 import vn.edu.fpt.safe_senior.enums.OrderEnum;
 import vn.edu.fpt.safe_senior.enums.ProductEnum;
+import vn.edu.fpt.safe_senior.enums.VoucherStatus;
 import vn.edu.fpt.safe_senior.exception.AppException;
 import vn.edu.fpt.safe_senior.exception.ErrorCode;
 import vn.edu.fpt.safe_senior.mapper.OrderMapper;
@@ -34,14 +35,25 @@ public class OrderService {
     OrderItemRepository orderItemRepository;
     ProductRepository productRepository;
     DeviceRepository deviceRepository;
+    UserVoucherRepository userVoucherRepository;
 
     public List<OrderResponse> getOrderUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
                 .stream()
-                .map(orderMapper::toOrderResponse)
+                .map(this::toOrderResponseWithVoucher)
                 .toList();
+    }
+
+    public OrderResponse toOrderResponseWithVoucher(Order order) {
+        OrderResponse response = orderMapper.toOrderResponse(order);
+        userVoucherRepository.findByOrder_Id(order.getId()).ifPresent(uv -> {
+            response.setVoucherCode(uv.getVoucher().getCode());
+        });
+        response.setDiscountAmount(order.getDiscountAmount());
+
+        return response;
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -67,10 +79,8 @@ public class OrderService {
                 .findByOrderId(orderId);
         for (OrderItem item : items) {
             Product product = item.getProduct();
-            // Rollback product
-            product.setStatus(ProductEnum.INACTIVE.name());
+            product.setStatus(ProductEnum.ACTIVE.name());
             productRepository.save(product);
-            // Rollback device
             deviceRepository.findByProductAndStatus(product, DeviceEnum.SOLD.name())
                     .ifPresent(device -> {
                         device.setUser(null);
@@ -78,6 +88,15 @@ public class OrderService {
                         deviceRepository.save(device);
                     });
         }
+
+        //Rollback voucher
+        userVoucherRepository.findByOrder_Id(orderId).ifPresent(userVoucher -> {
+            userVoucher.setStatus(VoucherStatus.AVAILABLE.name());
+            userVoucher.setUsedAt(null);
+            userVoucher.setOrder(null);
+            userVoucherRepository.save(userVoucher);
+        });
+
         // Cập nhật order
         order.setOrderStatus(OrderEnum.CANCELLED.name());
         orderRepository.save(order);

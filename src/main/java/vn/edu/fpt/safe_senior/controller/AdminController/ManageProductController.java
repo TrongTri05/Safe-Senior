@@ -4,6 +4,7 @@ package vn.edu.fpt.safe_senior.controller.AdminController;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.safe_senior.dto.request.ProductCreateRequest;
 import vn.edu.fpt.safe_senior.dto.request.ProductUpdateRequest;
@@ -21,6 +22,7 @@ public class ManageProductController {
     ManageProductService manageProductService;
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<List<ProductResponse>> getAllProducts() {
         return ApiResponse.<List<ProductResponse>>builder()
                 .result(manageProductService.getAllProducts())
@@ -28,6 +30,7 @@ public class ManageProductController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<ProductResponse> updateProduct(@PathVariable String id, @RequestBody ProductUpdateRequest request) {
         return ApiResponse.<ProductResponse>builder()
                 .result(manageProductService.updateProduct(id, request))
@@ -36,6 +39,7 @@ public class ManageProductController {
 
 
     @PostMapping()
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<ProductResponse> createProduct(@RequestBody ProductCreateRequest request) {
         return ApiResponse.<ProductResponse>builder()
                 .result(manageProductService.createProduct(request))
@@ -43,6 +47,7 @@ public class ManageProductController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<Void> deleteProduct(@PathVariable String id) {
         manageProductService.deleteProductById(id);
         return ApiResponse.<Void>builder()

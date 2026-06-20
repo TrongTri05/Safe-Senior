@@ -389,19 +389,16 @@ function addToCartDb(id, name, price) {
 
 async function checkout() {
     const dbItems = cart.filter(x => x.fromDb);
-    console.log('dbItems:', JSON.stringify(dbItems));
     if (dbItems.length === 0) {
         showToast('Không có sản phẩm hợp lệ để đặt hàng!');
         return;
     }
     const userId = localStorage.getItem('userId');
-    console.log('userId:', userId);
     if (!userId) {
         showToast('Vui lòng đăng nhập!');
         return;
     }
     try {
-        // Lấy danh sách địa chỉ, tìm cái mặc định
         const res = await api.get(`/users/address/${userId}`);
         const addresses = res.data?.result ?? res.data ?? [];
         const defaultAddr = addresses.find(a => a.isDefault) ?? addresses[0];
@@ -414,6 +411,7 @@ async function checkout() {
             addressId: defaultAddr.id,
             paymentMethod,
             note: document.querySelector('.note-input')?.value || '',
+            voucherCode: appliedVoucher ? appliedVoucher.code : null,
             items: dbItems.map(x => ({
                 productId: String(x.id),
                 quantity: x.qty
@@ -421,16 +419,18 @@ async function checkout() {
         };
         await api.post('/buy/orders', payload);
         cart = [];
+        appliedVoucher = null;
         saveCart();
         updateBadge();
         showToast('Đặt hàng thành công!');
         showPage('home');
     } catch (err) {
         const status = err.response?.status;
+        const msg = err.response?.data?.message;
         if (status === 401) {
             showToast('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!');
         } else {
-            showToast('Lỗi đặt hàng, thử lại!');
+            showToast(msg || 'Lỗi đặt hàng, thử lại!');
         }
         console.error(err);
     }
@@ -593,6 +593,8 @@ function updateBadge() {
     document.getElementById('cart-count-text').textContent = total > 0 ? `(${total})` : '';
 }
 
+let appliedVoucher = null;   // { code, discount }
+
 function renderCart() {
     const el = document.getElementById('cart-content');
     if (!el) return;
@@ -608,10 +610,12 @@ function renderCart() {
     }
     const total = cart.reduce((s, x) => {
         const p = products.find(pr => pr.id === x.id);
-        // sản phẩm DB không có trong mảng products, lấy price từ cart
         return s + (p ? p.price * x.qty : (x.price || 0) * x.qty);
     }, 0);
     const shipping = 30000;
+    const discount = appliedVoucher ? appliedVoucher.discount : 0;
+    const grandTotal = Math.max(0, total + shipping - discount);
+
     const items = cart.map(x => {
         const p = products.find(pr => pr.id === x.id);
         const name = p ? p.name : x.name || 'Sản phẩm';
@@ -644,17 +648,68 @@ function renderCart() {
         <div class="summary-title">ĐƠN HÀNG</div>
         <div class="summary-row"><span>Tạm tính</span><span>${fmt(total)}</span></div>
         <div class="summary-row"><span>Phí giao hàng</span><span>${fmt(shipping)}</span></div>
-        <div class="summary-row"><span>Giảm giá</span><span style="color:var(--red)">−0₫</span></div>
-        <div class="summary-row total"><span>Tổng cộng</span><span>${fmt(total + shipping)}</span></div>
-        <input class="promo-input" type="text" placeholder="MÃ GIẢM GIÁ">
-        <button class="btn-outline" style="width:100%;padding:14px;font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:none;margin-bottom:12px;">ÁP DỤNG</button>
+        <div class="summary-row"><span>Giảm giá</span><span style="color:var(--red)">−${fmt(discount)}</span></div>
+        <div class="summary-row total"><span>Tổng cộng</span><span>${fmt(grandTotal)}</span></div>
+
+        <input class="promo-input" type="text" id="voucher-input"
+               placeholder="MÃ GIẢM GIÁ"
+               value="${appliedVoucher ? appliedVoucher.code : ''}"
+               ${appliedVoucher ? 'disabled' : ''}>
+        <button class="btn-outline" id="apply-voucher-btn"
+                style="width:100%;padding:14px;font-family:var(--font-mono);font-size:10px;
+                       letter-spacing:3px;text-transform:uppercase;cursor:pointer;margin-bottom:12px;"
+                onclick="${appliedVoucher ? 'removeVoucher()' : 'applyVoucherCode()'}">
+            ${appliedVoucher ? 'BỎ MÃ' : 'ÁP DỤNG'}
+        </button>
+        <div id="voucher-msg" style="display:none;font-family:var(--font-mono);
+             font-size:11px;margin-bottom:12px;"></div>
+
         <select class="promo-input" id="payment-method" style="margin-bottom:12px;">
-  <option value="COD">Thanh toán khi nhận hàng (COD)</option>
-  <option value="BANKING">Chuyển khoản ngân hàng</option>
-</select>
+          <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+          <option value="BANKING">Chuyển khoản ngân hàng</option>
+        </select>
         <button class="btn-primary" style="width:100%;padding:16px;font-size:11px;" onclick="checkout()"><span>THANH TOÁN NGAY</span></button>
       </div>
     </div>`;
+}
+
+async function applyVoucherCode() {
+    const code = document.getElementById('voucher-input')?.value.trim();
+    const msgEl = document.getElementById('voucher-msg');
+    if (!code) {
+        showVoucherMsg('Vui lòng nhập mã voucher!', true);
+        return;
+    }
+
+    const total = cart.reduce((s, x) => {
+        const p = products.find(pr => pr.id === x.id);
+        return s + (p ? p.price * x.qty : (x.price || 0) * x.qty);
+    }, 0);
+
+    try {
+        // BE endpoint kiểm tra voucher mà KHÔNG dùng nó (chỉ tính toán)
+        const res = await api.post('/buy/preview', { code, orderTotal: total });
+        const data = res.data?.result ?? res.data;
+        appliedVoucher = { code, discount: Number(data.discount || 0) };
+        showVoucherMsg(`Áp dụng thành công! Giảm ${fmt(appliedVoucher.discount)}`, false);
+        renderCart();
+    } catch (err) {
+        const msg = err.response?.data?.message ?? 'Mã voucher không hợp lệ!';
+        showVoucherMsg(msg, true);
+    }
+}
+
+function removeVoucher() {
+    appliedVoucher = null;
+    renderCart();
+}
+
+function showVoucherMsg(text, isError) {
+    const el = document.getElementById('voucher-msg');
+    if (!el) return;
+    el.textContent = text;
+    el.style.display = 'block';
+    el.style.color = isError ? 'var(--red)' : 'var(--green)';
 }
 
 // ══════════════════════════
@@ -838,6 +893,8 @@ window.showDbDetail = showDbDetail;
 window.checkout = checkout;
 window.submitForgotPassword = submitForgotPassword;
 window.resendEmail = resendEmail;
+window.applyVoucherCode = applyVoucherCode;
+window.removeVoucher = removeVoucher;
 
 renderFeatured();
 renderDBProducts();

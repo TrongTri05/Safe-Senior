@@ -30,9 +30,8 @@ public class ManageProductService {
     ProductRepository productRepository;
     ProductMapper productMapper;
     DeviceRepository deviceRepository;
-    DeviceMapper deviceMapper;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+
     public List<ProductResponse> getAllProducts() {
         return productRepository.findAll().stream()
                 .map(productMapper::toProductResponse)
@@ -40,13 +39,11 @@ public class ManageProductService {
     }
 
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     public void deleteProductById(String id) {
         productRepository.deleteById(id);
     }
 
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ProductResponse createProduct(ProductCreateRequest request) {
         if (productRepository.existsByName(request.getName())) {
             throw new AppException(ErrorCode.PRODUCT_EXISTED);
@@ -73,7 +70,6 @@ public class ManageProductService {
         return productMapper.toProductResponse(savedProduct);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ProductResponse updateProduct(String id, ProductUpdateRequest request) {
         Product product = productRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         if (product.getStatus().equals(ProductEnum.SOLD.name())) {

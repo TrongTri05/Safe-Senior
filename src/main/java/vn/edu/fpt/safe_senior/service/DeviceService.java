@@ -60,12 +60,7 @@ public class DeviceService {
 
     public String registerForEsp(DeviceRegisterRequest request) {
         String deviceId = request.getDeviceId();
-        Optional<Device> optionalDevice = deviceRepository.findByDeviceId(deviceId);
-
-        if (optionalDevice.isEmpty()) {
-            return "INACTIVE";
-        }
-        Device device = optionalDevice.get();
+        Device device = deviceRepository.findByDeviceId(deviceId).orElseThrow(() -> new AppException(ErrorCode.DEVICE_NOT_AVAILABLE));
         User user = device.getUser();
         if (user == null || !user.getIsActive()) {
             return "INACTIVE";
