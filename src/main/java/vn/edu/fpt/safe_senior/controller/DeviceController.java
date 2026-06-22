@@ -50,6 +50,7 @@ public class DeviceController {
 
     @PostMapping("/emergency")
     public ApiResponse<String> emergency(@RequestParam String deviceId) {
+        System.out.println(deviceId);
         emergencyService.handleEmergency(deviceId);
         return ApiResponse.<String>builder()
                 .message("Emergency sent successfully")
@@ -82,6 +83,7 @@ public class DeviceController {
 
     @PutMapping("/devices/{deviceId}/location")
     public ApiResponse<Void> updateLocationDevice(@PathVariable String deviceId, @RequestBody DeviceLocationRequest request) {
+        System.out.println("deviceId: " + deviceId);
         deviceService.updateLocationDevice(deviceId, request);
         return ApiResponse.<Void>builder()
                 .message("Device location updated successfully")

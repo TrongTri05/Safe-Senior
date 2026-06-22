@@ -1318,6 +1318,8 @@ async function loadAnalytics() {
     const total = delivered.reduce((s, o) => s + Number(o.totalAmount || 0), 0);
     const avg = delivered.length ? total / delivered.length : 0;
     const rate = allOrders.length ? (delivered.length / allOrders.length * 100) : 0; // Tỉ lệ Hoàn Thành
+    // const finished = allOrders.filter(o => ['DELIVERED','CANCELLED'].includes(o.orderStatus));
+    // const rate = finished.length ? (delivered.length / finished.length * 100) : 0;
 
     document.getElementById('a-total').textContent = fmt(total);
     document.getElementById('a-success').textContent = delivered.length;

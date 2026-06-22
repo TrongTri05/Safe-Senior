@@ -11,6 +11,7 @@ import vn.edu.fpt.safe_senior.dto.response.VoucherResponse;
 import vn.edu.fpt.safe_senior.service.admin.ManageVoucherService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -29,9 +30,18 @@ public class ManageVoucherController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<VoucherResponse> createVoucher(@RequestBody VoucherCreateRequest request){
+    public ApiResponse<VoucherResponse> createVoucher(@RequestBody VoucherCreateRequest request) {
         return ApiResponse.<VoucherResponse>builder()
                 .result(manageVoucherService.createVoucher(request))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<Void> deleteVoucher(@PathVariable UUID id) {
+        manageVoucherService.deleteVoucher(id);
+        return ApiResponse.<Void>builder()
+                .message("Voucher has been deleted")
                 .build();
     }
 }

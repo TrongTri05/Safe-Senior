@@ -378,7 +378,7 @@ bool sendLocationToBaseUrl(String baseUrl, double lat, double lng) {
   HTTPClient       http;
   WiFiClientSecure secureClient;
 
-  // POST /api/devices/{deviceId}/location
+  // PUT /api/devices/{deviceId}/location
   String url = baseUrl + "/api/devices/" + deviceId + "/location";
 
   Serial.print("LOCATION URL: ");

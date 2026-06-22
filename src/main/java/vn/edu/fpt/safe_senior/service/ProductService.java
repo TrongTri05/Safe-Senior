@@ -58,7 +58,6 @@ public class ProductService {
     }
 
 
-
     @Transactional
     public void buyProduct(OrderCreateRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -72,8 +71,12 @@ public class ProductService {
         List<Device> devicesToUpdate = new ArrayList<>();
 
         for (OrderItemRequest item : request.getItems()) {
-            Product product = productRepository.findById(item.getProductId())
+            Product product = productRepository.findByIdForUpdate(item.getProductId())
                     .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+            if (!product.getStatus().equals(ProductEnum.ACTIVE.name())) {
+                throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+            }
+
             BigDecimal subtotal = product.getPrice()
                     .multiply(BigDecimal.valueOf(item.getQuantity()));
             total = total.add(subtotal);
@@ -161,7 +164,6 @@ public class ProductService {
             userVoucherRepository.save(userVoucherToUpdate);
         }
     }
-
 
 
     public VoucherPreviewResponse previewVoucher(VoucherPreviewRequest request) {

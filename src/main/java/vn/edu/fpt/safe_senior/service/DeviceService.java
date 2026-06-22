@@ -113,6 +113,8 @@ public class DeviceService {
                 .longitude(BigDecimal.valueOf(request.getLongitude()))  // Kinh độ (Đông)
                 .createdAt(LocalDateTime.now())
                 .build();
+        System.out.println(request.getLatitude());
+        System.out.println(request.getLongitude());
         deviceLocationRepository.save(location);
     }
 

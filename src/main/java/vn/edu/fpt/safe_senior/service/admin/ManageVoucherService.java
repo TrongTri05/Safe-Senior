@@ -19,6 +19,7 @@ import vn.edu.fpt.safe_senior.repository.VoucherRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -69,5 +70,10 @@ public class ManageVoucherService {
                 && voucher.getExpiredAt().isBefore(LocalDate.now());
         response.setActive(voucher.getIsActive() && !expired);
         return response;
+    }
+
+
+    public void deleteVoucher(UUID id){
+        voucherRepository.deleteById(id);
     }
 }
